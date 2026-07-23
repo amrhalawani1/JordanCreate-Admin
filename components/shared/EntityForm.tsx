@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { ChipListField } from "@/components/shared/fields/ChipListField";
 
 export interface EntityFormResult {
   success: boolean;
@@ -153,6 +154,14 @@ export function EntityForm<Row, Values extends FieldValues>({
                 {...register(name as never)}
               />
             )}
+            {field.type === "chip-list" && (
+              <ChipListField
+                id={name}
+                value={String(watch(name as never) ?? "")}
+                onChange={(value) => setValue(name as never, value as never, { shouldValidate: true })}
+              />
+            )}
+
             {field.type === "suggest-text" && field.referenceOptions && (
               <datalist id={`${name}-suggestions`}>
                 {field.referenceOptions.map((opt) => (

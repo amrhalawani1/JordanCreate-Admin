@@ -10,8 +10,7 @@ export function nullableText() {
     .string()
     .trim()
     .transform((v) => (v === "" ? null : v))
-    .nullable()
-    .optional();
+    .nullable();
 }
 
 export function requiredText(message = "This field is required.") {
@@ -24,8 +23,7 @@ export function optionalUrl(message = "Enter a valid URL.") {
     .trim()
     .transform((v) => (v === "" ? null : v))
     .nullable()
-    .optional()
-    .refine((v) => v === null || v === undefined || z.url().safeParse(v).success, {
+    .refine((v) => v === null || z.url().safeParse(v).success, {
       message,
     });
 }

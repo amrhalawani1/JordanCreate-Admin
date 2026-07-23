@@ -1,7 +1,6 @@
-import { getEventInfo, updateEventInfo } from "@/actions/event-info";
-import { eventInfoFields } from "@/lib/entity-configs/event-info";
-import { EventInfoSchema, type EventInfoFormValues } from "@/lib/validation/event-info";
-import { SingletonForm } from "@/components/shared/SingletonForm";
+import { getEventInfo } from "@/actions/event-info";
+import type { EventInfoFormValues } from "@/lib/validation/event-info";
+import { EventInfoForm } from "./EventInfoForm";
 import { UpdatedAtBadge } from "@/components/shared/UpdatedAtBadge";
 import { EmptyState } from "@/components/shared/EmptyState";
 
@@ -40,13 +39,7 @@ export default async function EventInfoPage() {
         </div>
         <UpdatedAtBadge value={eventInfo.updated_at} />
       </div>
-      <SingletonForm
-        fields={eventInfoFields}
-        schema={EventInfoSchema}
-        defaultValues={defaultValues}
-        onSubmit={updateEventInfo}
-        successMessage="Event info updated."
-      />
+      <EventInfoForm defaultValues={defaultValues} />
     </div>
   );
 }

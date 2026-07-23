@@ -4,9 +4,8 @@ import {
   updateJordanCreateOne,
   updateJordanCreateThree,
 } from "@/actions/other-editions";
-import { jordanEditionFields } from "@/lib/entity-configs/other-editions";
-import { JordanEditionSchema, type JordanEditionFormValues } from "@/lib/validation/other-editions";
-import { SingletonForm } from "@/components/shared/SingletonForm";
+import type { JordanEditionFormValues } from "@/lib/validation/other-editions";
+import { JordanEditionForm } from "./JordanEditionForm";
 import { EmptyState } from "@/components/shared/EmptyState";
 
 export default async function OtherEditionsPage() {
@@ -24,9 +23,7 @@ export default async function OtherEditionsPage() {
       <div className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Jordan Create 1</h2>
         {one ? (
-          <SingletonForm
-            fields={jordanEditionFields}
-            schema={JordanEditionSchema}
+          <JordanEditionForm
             defaultValues={
               {
                 name: one.name,
@@ -45,9 +42,7 @@ export default async function OtherEditionsPage() {
       <div className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Jordan Create 3</h2>
         {three ? (
-          <SingletonForm
-            fields={jordanEditionFields}
-            schema={JordanEditionSchema}
+          <JordanEditionForm
             defaultValues={
               {
                 name: three.name,

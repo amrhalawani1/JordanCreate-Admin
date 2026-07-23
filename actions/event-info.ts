@@ -27,7 +27,7 @@ export async function updateEventInfo(values: unknown): Promise<ActionResult> {
       supabase,
       "event_info",
       { column: "id", value: 1 },
-      parsed.data,
+      { ...parsed.data, updated_at: new Date().toISOString() },
     );
     revalidatePath("/event-info");
     return { success: true };

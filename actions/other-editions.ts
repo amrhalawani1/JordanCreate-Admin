@@ -37,7 +37,7 @@ export async function updateJordanCreateOne(values: unknown): Promise<ActionResu
       supabase,
       "jordan_create_one",
       { column: "id", value: 1 },
-      parsed.data,
+      { ...parsed.data, updated_at: new Date().toISOString() },
     );
     revalidatePath("/other-editions");
     return { success: true };
@@ -57,7 +57,7 @@ export async function updateJordanCreateThree(values: unknown): Promise<ActionRe
       supabase,
       "jordan_create_three",
       { column: "id", value: 1 },
-      parsed.data,
+      { ...parsed.data, updated_at: new Date().toISOString() },
     );
     revalidatePath("/other-editions");
     return { success: true };

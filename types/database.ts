@@ -43,9 +43,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["event_info"]["Row"]>;
-        Update: Partial<
-          Omit<Database["public"]["Tables"]["event_info"]["Row"], "id" | "updated_at">
-        >;
+        Update: Partial<Omit<Database["public"]["Tables"]["event_info"]["Row"], "id">>;
       };
       agenda_sessions: {
         Row: {
@@ -67,7 +65,7 @@ export interface Database {
         };
         Insert: Omit<Database["public"]["Tables"]["agenda_sessions"]["Row"], "updated_at">;
         Update: Partial<
-          Omit<Database["public"]["Tables"]["agenda_sessions"]["Row"], "session_id" | "updated_at">
+          Omit<Database["public"]["Tables"]["agenda_sessions"]["Row"], "session_id">
         >;
       };
       speakers: {
@@ -82,9 +80,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: Omit<Database["public"]["Tables"]["speakers"]["Row"], "updated_at">;
-        Update: Partial<
-          Omit<Database["public"]["Tables"]["speakers"]["Row"], "handle" | "updated_at">
-        >;
+        Update: Partial<Omit<Database["public"]["Tables"]["speakers"]["Row"], "handle">>;
       };
       venue_zones: {
         Row: {
@@ -141,9 +137,7 @@ export interface Database {
         Insert: Omit<Database["public"]["Tables"]["experience"]["Row"], "id" | "updated_at"> & {
           id?: number;
         };
-        Update: Partial<
-          Omit<Database["public"]["Tables"]["experience"]["Row"], "id" | "updated_at">
-        >;
+        Update: Partial<Omit<Database["public"]["Tables"]["experience"]["Row"], "id">>;
       };
       jordan_create_one: {
         Row: {
@@ -154,9 +148,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["jordan_create_one"]["Row"]>;
-        Update: Partial<
-          Omit<Database["public"]["Tables"]["jordan_create_one"]["Row"], "id" | "updated_at">
-        >;
+        Update: Partial<Omit<Database["public"]["Tables"]["jordan_create_one"]["Row"], "id">>;
       };
       jordan_create_three: {
         Row: {
@@ -167,9 +159,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["jordan_create_three"]["Row"]>;
-        Update: Partial<
-          Omit<Database["public"]["Tables"]["jordan_create_three"]["Row"], "id" | "updated_at">
-        >;
+        Update: Partial<Omit<Database["public"]["Tables"]["jordan_create_three"]["Row"], "id">>;
       };
     };
     Views: Record<string, never>;

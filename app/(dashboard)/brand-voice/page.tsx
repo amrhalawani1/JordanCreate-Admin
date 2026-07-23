@@ -1,7 +1,6 @@
-import { getBrandVoice, updateBrandVoice } from "@/actions/brand-voice";
-import { brandVoiceFields } from "@/lib/entity-configs/brand-voice";
-import { BrandVoiceSchema, type BrandVoiceFormValues } from "@/lib/validation/brand-voice";
-import { SingletonForm } from "@/components/shared/SingletonForm";
+import { getBrandVoice } from "@/actions/brand-voice";
+import type { BrandVoiceFormValues } from "@/lib/validation/brand-voice";
+import { BrandVoiceForm } from "./BrandVoiceForm";
 import { EmptyState } from "@/components/shared/EmptyState";
 
 export default async function BrandVoicePage() {
@@ -25,13 +24,7 @@ export default async function BrandVoicePage() {
           Mission, values, and tone the bot's copy should reflect.
         </p>
       </div>
-      <SingletonForm
-        fields={brandVoiceFields}
-        schema={BrandVoiceSchema}
-        defaultValues={defaultValues}
-        onSubmit={updateBrandVoice}
-        successMessage="Brand voice updated."
-      />
+      <BrandVoiceForm defaultValues={defaultValues} />
     </div>
   );
 }

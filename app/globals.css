@@ -1,53 +1,162 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Jordan Create Bot Data Registry — always-dark palette.
+  Warm charcoal background with an orange accent, matching the event's
+  public-facing brand. This tool has no light-mode toggle by design.
+*/
 :root {
   --background: #141310;
-  --surface: #1b1a16;
-  --card: #201f1a;
-  --card-hover: #26241d;
-  --border: #332f26;
   --foreground: #f3efe6;
-  --muted: #a89f8d;
+
+  --card: #201f1a;
+  --card-foreground: #f3efe6;
+  --card-hover: #26241d;
+
+  --popover: #201f1a;
+  --popover-foreground: #f3efe6;
+
+  --primary: #ff6a2b;
+  --primary-foreground: #1b1a16;
+
+  --secondary: #26241d;
+  --secondary-foreground: #f3efe6;
+
+  --muted: #201f1a;
+  --muted-foreground: #a89f8d;
   --faint: #6e6858;
-  --accent: #ff6a2b;
-  --accent-foreground: #1b1a16;
+
+  --accent: #26241d;
+  --accent-foreground: #f3efe6;
+
   --warning: #e8b34e;
+  --warning-foreground: #1b1a16;
+
   --destructive: #e5484d;
-  --radius: 12px;
+  --destructive-foreground: #f3efe6;
+
+  --border: #332f26;
+  --input: #332f26;
+  --ring: #ff6a2b;
+
+  --chart-1: #ff6a2b;
+  --chart-2: #e8b34e;
+  --chart-3: #a89f8d;
+  --chart-4: #6e6858;
+  --chart-5: #f3efe6;
+
+  --sidebar: #1b1a16;
+  --sidebar-foreground: #f3efe6;
+  --sidebar-primary: #ff6a2b;
+  --sidebar-primary-foreground: #1b1a16;
+  --sidebar-accent: #26241d;
+  --sidebar-accent-foreground: #f3efe6;
+  --sidebar-border: #332f26;
+  --sidebar-ring: #ff6a2b;
+
+  --radius: 0.75rem;
+}
+
+/* Same values under .dark — this app never toggles, but some shadcn
+   primitives probe for the class, so keep both in sync. */
+.dark {
+  --background: #141310;
+  --foreground: #f3efe6;
+  --card: #201f1a;
+  --card-foreground: #f3efe6;
+  --popover: #201f1a;
+  --popover-foreground: #f3efe6;
+  --primary: #ff6a2b;
+  --primary-foreground: #1b1a16;
+  --secondary: #26241d;
+  --secondary-foreground: #f3efe6;
+  --muted: #201f1a;
+  --muted-foreground: #a89f8d;
+  --accent: #26241d;
+  --accent-foreground: #f3efe6;
+  --destructive: #e5484d;
+  --destructive-foreground: #f3efe6;
+  --border: #332f26;
+  --input: #332f26;
+  --ring: #ff6a2b;
+  --chart-1: #ff6a2b;
+  --chart-2: #e8b34e;
+  --chart-3: #a89f8d;
+  --chart-4: #6e6858;
+  --chart-5: #f3efe6;
+  --sidebar: #1b1a16;
+  --sidebar-foreground: #f3efe6;
+  --sidebar-primary: #ff6a2b;
+  --sidebar-primary-foreground: #1b1a16;
+  --sidebar-accent: #26241d;
+  --sidebar-accent-foreground: #f3efe6;
+  --sidebar-border: #332f26;
+  --sidebar-ring: #ff6a2b;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-surface: var(--surface);
-  --color-card: var(--card);
-  --color-card-hover: var(--card-hover);
-  --color-border: var(--border);
   --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-card-hover: var(--card-hover);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
   --color-faint: var(--faint);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-destructive: var(--destructive);
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
-  --font-sans: apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 
-  /* shadcn/ui token mapping onto our dark palette */
-  --color-primary: var(--accent);
-  --color-primary-foreground: var(--accent-foreground);
-  --color-secondary: var(--card);
-  --color-secondary-foreground: var(--foreground);
-  --color-muted-foreground: var(--muted);
-  --color-popover: var(--card);
-  --color-popover-foreground: var(--foreground);
-  --color-input: var(--border);
-  --color-ring: var(--accent);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans dark;
+  }
 }

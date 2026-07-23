@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EmptyState } from "@/components/shared/EmptyState";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronUp, ChevronDown } from "lucide-react";
 
 interface DataTableProps<Row> {
   config: EntityConfig<Row>;
@@ -17,6 +17,11 @@ interface DataTableProps<Row> {
   onDeleteClick?: (row: Row) => void;
   emptyMessage: string;
   rowClassName?: (row: Row) => string | undefined;
+  /** Both required to enable the up/down reorder column. Buttons disable
+   * automatically while a search/filter is active, since reordering a
+   * filtered subset would be ambiguous. */
+  onMoveUp?: (row: Row) => void;
+  onMoveDown?: (row: Row) => void;
 }
 
 const ALL_FILTER_VALUE = "__all__";
@@ -29,9 +34,15 @@ export function DataTable<Row extends Record<string, unknown>>({
   onDeleteClick,
   emptyMessage,
   rowClassName,
+  onMoveUp,
+  onMoveDown,
 }: DataTableProps<Row>) {
   const [search, setSearch] = useState("");
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+
+  const canReorder = Boolean(onMoveUp && onMoveDown);
+  const isFilteredOrSearched = Boolean(search.trim()) || Object.values(activeFilters).some(Boolean);
+  const reorderActive = canReorder && !isFilteredOrSearched;
 
   const filtered = useMemo(() => {
     let rows = data;
@@ -95,6 +106,12 @@ export function DataTable<Row extends Record<string, unknown>>({
         )}
       </div>
 
+      {canReorder && isFilteredOrSearched && (
+        <p className="text-xs text-muted-foreground">
+          Clear search/filters to reorder rows.
+        </p>
+      )}
+
       {filtered.length === 0 ? (
         <EmptyState message={data.length === 0 ? emptyMessage : "No rows match your search/filter."} />
       ) : (
@@ -102,6 +119,7 @@ export function DataTable<Row extends Record<string, unknown>>({
           <Table>
             <TableHeader>
               <TableRow>
+                {canReorder && <TableHead className="w-16" />}
                 {config.columns.map((col) => (
                   <TableHead key={col.key}>{col.header}</TableHead>
                 ))}
@@ -109,12 +127,42 @@ export function DataTable<Row extends Record<string, unknown>>({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((row) => (
+              {filtered.map((row, index) => (
                 <TableRow
                   key={String(row[config.pkColumn])}
                   onClick={() => onRowClick(row)}
                   className={`cursor-pointer hover:bg-card-hover ${rowClassName?.(row) ?? ""}`}
                 >
+                  {canReorder && (
+                    <TableCell>
+                      <div className="flex items-center gap-0.5">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          disabled={!reorderActive || index === 0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMoveUp!(row);
+                          }}
+                          aria-label="Move up"
+                        >
+                          <ChevronUp className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          disabled={!reorderActive || index === filtered.length - 1}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMoveDown!(row);
+                          }}
+                          aria-label="Move down"
+                        >
+                          <ChevronDown className="size-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
                   {config.columns.map((col) => (
                     <TableCell key={col.key} className={col.className}>
                       {col.render ? col.render(row) : String(row[col.key] ?? "")}

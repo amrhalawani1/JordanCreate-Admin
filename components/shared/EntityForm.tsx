@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ChipListField } from "@/components/shared/fields/ChipListField";
+import { MultiSelectField } from "@/components/shared/fields/MultiSelectField";
+import { SingleSelectField } from "@/components/shared/fields/SingleSelectField";
 
 export interface EntityFormResult {
   success: boolean;
@@ -158,6 +160,24 @@ export function EntityForm<Row, Values extends FieldValues>({
               <ChipListField
                 id={name}
                 value={String(watch(name as never) ?? "")}
+                onChange={(value) => setValue(name as never, value as never, { shouldValidate: true })}
+              />
+            )}
+
+            {field.type === "multiselect-ref" && (
+              <MultiSelectField
+                id={name}
+                value={(watch(name as never) as unknown as string[]) ?? []}
+                options={field.referenceOptions ?? []}
+                onChange={(value) => setValue(name as never, value as never, { shouldValidate: true })}
+              />
+            )}
+
+            {field.type === "select-ref" && (
+              <SingleSelectField
+                id={name}
+                value={(watch(name as never) as unknown as string | null) ?? null}
+                options={field.referenceOptions ?? []}
                 onChange={(value) => setValue(name as never, value as never, { shouldValidate: true })}
               />
             )}

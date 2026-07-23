@@ -1,8 +1,18 @@
-export default function InterestTagsPage() {
+import { getInterestTags } from "@/actions/interest-tags";
+import { InterestTagsClient } from "./InterestTagsClient";
+
+export default async function InterestTagsPage() {
+  const tags = await getInterestTags();
+
   return (
-    <div>
-      <h1 className="text-xl font-semibold text-foreground">Interest Tags</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Tag list coming soon.</p>
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-xl font-semibold text-foreground">Interest Tags</h1>
+        <p className="text-sm text-muted-foreground">
+          Tags used to match guests with relevant agenda sessions.
+        </p>
+      </div>
+      <InterestTagsClient initialData={tags} />
     </div>
   );
 }

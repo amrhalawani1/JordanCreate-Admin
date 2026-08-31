@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/shared/DataTable";
 import { EntityDrawer } from "@/components/shared/EntityDrawer";
 import { EntityForm } from "@/components/shared/EntityForm";
-import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { interestTagConfig } from "@/lib/entity-configs/interest-tags";
 import { InterestTagSchema, type InterestTagFormValues } from "@/lib/validation/interest-tags";
 import { createInterestTag, updateInterestTag, deleteInterestTag } from "@/actions/interest-tags";
@@ -23,7 +22,6 @@ export function InterestTagsClient({ initialData }: { initialData: InterestTag[]
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<InterestTag | null>(null);
-  const [deletingRow, setDeletingRow] = useState<InterestTag | null>(null);
 
   function openAdd() {
     setEditingRow(null);
@@ -51,20 +49,25 @@ export function InterestTagsClient({ initialData }: { initialData: InterestTag[]
         data={initialData}
         onRowClick={openEdit}
         onAddClick={openAdd}
-        onDeleteClick={setDeletingRow}
+        onDelete={(row) => deleteInterestTag(row.tag_id)}
+        onDeleted={() => {
+          toast.success("Tag deleted.");
+          router.refresh();
+        }}
         emptyMessage="No interest tags yet. Add the first one to get started."
       />
 
       <EntityDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
-        title={editingRow ? `Edit ${editingRow.tag_id}` : "Add Tag"}
+        title={editingRow ? editingRow.tag_id : "Add Tag"}
       >
         <EntityForm
           key={editingRow?.tag_id ?? "new"}
           fields={interestTagConfig.formFields}
           schema={InterestTagSchema}
           defaultValues={defaultValues}
+          startInShowMode={!!editingRow}
           disabledFields={editingRow ? ["tag_id"] : []}
           submitLabel={editingRow ? "Save changes" : "Add tag"}
           onSubmit={(values) =>
@@ -78,18 +81,6 @@ export function InterestTagsClient({ initialData }: { initialData: InterestTag[]
         />
       </EntityDrawer>
 
-      {deletingRow && (
-        <DeleteConfirmDialog
-          open={!!deletingRow}
-          onOpenChange={(open) => !open && setDeletingRow(null)}
-          description={interestTagConfig.describeRow(deletingRow)}
-          onConfirm={() => deleteInterestTag(deletingRow.tag_id)}
-          onDeleted={() => {
-            toast.success("Tag deleted.");
-            router.refresh();
-          }}
-        />
-      )}
     </div>
   );
 }

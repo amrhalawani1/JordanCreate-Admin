@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/shared/DataTable";
 import { EntityDrawer } from "@/components/shared/EntityDrawer";
 import { EntityForm } from "@/components/shared/EntityForm";
-import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { buildExperienceConfig } from "@/lib/entity-configs/experience";
 import { ExperienceSchema, type ExperienceFormValues } from "@/lib/validation/experience";
 import { createExperience, updateExperience, deleteExperience } from "@/actions/experience";
@@ -26,7 +25,6 @@ export function ExperienceClient({ initialData }: { initialData: Experience[] })
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<Experience | null>(null);
-  const [deletingRow, setDeletingRow] = useState<Experience | null>(null);
 
   const config = useMemo(() => {
     const types = Array.from(new Set(initialData.map((r) => r.experience_type))).sort();
@@ -62,20 +60,25 @@ export function ExperienceClient({ initialData }: { initialData: Experience[] })
         data={initialData}
         onRowClick={openEdit}
         onAddClick={openAdd}
-        onDeleteClick={setDeletingRow}
+        onDelete={(row) => deleteExperience(row.id)}
+        onDeleted={() => {
+          toast.success("Experience deleted.");
+          router.refresh();
+        }}
         emptyMessage="No experiences yet. Add the first one to get started."
       />
 
       <EntityDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
-        title={editingRow ? `Edit ${editingRow.title}` : "Add Experience"}
+        title={editingRow ? editingRow.title : "Add Experience"}
       >
         <EntityForm
           key={editingRow?.id ?? "new"}
           fields={config.formFields}
           schema={ExperienceSchema}
           defaultValues={defaultValues}
+          startInShowMode={!!editingRow}
           submitLabel={editingRow ? "Save changes" : "Add experience"}
           onSubmit={(values) =>
             editingRow ? updateExperience(editingRow.id, values) : createExperience(values)
@@ -88,18 +91,6 @@ export function ExperienceClient({ initialData }: { initialData: Experience[] })
         />
       </EntityDrawer>
 
-      {deletingRow && (
-        <DeleteConfirmDialog
-          open={!!deletingRow}
-          onOpenChange={(open) => !open && setDeletingRow(null)}
-          description={config.describeRow(deletingRow)}
-          onConfirm={() => deleteExperience(deletingRow.id)}
-          onDeleted={() => {
-            toast.success("Experience deleted.");
-            router.refresh();
-          }}
-        />
-      )}
     </div>
   );
 }

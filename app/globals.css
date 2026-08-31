@@ -5,97 +5,115 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Jordan Create Bot Data Registry — always-dark palette.
-  Warm charcoal background with an orange accent, matching the event's
-  public-facing brand. This tool has no light-mode toggle by design.
+  Jordan Create design system — registry edition.
+  Black is the stage. Orange signals action. Serif for drama, sans for work.
 */
 :root {
-  --background: #141310;
-  --foreground: #f3efe6;
+  --jc-color-canvas: #0f0f0f;
+  --jc-color-canvas-deep: #0a0a0a;
+  --jc-color-canvas-deeper: #070708;
+  --jc-color-surface: #111114;
+  --jc-color-surface-alt: #121212;
+  --jc-color-border: #303030;
+  --jc-color-white-10: rgba(255, 255, 255, 0.1);
+  --jc-color-text-primary: #ffffff;
+  --jc-color-text-muted: #a6a6a6;
+  --jc-color-text-quiet: #858585;
+  --jc-color-orange: #ea8f2d;
+  --jc-color-orange-hot: #ff6b00;
 
-  --card: #201f1a;
-  --card-foreground: #f3efe6;
-  --card-hover: #26241d;
+  --jc-text-page: 7.75rem;
+  --jc-text-hero: 4.125rem;
+  --jc-text-section: 3.5rem;
+  --jc-text-display-compact: 2.25rem;
+  --jc-text-faq-title: 2rem;
+  --jc-text-stat: 2.875rem;
+  --jc-text-body: 1rem;
+  --jc-text-label: 0.75rem;
 
-  --popover: #201f1a;
-  --popover-foreground: #f3efe6;
+  --jc-radius-card: 4px;
+  --jc-radius-field: 4px;
+  --jc-radius-pill: 20px;
 
-  --primary: #ff6a2b;
-  --primary-foreground: #1b1a16;
+  --background: var(--jc-color-canvas);
+  --foreground: var(--jc-color-text-primary);
 
-  --secondary: #26241d;
-  --secondary-foreground: #f3efe6;
+  --card: var(--jc-color-surface);
+  --card-foreground: var(--jc-color-text-primary);
+  --card-hover: #161618;
 
-  --muted: #201f1a;
-  --muted-foreground: #a89f8d;
-  --faint: #6e6858;
+  --popover: var(--jc-color-surface);
+  --popover-foreground: var(--jc-color-text-primary);
 
-  --accent: #26241d;
-  --accent-foreground: #f3efe6;
+  --primary: var(--jc-color-orange);
+  --primary-foreground: #0a0a0a;
 
-  --warning: #e8b34e;
-  --warning-foreground: #1b1a16;
+  --secondary: var(--jc-color-surface-alt);
+  --secondary-foreground: var(--jc-color-text-primary);
+
+  --muted: var(--jc-color-surface-alt);
+  --muted-foreground: var(--jc-color-text-muted);
+  --faint: var(--jc-color-text-quiet);
+
+  --accent: #1a1a1c;
+  --accent-foreground: var(--jc-color-text-primary);
+
+  --warning: var(--jc-color-orange);
+  --warning-foreground: #0a0a0a;
 
   --destructive: #e5484d;
-  --destructive-foreground: #f3efe6;
+  --destructive-foreground: #ffffff;
 
-  --border: #332f26;
-  --input: #332f26;
-  --ring: #ff6a2b;
+  --border: var(--jc-color-border);
+  --input: var(--jc-color-border);
+  --ring: var(--jc-color-orange);
 
-  --chart-1: #ff6a2b;
-  --chart-2: #e8b34e;
-  --chart-3: #a89f8d;
-  --chart-4: #6e6858;
-  --chart-5: #f3efe6;
+  --chart-1: var(--jc-color-orange);
+  --chart-2: var(--jc-color-orange-hot);
+  --chart-3: var(--jc-color-text-muted);
+  --chart-4: var(--jc-color-text-quiet);
+  --chart-5: var(--jc-color-text-primary);
 
-  --sidebar: #1b1a16;
-  --sidebar-foreground: #f3efe6;
-  --sidebar-primary: #ff6a2b;
-  --sidebar-primary-foreground: #1b1a16;
-  --sidebar-accent: #26241d;
-  --sidebar-accent-foreground: #f3efe6;
-  --sidebar-border: #332f26;
-  --sidebar-ring: #ff6a2b;
+  --sidebar: var(--jc-color-canvas-deep);
+  --sidebar-foreground: var(--jc-color-text-primary);
+  --sidebar-primary: var(--jc-color-orange);
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent: #161616;
+  --sidebar-accent-foreground: var(--jc-color-text-primary);
+  --sidebar-border: var(--jc-color-border);
+  --sidebar-ring: var(--jc-color-orange);
 
-  --radius: 0.75rem;
+  --radius: 0.25rem;
 }
 
-/* Same values under .dark — this app never toggles, but some shadcn
-   primitives probe for the class, so keep both in sync. */
 .dark {
-  --background: #141310;
-  --foreground: #f3efe6;
-  --card: #201f1a;
-  --card-foreground: #f3efe6;
-  --popover: #201f1a;
-  --popover-foreground: #f3efe6;
-  --primary: #ff6a2b;
-  --primary-foreground: #1b1a16;
-  --secondary: #26241d;
-  --secondary-foreground: #f3efe6;
-  --muted: #201f1a;
-  --muted-foreground: #a89f8d;
-  --accent: #26241d;
-  --accent-foreground: #f3efe6;
+  --background: var(--jc-color-canvas);
+  --foreground: var(--jc-color-text-primary);
+  --card: var(--jc-color-surface);
+  --card-foreground: var(--jc-color-text-primary);
+  --popover: var(--jc-color-surface);
+  --popover-foreground: var(--jc-color-text-primary);
+  --primary: var(--jc-color-orange);
+  --primary-foreground: #0a0a0a;
+  --secondary: var(--jc-color-surface-alt);
+  --secondary-foreground: var(--jc-color-text-primary);
+  --muted: var(--jc-color-surface-alt);
+  --muted-foreground: var(--jc-color-text-muted);
+  --accent: #1a1a1c;
+  --accent-foreground: var(--jc-color-text-primary);
   --destructive: #e5484d;
-  --destructive-foreground: #f3efe6;
-  --border: #332f26;
-  --input: #332f26;
-  --ring: #ff6a2b;
-  --chart-1: #ff6a2b;
-  --chart-2: #e8b34e;
-  --chart-3: #a89f8d;
-  --chart-4: #6e6858;
-  --chart-5: #f3efe6;
-  --sidebar: #1b1a16;
-  --sidebar-foreground: #f3efe6;
-  --sidebar-primary: #ff6a2b;
-  --sidebar-primary-foreground: #1b1a16;
-  --sidebar-accent: #26241d;
-  --sidebar-accent-foreground: #f3efe6;
-  --sidebar-border: #332f26;
-  --sidebar-ring: #ff6a2b;
+  --destructive-foreground: #ffffff;
+  --border: var(--jc-color-border);
+  --input: var(--jc-color-border);
+  --ring: var(--jc-color-orange);
+  --sidebar: var(--jc-color-canvas-deep);
+  --sidebar-foreground: var(--jc-color-text-primary);
+  --sidebar-primary: var(--jc-color-orange);
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent: #161616;
+  --sidebar-accent-foreground: var(--jc-color-text-primary);
+  --sidebar-border: var(--jc-color-border);
+  --sidebar-ring: var(--jc-color-orange);
 }
 
 @theme inline {
@@ -135,28 +153,73 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-orange: var(--jc-color-orange);
+  --color-orange-hot: var(--jc-color-orange-hot);
+  --color-canvas: var(--jc-color-canvas);
+  --color-canvas-deep: var(--jc-color-canvas-deep);
+  --color-canvas-deeper: var(--jc-color-canvas-deeper);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 0.25rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 1.25rem;
 
-  --font-sans: apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
+  --font-sans: var(--font-dm-sans), "DM Sans", sans-serif;
+  --font-ui: var(--font-host-grotesk), "Host Grotesk", sans-serif;
+  --font-display: var(--font-playfair), "Playfair Display", serif;
 }
 
 body {
   font-family: var(--font-sans);
+  font-size: var(--jc-text-body);
+  background: var(--jc-color-canvas);
+  color: var(--jc-color-text-primary);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
     @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer utilities {
+  .jc-label {
+    font-family: var(--font-ui);
+    font-size: var(--jc-text-label);
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--jc-color-orange);
+  }
+
+  .jc-page-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.75rem, 3vw, var(--jc-text-display-compact));
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+
+  .jc-stat {
+    font-family: var(--font-sans);
+    font-size: clamp(2rem, 3vw, var(--jc-text-stat));
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--jc-color-orange);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .jc-rule {
+    height: 1px;
+    background: var(--jc-color-white-10);
   }
 }

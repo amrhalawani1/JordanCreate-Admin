@@ -1,17 +1,17 @@
 import { getExperiences } from "@/actions/experience";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { ExperienceClient } from "./ExperienceClient";
 
 export default async function ExperiencePage() {
   const experiences = await getExperiences();
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">Experience</h1>
-        <p className="text-sm text-muted-foreground">
-          Extra experiences the bot can surface, e.g. the event playlist.
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        eyebrow="08 / Extra"
+        title="Experience"
+        description="Extra experiences the app and bot can surface, e.g. the event playlist."
+      />
       <ExperienceClient initialData={experiences} />
     </div>
   );

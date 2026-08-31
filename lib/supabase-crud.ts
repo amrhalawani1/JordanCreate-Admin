@@ -23,6 +23,20 @@ export async function fetchAll<Row>(
   return (data ?? []) as Row[];
 }
 
+export async function fetchByPk<Row>(
+  supabase: SupabaseClient<Database>,
+  table: TableName,
+  pk: { column: string; value: string | number },
+): Promise<Row | null> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.from(table) as any)
+    .select("*")
+    .eq(pk.column, pk.value)
+    .maybeSingle();
+  if (error) throw error;
+  return (data ?? null) as Row | null;
+}
+
 export async function insertRow<Row, Insert>(
   supabase: SupabaseClient<Database>,
   table: TableName,

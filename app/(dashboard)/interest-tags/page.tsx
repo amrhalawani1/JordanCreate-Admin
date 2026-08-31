@@ -1,17 +1,17 @@
 import { getInterestTags } from "@/actions/interest-tags";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { InterestTagsClient } from "./InterestTagsClient";
 
 export default async function InterestTagsPage() {
   const tags = await getInterestTags();
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">Interest Tags</h1>
-        <p className="text-sm text-muted-foreground">
-          Tags used to match guests with relevant agenda sessions.
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        eyebrow="05 / Matching"
+        title="Interest Tags"
+        description="Tags used to match guests with relevant agenda sessions."
+      />
       <InterestTagsClient initialData={tags} />
     </div>
   );

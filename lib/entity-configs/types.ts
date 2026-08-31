@@ -12,7 +12,8 @@ export type FieldType =
   | "suggest-text"
   | "multiselect-ref"
   | "select-ref"
-  | "chip-list";
+  | "chip-list"
+  | "password";
 
 export interface FieldConfig<Row> {
   name: keyof Row & string;
@@ -23,6 +24,8 @@ export interface FieldConfig<Row> {
   helpText?: string;
   /** 'enum' — the fixed, dropdown-only allowed values (mirrors a DB CHECK constraint). */
   enumValues?: readonly string[];
+  /** 'enum' — optional display labels keyed by the stored value. */
+  enumLabels?: Record<string, string>;
   /** 'suggest-text' — column to derive distinct suggestions from at render time. */
   distinctFrom?: (keyof Row & string) | "self";
   /** 'multiselect-ref' / 'select-ref' — options fetched by the page, not baked into the config. */
@@ -40,6 +43,8 @@ export interface FilterConfig<Row> {
   key: keyof Row & string;
   label: string;
   options: readonly string[];
+  allLabel?: string;
+  optionLabels?: Record<string, string>;
 }
 
 export interface EntityConfig<Row> {

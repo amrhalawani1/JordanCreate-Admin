@@ -1,4 +1,5 @@
 import { getSpeakers } from "@/actions/speakers";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { SpeakersClient } from "./SpeakersClient";
 
 export default async function SpeakersPage() {
@@ -6,16 +7,19 @@ export default async function SpeakersPage() {
   const missingCount = speakers.filter((s) => s.bio_status === "missing").length;
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">Speakers</h1>
-        <p className="text-sm text-muted-foreground">
-          {speakers.length} speakers
-          {missingCount > 0 && (
-            <span className="text-warning"> · {missingCount} missing bios</span>
-          )}
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        eyebrow="03 / Voices"
+        title="Speakers"
+        description={
+          <>
+            {speakers.length} speakers
+            {missingCount > 0 ? (
+              <span className="text-orange"> · {missingCount} missing bios</span>
+            ) : null}
+          </>
+        }
+      />
       <SpeakersClient initialData={speakers} />
     </div>
   );

@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertStaff } from "@/lib/auth/guard";
 import type { EventInfo, JordanCreateOne, JordanCreateThree } from "@/types/entities";
 
 export interface TableSummary {
@@ -21,6 +22,7 @@ function isTbdOrEmpty(value: string | null): boolean {
 }
 
 export async function getDashboardSummary(): Promise<DashboardSummary> {
+  await assertStaff();
   const supabase = createAdminClient();
 
   const [

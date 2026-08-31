@@ -16,9 +16,17 @@ interface MultiSelectFieldProps {
   options: Option[];
   onChange: (value: string[]) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-export function MultiSelectField({ id, value, options, onChange, placeholder = "Select…" }: MultiSelectFieldProps) {
+export function MultiSelectField({
+  id,
+  value,
+  options,
+  onChange,
+  placeholder = "Select…",
+  disabled = false,
+}: MultiSelectFieldProps) {
   function toggle(v: string) {
     onChange(value.includes(v) ? value.filter((x) => x !== v) : [...value, v]);
   }
@@ -30,21 +38,24 @@ export function MultiSelectField({ id, value, options, onChange, placeholder = "
           {value.map((v) => {
             const opt = options.find((o) => o.value === v);
             return (
-              <Badge key={v} variant="secondary" className="gap-1 pr-1">
+              <Badge key={v} variant="secondary" className={disabled ? "" : "gap-1 pr-1"}>
                 {opt?.label ?? v}
-                <button
-                  type="button"
-                  onClick={() => toggle(v)}
-                  className="rounded-full p-0.5 hover:bg-background/50"
-                  aria-label={`Remove ${opt?.label ?? v}`}
-                >
-                  <X className="size-3" />
-                </button>
+                {!disabled && (
+                  <button
+                    type="button"
+                    onClick={() => toggle(v)}
+                    className="rounded-full p-0.5 hover:bg-background/50"
+                    aria-label={`Remove ${opt?.label ?? v}`}
+                  >
+                    <X className="size-3" />
+                  </button>
+                )}
               </Badge>
             );
           })}
         </div>
       )}
+      {!disabled && (
       <Popover>
         <PopoverTrigger
           id={id}
@@ -71,6 +82,10 @@ export function MultiSelectField({ id, value, options, onChange, placeholder = "
           ))}
         </PopoverContent>
       </Popover>
+      )}
+      {disabled && value.length === 0 && (
+        <p className="text-sm text-muted-foreground">None</p>
+      )}
     </div>
   );
 }

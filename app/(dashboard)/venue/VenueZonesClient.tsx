@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/shared/DataTable";
 import { EntityDrawer } from "@/components/shared/EntityDrawer";
 import { EntityForm } from "@/components/shared/EntityForm";
-import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { venueZoneConfig } from "@/lib/entity-configs/venue-zones";
 import { VenueZoneSchema, type VenueZoneFormValues } from "@/lib/validation/venue-zones";
 import { createVenueZone, updateVenueZone, deleteVenueZone } from "@/actions/venue-zones";
@@ -23,7 +22,6 @@ export function VenueZonesClient({ initialData }: { initialData: VenueZone[] }) 
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<VenueZone | null>(null);
-  const [deletingRow, setDeletingRow] = useState<VenueZone | null>(null);
 
   function openAdd() {
     setEditingRow(null);
@@ -51,20 +49,25 @@ export function VenueZonesClient({ initialData }: { initialData: VenueZone[] }) 
         data={initialData}
         onRowClick={openEdit}
         onAddClick={openAdd}
-        onDeleteClick={setDeletingRow}
+        onDelete={(row) => deleteVenueZone(row.zone_id)}
+        onDeleted={() => {
+          toast.success("Zone deleted.");
+          router.refresh();
+        }}
         emptyMessage="No venue zones yet. Add the first one to get started."
       />
 
       <EntityDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
-        title={editingRow ? `Edit ${editingRow.zone_id}` : "Add Zone"}
+        title={editingRow ? editingRow.zone_id : "Add Zone"}
       >
         <EntityForm
           key={editingRow?.zone_id ?? "new"}
           fields={venueZoneConfig.formFields}
           schema={VenueZoneSchema}
           defaultValues={defaultValues}
+          startInShowMode={!!editingRow}
           disabledFields={editingRow ? ["zone_id"] : []}
           submitLabel={editingRow ? "Save changes" : "Add zone"}
           onSubmit={(values) =>
@@ -78,18 +81,6 @@ export function VenueZonesClient({ initialData }: { initialData: VenueZone[] }) 
         />
       </EntityDrawer>
 
-      {deletingRow && (
-        <DeleteConfirmDialog
-          open={!!deletingRow}
-          onOpenChange={(open) => !open && setDeletingRow(null)}
-          description={venueZoneConfig.describeRow(deletingRow)}
-          onConfirm={() => deleteVenueZone(deletingRow.zone_id)}
-          onDeleted={() => {
-            toast.success("Zone deleted.");
-            router.refresh();
-          }}
-        />
-      )}
     </div>
   );
 }

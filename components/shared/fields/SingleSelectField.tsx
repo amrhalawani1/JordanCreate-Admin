@@ -15,12 +15,21 @@ interface SingleSelectFieldProps {
   options: Option[];
   onChange: (value: string | null) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
-export function SingleSelectField({ id, value, options, onChange, placeholder = "Select…" }: SingleSelectFieldProps) {
+export function SingleSelectField({
+  id,
+  value,
+  options,
+  onChange,
+  placeholder = "Select…",
+  disabled = false,
+}: SingleSelectFieldProps) {
   return (
     <Select
       value={value ?? NONE_VALUE}
+      disabled={disabled}
       onValueChange={(v: string | null) => onChange(!v || v === NONE_VALUE ? null : v)}
     >
       <SelectTrigger id={id} className="w-full">

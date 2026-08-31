@@ -10,9 +10,10 @@ interface ChipListFieldProps {
   id: string;
   value: string;
   onChange: (value: string) => void;
+  disabled?: boolean;
 }
 
-export function ChipListField({ id, value, onChange }: ChipListFieldProps) {
+export function ChipListField({ id, value, onChange, disabled = false }: ChipListFieldProps) {
   const [draft, setDraft] = useState("");
   const chips = parseChipList(value);
 
@@ -31,32 +32,39 @@ export function ChipListField({ id, value, onChange }: ChipListFieldProps) {
     <div className="space-y-2">
       <div className="flex flex-wrap gap-1.5">
         {chips.map((chip, i) => (
-          <Badge key={`${chip}-${i}`} variant="secondary" className="gap-1 pr-1">
+          <Badge key={`${chip}-${i}`} variant="secondary" className={disabled ? "" : "gap-1 pr-1"}>
             {chip}
-            <button
-              type="button"
-              onClick={() => removeChip(i)}
-              className="rounded-full p-0.5 hover:bg-background/50"
-              aria-label={`Remove ${chip}`}
-            >
-              <X className="size-3" />
-            </button>
+            {!disabled && (
+              <button
+                type="button"
+                onClick={() => removeChip(i)}
+                className="rounded-full p-0.5 hover:bg-background/50"
+                aria-label={`Remove ${chip}`}
+              >
+                <X className="size-3" />
+              </button>
+            )}
           </Badge>
         ))}
+        {chips.length === 0 && disabled && (
+          <p className="text-sm text-muted-foreground">None</p>
+        )}
       </div>
-      <Input
-        id={id}
-        value={draft}
-        placeholder="Type a value and press Enter"
-        onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === ",") {
-            e.preventDefault();
-            addChip();
-          }
-        }}
-        onBlur={addChip}
-      />
+      {!disabled && (
+        <Input
+          id={id}
+          value={draft}
+          placeholder="Type a value and press Enter"
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === ",") {
+              e.preventDefault();
+              addChip();
+            }
+          }}
+          onBlur={addChip}
+        />
+      )}
     </div>
   );
 }

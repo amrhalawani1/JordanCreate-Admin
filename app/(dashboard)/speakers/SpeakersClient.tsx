@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/shared/DataTable";
 import { EntityDrawer } from "@/components/shared/EntityDrawer";
 import { EntityForm } from "@/components/shared/EntityForm";
-import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { buildSpeakerConfig } from "@/lib/entity-configs/speakers";
 import { SpeakerSchema, type SpeakerFormValues } from "@/lib/validation/speakers";
 import { createSpeaker, updateSpeaker, deleteSpeaker } from "@/actions/speakers";
@@ -26,7 +25,6 @@ export function SpeakersClient({ initialData }: { initialData: Speaker[] }) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<Speaker | null>(null);
-  const [deletingRow, setDeletingRow] = useState<Speaker | null>(null);
 
   const config = useMemo(() => {
     const categories = Array.from(
@@ -64,23 +62,28 @@ export function SpeakersClient({ initialData }: { initialData: Speaker[] }) {
         data={initialData}
         onRowClick={openEdit}
         onAddClick={openAdd}
-        onDeleteClick={setDeletingRow}
+        onDelete={(row) => deleteSpeaker(row.handle)}
+        onDeleted={() => {
+          toast.success("Speaker deleted.");
+          router.refresh();
+        }}
         emptyMessage="No speakers yet. Add the first one to get started."
         rowClassName={(row) =>
-          row.bio_status === "missing" ? "border-l-2 border-l-warning bg-warning/5" : undefined
+          row.bio_status === "missing" ? "border-l-2 border-l-orange bg-orange/5" : undefined
         }
       />
 
       <EntityDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
-        title={editingRow ? `Edit ${editingRow.handle}` : "Add Speaker"}
+        title={editingRow ? editingRow.handle : "Add Speaker"}
       >
         <EntityForm
           key={editingRow?.handle ?? "new"}
           fields={config.formFields}
           schema={SpeakerSchema}
           defaultValues={defaultValues}
+          startInShowMode={!!editingRow}
           disabledFields={editingRow ? ["handle"] : []}
           submitLabel={editingRow ? "Save changes" : "Add speaker"}
           onSubmit={(values) =>
@@ -93,19 +96,6 @@ export function SpeakersClient({ initialData }: { initialData: Speaker[] }) {
           }}
         />
       </EntityDrawer>
-
-      {deletingRow && (
-        <DeleteConfirmDialog
-          open={!!deletingRow}
-          onOpenChange={(open) => !open && setDeletingRow(null)}
-          description={config.describeRow(deletingRow)}
-          onConfirm={() => deleteSpeaker(deletingRow.handle)}
-          onDeleted={() => {
-            toast.success("Speaker deleted.");
-            router.refresh();
-          }}
-        />
-      )}
     </div>
   );
 }

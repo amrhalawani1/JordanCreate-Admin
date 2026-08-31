@@ -32,6 +32,7 @@ export function SingletonForm<Row, Values extends FieldValues>({
           fields={fields}
           schema={schema}
           defaultValues={defaultValues}
+          startInShowMode
           submitLabel="Save changes"
           onSubmit={onSubmit}
           onSuccess={() => {

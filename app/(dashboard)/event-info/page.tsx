@@ -1,11 +1,20 @@
 import { getEventInfo } from "@/actions/event-info";
+import { getEventInfoItems } from "@/actions/event-info-items";
 import type { EventInfoFormValues } from "@/lib/validation/event-info";
+import { eventInfoFields } from "@/lib/entity-configs/event-info";
+import { eventInfoItemConfig } from "@/lib/entity-configs/event-info-items";
+import { columnsForHtmlExport, fieldValueTable, rowsForHtmlExport } from "@/lib/export-html";
 import { EventInfoForm } from "./EventInfoForm";
+import { EventInfoItemsClient } from "./EventInfoItemsClient";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { UpdatedAtBadge } from "@/components/shared/UpdatedAtBadge";
+import { ExportButton } from "@/components/shared/ExportButton";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { EventInfoItemsSetup } from "./EventInfoItemsSetup";
 
 export default async function EventInfoPage() {
-  const eventInfo = await getEventInfo();
+  const [eventInfo, extra] = await Promise.all([getEventInfo(), getEventInfoItems()]);
 
   if (!eventInfo) {
     return <EmptyState message="event_info row is missing from the database." />;
@@ -31,15 +40,48 @@ export default async function EventInfoPage() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-baseline justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Event Info</h1>
-          <p className="text-sm text-muted-foreground">Core event logistics guests and staff rely on.</p>
-        </div>
-        <UpdatedAtBadge value={eventInfo.updated_at} />
-      </div>
+    <div className="space-y-10">
+      <PageHeader
+        eyebrow="01 / Logistics"
+        title="Event Info"
+        description="Core event logistics guests and staff rely on. Add extra title-and-description facts below for the app and the bot."
+        action={
+          <div className="flex items-center gap-3">
+            <UpdatedAtBadge value={eventInfo.updated_at} />
+            <ExportButton
+              title="Event Info"
+              fileStem="event-info"
+              tables={[
+                fieldValueTable(eventInfoFields, eventInfo, [
+                  { label: "Last updated", value: eventInfo.updated_at },
+                ]),
+                {
+                  caption: "Additional info",
+                  columns: columnsForHtmlExport(eventInfoItemConfig),
+                  rows: rowsForHtmlExport(eventInfoItemConfig, extra.rows),
+                },
+              ]}
+            />
+          </div>
+        }
+      />
       <EventInfoForm defaultValues={defaultValues} />
+
+      <section>
+        <h2 className="jc-label">Additional info</h2>
+        <p className="mt-2 mb-4 max-w-[65ch] text-sm leading-relaxed text-muted-foreground">
+          Anything that does not fit the fields above. Each item is a title and a description the app and the bot can use.
+        </p>
+        {extra.needsSetup ? (
+          <EventInfoItemsSetup />
+        ) : extra.error ? (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{extra.error}</AlertDescription>
+          </Alert>
+        ) : (
+          <EventInfoItemsClient initialData={extra.rows} />
+        )}
+      </section>
     </div>
   );
 }

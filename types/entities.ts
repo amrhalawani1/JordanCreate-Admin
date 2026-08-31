@@ -5,6 +5,10 @@ type Tables = Database["public"]["Tables"];
 export type EventInfo = Tables["event_info"]["Row"];
 export type EventInfoUpdate = Tables["event_info"]["Update"];
 
+export type EventInfoItem = Tables["event_info_items"]["Row"];
+export type EventInfoItemInsert = Tables["event_info_items"]["Insert"];
+export type EventInfoItemUpdate = Tables["event_info_items"]["Update"];
+
 export type AgendaSession = Tables["agenda_sessions"]["Row"];
 export type AgendaSessionInsert = Tables["agenda_sessions"]["Insert"];
 export type AgendaSessionUpdate = Tables["agenda_sessions"]["Update"];
@@ -45,3 +49,38 @@ export type AgendaStatus = (typeof AGENDA_STATUS_VALUES)[number];
 
 export const SPEAKER_BIO_STATUS_VALUES = ["confirmed", "missing", "unconfirmed"] as const;
 export type SpeakerBioStatus = (typeof SPEAKER_BIO_STATUS_VALUES)[number];
+
+export type Admin = Tables["admins"]["Row"];
+export type AdminInsert = Tables["admins"]["Insert"];
+export type AdminUpdate = Tables["admins"]["Update"];
+
+export const ADMIN_LEVEL_VALUES = ["super_admin", "admin", "guest_manager"] as const;
+export type AdminLevel = (typeof ADMIN_LEVEL_VALUES)[number];
+
+export const ADMIN_LEVEL_LABELS: Record<AdminLevel, string> = {
+  super_admin: "Super Admin",
+  admin: "Admin",
+  guest_manager: "Guest Manager",
+};
+
+export type FeatureRequest = Tables["feature_requests"]["Row"];
+export type FeatureRequestInsert = Tables["feature_requests"]["Insert"];
+export type FeatureRequestUpdate = Tables["feature_requests"]["Update"];
+
+export type FeatureRequestListItem = FeatureRequest & {
+  requester_name: string;
+  requester_email: string;
+};
+
+export type ChangeLog = Tables["change_logs"]["Row"];
+export type ChangeLogInsert = Tables["change_logs"]["Insert"];
+
+export const CHANGE_ACTION_VALUES = ["create", "update", "delete", "reorder"] as const;
+export type ChangeAction = (typeof CHANGE_ACTION_VALUES)[number];
+
+export const CHANGE_ACTION_LABELS: Record<ChangeAction, string> = {
+  create: "Created",
+  update: "Updated",
+  delete: "Deleted",
+  reorder: "Reordered",
+};

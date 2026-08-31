@@ -1,7 +1,11 @@
 import { getBrandVoice } from "@/actions/brand-voice";
 import type { BrandVoiceFormValues } from "@/lib/validation/brand-voice";
+import { brandVoiceFields } from "@/lib/entity-configs/brand-voice";
+import { fieldValueTable } from "@/lib/export-html";
 import { BrandVoiceForm } from "./BrandVoiceForm";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { ExportButton } from "@/components/shared/ExportButton";
 
 export default async function BrandVoicePage() {
   const brandVoice = await getBrandVoice();
@@ -17,13 +21,19 @@ export default async function BrandVoicePage() {
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">Brand Voice</h1>
-        <p className="text-sm text-muted-foreground">
-          Mission, values, and tone the bot's copy should reflect.
-        </p>
-      </div>
+    <div>
+      <PageHeader
+        eyebrow="06 / Voice"
+        title="Brand Voice"
+        description="Mission, values, and tone the app and bot should reflect."
+        action={
+          <ExportButton
+            title="Brand Voice"
+            fileStem="brand-voice"
+            tables={[fieldValueTable(brandVoiceFields, brandVoice)]}
+          />
+        }
+      />
       <BrandVoiceForm defaultValues={defaultValues} />
     </div>
   );

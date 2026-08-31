@@ -28,6 +28,8 @@ interface EntityFormProps<Row, Values extends FieldValues> {
   onSuccess: () => void;
   submitLabel?: string;
   disabledFields?: (keyof Row & string)[];
+  /** Existing records open read-only until the user presses Edit. */
+  startInShowMode?: boolean;
 }
 
 export function EntityForm<Row, Values extends FieldValues>({
@@ -38,13 +40,16 @@ export function EntityForm<Row, Values extends FieldValues>({
   onSuccess,
   submitLabel = "Save",
   disabledFields = [],
+  startInShowMode = false,
 }: EntityFormProps<Row, Values>) {
   const [formError, setFormError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(!startInShowMode);
   const {
     register,
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<Values>({
     resolver: zodResolver(schema) as Resolver<Values>,
@@ -55,6 +60,7 @@ export function EntityForm<Row, Values extends FieldValues>({
     setFormError(null);
     const result = await onSubmit(values);
     if (result.success) {
+      if (startInShowMode) setIsEditing(false);
       onSuccess();
     } else {
       setFormError(result.error ?? "Something went wrong while saving.");
@@ -65,7 +71,7 @@ export function EntityForm<Row, Values extends FieldValues>({
     <form onSubmit={submit} className="flex flex-col gap-4">
       {fields.map((field) => {
         const name = field.name as string;
-        const isDisabled = disabledFields.includes(field.name);
+        const isDisabled = !isEditing || disabledFields.includes(field.name);
         const fieldError = errors[name as keyof Values];
 
         return (
@@ -140,11 +146,22 @@ export function EntityForm<Row, Values extends FieldValues>({
                 <SelectContent>
                   {field.enumValues?.map((value) => (
                     <SelectItem key={value} value={value}>
-                      {value}
+                      {field.enumLabels?.[value] ?? value}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            )}
+
+            {field.type === "password" && (
+              <Input
+                id={name}
+                type="password"
+                autoComplete="new-password"
+                disabled={isDisabled}
+                placeholder={field.placeholder}
+                {...register(name as never)}
+              />
             )}
 
             {(field.type === "text" || field.type === "suggest-text") && (
@@ -159,6 +176,7 @@ export function EntityForm<Row, Values extends FieldValues>({
             {field.type === "chip-list" && (
               <ChipListField
                 id={name}
+                disabled={isDisabled}
                 value={String(watch(name as never) ?? "")}
                 onChange={(value) => setValue(name as never, value as never, { shouldValidate: true })}
               />
@@ -167,6 +185,7 @@ export function EntityForm<Row, Values extends FieldValues>({
             {field.type === "multiselect-ref" && (
               <MultiSelectField
                 id={name}
+                disabled={isDisabled}
                 value={(watch(name as never) as unknown as string[]) ?? []}
                 options={field.referenceOptions ?? []}
                 onChange={(value) => setValue(name as never, value as never, { shouldValidate: true })}
@@ -176,6 +195,7 @@ export function EntityForm<Row, Values extends FieldValues>({
             {field.type === "select-ref" && (
               <SingleSelectField
                 id={name}
+                disabled={isDisabled}
                 value={(watch(name as never) as unknown as string | null) ?? null}
                 options={field.referenceOptions ?? []}
                 onChange={(value) => setValue(name as never, value as never, { shouldValidate: true })}
@@ -199,14 +219,35 @@ export function EntityForm<Row, Values extends FieldValues>({
       })}
 
       {formError && (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="rounded-[4px] bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
           {formError}
         </p>
       )}
 
-      <Button type="submit" disabled={isSubmitting} className="mt-2">
-        {isSubmitting ? "Saving…" : submitLabel}
-      </Button>
+      {startInShowMode && !isEditing ? (
+        <Button type="button" className="mt-2" onClick={() => setIsEditing(true)}>
+          Edit
+        </Button>
+      ) : (
+        <div className="mt-2 flex items-center gap-2">
+          {startInShowMode && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                reset();
+                setFormError(null);
+                setIsEditing(false);
+              }}
+            >
+              Cancel
+            </Button>
+          )}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving…" : submitLabel}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

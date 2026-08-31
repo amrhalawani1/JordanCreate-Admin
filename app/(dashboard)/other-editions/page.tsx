@@ -5,23 +5,54 @@ import {
   updateJordanCreateThree,
 } from "@/actions/other-editions";
 import type { JordanEditionFormValues } from "@/lib/validation/other-editions";
+import { jordanEditionFields } from "@/lib/entity-configs/other-editions";
+import { fieldValueTable } from "@/lib/export-html";
 import { JordanEditionForm } from "./JordanEditionForm";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { ExportButton } from "@/components/shared/ExportButton";
 
 export default async function OtherEditionsPage() {
   const [one, three] = await Promise.all([getJordanCreateOne(), getJordanCreateThree()]);
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">Other Editions</h1>
-        <p className="text-sm text-muted-foreground">
-          Placeholder records for the other Jordan Create events in the series.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="09 / Series"
+        title="Other Editions"
+        description="Placeholder records for the other Jordan Create events in the series."
+        action={
+          <ExportButton
+            title="Other Editions"
+            fileStem="other-editions"
+            tables={[
+              ...(one
+                ? [
+                    {
+                      ...fieldValueTable(jordanEditionFields, one, [
+                        { label: "Last updated", value: one.updated_at },
+                      ]),
+                      caption: "Jordan Create 1",
+                    },
+                  ]
+                : []),
+              ...(three
+                ? [
+                    {
+                      ...fieldValueTable(jordanEditionFields, three, [
+                        { label: "Last updated", value: three.updated_at },
+                      ]),
+                      caption: "Jordan Create 3",
+                    },
+                  ]
+                : []),
+            ]}
+          />
+        }
+      />
 
       <div className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Jordan Create 1</h2>
+        <h2 className="jc-label">Jordan Create 1</h2>
         {one ? (
           <JordanEditionForm
             defaultValues={
@@ -40,7 +71,7 @@ export default async function OtherEditionsPage() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Jordan Create 3</h2>
+        <h2 className="jc-label">Jordan Create 3</h2>
         {three ? (
           <JordanEditionForm
             defaultValues={

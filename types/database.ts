@@ -22,6 +22,7 @@ export interface Database {
   public: {
     Tables: {
       event_info: {
+        Relationships: [];
         Row: {
           id: number;
           event_name: string;
@@ -45,7 +46,25 @@ export interface Database {
         Insert: Partial<Database["public"]["Tables"]["event_info"]["Row"]>;
         Update: Partial<Omit<Database["public"]["Tables"]["event_info"]["Row"], "id">>;
       };
+      event_info_items: {
+        Relationships: [];
+        Row: {
+          id: number;
+          title: string;
+          description: string;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["event_info_items"]["Row"], "id" | "created_at" | "updated_at"> & {
+          id?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["event_info_items"]["Row"], "id">>;
+      };
       agenda_sessions: {
+        Relationships: [];
         Row: {
           session_id: string;
           start_time: string;
@@ -69,6 +88,7 @@ export interface Database {
         >;
       };
       speakers: {
+        Relationships: [];
         Row: {
           handle: string;
           tagline: string | null;
@@ -83,6 +103,7 @@ export interface Database {
         Update: Partial<Omit<Database["public"]["Tables"]["speakers"]["Row"], "handle">>;
       };
       venue_zones: {
+        Relationships: [];
         Row: {
           zone_id: string;
           name: string;
@@ -93,6 +114,7 @@ export interface Database {
         Update: Partial<Omit<Database["public"]["Tables"]["venue_zones"]["Row"], "zone_id">>;
       };
       interest_tags: {
+        Relationships: [];
         Row: {
           tag_id: string;
           tag_label: string;
@@ -103,6 +125,7 @@ export interface Database {
         Update: Partial<Omit<Database["public"]["Tables"]["interest_tags"]["Row"], "tag_id">>;
       };
       brand_voice: {
+        Relationships: [];
         Row: {
           id: number;
           mission: string;
@@ -113,6 +136,7 @@ export interface Database {
         Update: Partial<Omit<Database["public"]["Tables"]["brand_voice"]["Row"], "id">>;
       };
       faq_entries: {
+        Relationships: [];
         Row: {
           id: number;
           question: string;
@@ -123,6 +147,7 @@ export interface Database {
         Update: Partial<Omit<Database["public"]["Tables"]["faq_entries"]["Row"], "id">>;
       };
       experience: {
+        Relationships: [];
         Row: {
           id: number;
           experience_type: string;
@@ -140,6 +165,7 @@ export interface Database {
         Update: Partial<Omit<Database["public"]["Tables"]["experience"]["Row"], "id">>;
       };
       jordan_create_one: {
+        Relationships: [];
         Row: {
           id: number;
           name: string;
@@ -151,6 +177,7 @@ export interface Database {
         Update: Partial<Omit<Database["public"]["Tables"]["jordan_create_one"]["Row"], "id">>;
       };
       jordan_create_three: {
+        Relationships: [];
         Row: {
           id: number;
           name: string;
@@ -160,6 +187,72 @@ export interface Database {
         };
         Insert: Partial<Database["public"]["Tables"]["jordan_create_three"]["Row"]>;
         Update: Partial<Omit<Database["public"]["Tables"]["jordan_create_three"]["Row"], "id">>;
+      };
+      admins: {
+        Relationships: [];
+        Row: {
+          id: string;
+          first_name: string;
+          last_name: string;
+          role: string;
+          admin_level: "super_admin" | "admin" | "guest_manager";
+          email: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["admins"]["Row"], "created_at" | "updated_at"> & {
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["admins"]["Row"], "id">>;
+      };
+      feature_requests: {
+        Relationships: [];
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          requested_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description: string;
+          requested_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["feature_requests"]["Row"], "id">>;
+      };
+      change_logs: {
+        Relationships: [];
+        Row: {
+          id: string;
+          created_at: string;
+          actor_id: string | null;
+          actor_name: string;
+          actor_email: string;
+          action: "create" | "update" | "delete" | "reorder";
+          table_name: string;
+          record_id: string | null;
+          summary: string;
+          changes: Json;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          actor_id?: string | null;
+          actor_name: string;
+          actor_email: string;
+          action: "create" | "update" | "delete" | "reorder";
+          table_name: string;
+          record_id?: string | null;
+          summary: string;
+          changes?: Json;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["change_logs"]["Row"], "id">>;
       };
     };
     Views: Record<string, never>;

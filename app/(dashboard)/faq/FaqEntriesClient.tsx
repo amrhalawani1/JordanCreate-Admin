@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/shared/DataTable";
 import { EntityDrawer } from "@/components/shared/EntityDrawer";
 import { EntityForm } from "@/components/shared/EntityForm";
-import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { faqEntryConfig } from "@/lib/entity-configs/faq-entries";
 import { FaqEntrySchema, type FaqEntryFormValues } from "@/lib/validation/faq-entries";
 import { createFaqEntry, updateFaqEntry, deleteFaqEntry, reorderFaqEntries } from "@/actions/faq-entries";
@@ -16,7 +15,6 @@ export function FaqEntriesClient({ initialData }: { initialData: FaqEntry[] }) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<FaqEntry | null>(null);
-  const [deletingRow, setDeletingRow] = useState<FaqEntry | null>(null);
 
   function openAdd() {
     setEditingRow(null);
@@ -56,7 +54,11 @@ export function FaqEntriesClient({ initialData }: { initialData: FaqEntry[] }) {
         data={initialData}
         onRowClick={openEdit}
         onAddClick={openAdd}
-        onDeleteClick={setDeletingRow}
+        onDelete={(row) => deleteFaqEntry(row.id)}
+        onDeleted={() => {
+          toast.success("FAQ deleted.");
+          router.refresh();
+        }}
         onMoveUp={(row) => move(row, -1)}
         onMoveDown={(row) => move(row, 1)}
         emptyMessage="No FAQ entries yet. Add the first one to get started."
@@ -65,13 +67,14 @@ export function FaqEntriesClient({ initialData }: { initialData: FaqEntry[] }) {
       <EntityDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
-        title={editingRow ? "Edit FAQ" : "Add FAQ"}
+        title={editingRow ? "FAQ" : "Add FAQ"}
       >
         <EntityForm
           key={editingRow?.id ?? "new"}
           fields={faqEntryConfig.formFields}
           schema={FaqEntrySchema}
           defaultValues={defaultValues}
+          startInShowMode={!!editingRow}
           submitLabel={editingRow ? "Save changes" : "Add FAQ"}
           onSubmit={(values) =>
             editingRow ? updateFaqEntry(editingRow.id, values) : createFaqEntry(values)
@@ -84,18 +87,6 @@ export function FaqEntriesClient({ initialData }: { initialData: FaqEntry[] }) {
         />
       </EntityDrawer>
 
-      {deletingRow && (
-        <DeleteConfirmDialog
-          open={!!deletingRow}
-          onOpenChange={(open) => !open && setDeletingRow(null)}
-          description={faqEntryConfig.describeRow(deletingRow)}
-          onConfirm={() => deleteFaqEntry(deletingRow.id)}
-          onDeleted={() => {
-            toast.success("FAQ deleted.");
-            router.refresh();
-          }}
-        />
-      )}
     </div>
   );
 }

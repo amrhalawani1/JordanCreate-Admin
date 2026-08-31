@@ -7,15 +7,33 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
+import { ExportButton } from "@/components/shared/ExportButton";
+import { columnsForHtmlExport, rowsForHtmlExport } from "@/lib/export-html";
 import { Trash2, ChevronUp, ChevronDown } from "lucide-react";
+
+const TABLE_EXPORT_TITLES: Record<string, string> = {
+  agenda_sessions: "Agenda",
+  speakers: "Speakers",
+  venue_zones: "Venue Zones",
+  interest_tags: "Interest Tags",
+  faq_entries: "FAQ",
+  experience: "Experience",
+  admins: "Admin Management",
+  feature_requests: "Feature Requests",
+  change_logs: "Change Log",
+};
 
 interface DataTableProps<Row> {
   config: EntityConfig<Row>;
   data: Row[];
   onRowClick: (row: Row) => void;
   onAddClick?: () => void;
-  onDeleteClick?: (row: Row) => void;
+  onDelete?: (row: Row) => Promise<{ success: boolean; error?: string }>;
+  onDeleted?: () => void;
   emptyMessage: string;
+  addLabel?: string;
+  hideExport?: boolean;
   rowClassName?: (row: Row) => string | undefined;
   /** Both required to enable the up/down reorder column. Buttons disable
    * automatically while a search/filter is active, since reordering a
@@ -31,14 +49,18 @@ export function DataTable<Row extends Record<string, unknown>>({
   data,
   onRowClick,
   onAddClick,
-  onDeleteClick,
+  onDelete,
+  onDeleted,
   emptyMessage,
+  addLabel,
+  hideExport = false,
   rowClassName,
   onMoveUp,
   onMoveDown,
 }: DataTableProps<Row>) {
   const [search, setSearch] = useState("");
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
+  const [pendingDelete, setPendingDelete] = useState<Row | null>(null);
 
   const canReorder = Boolean(onMoveUp && onMoveDown);
   const isFilteredOrSearched = Boolean(search.trim()) || Object.values(activeFilters).some(Boolean);
@@ -74,10 +96,17 @@ export function DataTable<Row extends Record<string, unknown>>({
           />
         ) : null}
 
-        {config.filters?.map((filter) => (
+        {config.filters?.map((filter) => {
+          const selected = activeFilters[filter.key] || ALL_FILTER_VALUE;
+          const allLabel = filter.allLabel ?? `All ${filter.label}`;
+          const selectedLabel =
+            selected === ALL_FILTER_VALUE
+              ? allLabel
+              : (filter.optionLabels?.[selected] ?? selected);
+          return (
           <Select
             key={filter.key}
-            value={activeFilters[filter.key] || ALL_FILTER_VALUE}
+            value={selected}
             onValueChange={(value: string | null) =>
               setActiveFilters((prev) => ({
                 ...prev,
@@ -86,23 +115,38 @@ export function DataTable<Row extends Record<string, unknown>>({
             }
           >
             <SelectTrigger className="w-44">
-              <SelectValue placeholder={filter.label} />
+              <SelectValue placeholder={allLabel}>{selectedLabel}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL_FILTER_VALUE}>All {filter.label}</SelectItem>
+              <SelectItem value={ALL_FILTER_VALUE}>{allLabel}</SelectItem>
               {filter.options.map((option) => (
                 <SelectItem key={option} value={option}>
-                  {option}
+                  {filter.optionLabels?.[option] ?? option}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        ))}
+          );
+        })}
 
-        {onAddClick && (
-          <Button onClick={onAddClick} className="ml-auto">
-            Add {config.entityLabel}
-          </Button>
+        {(!hideExport || onAddClick) && (
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            {!hideExport ? (
+              <ExportButton
+                title={TABLE_EXPORT_TITLES[config.table] ?? config.entityLabel}
+                fileStem={config.table.replaceAll("_", "-")}
+                tables={[
+                  {
+                    columns: columnsForHtmlExport(config),
+                    rows: rowsForHtmlExport(config, data),
+                  },
+                ]}
+              />
+            ) : null}
+            {onAddClick ? (
+              <Button onClick={onAddClick}>{addLabel ?? `Add ${config.entityLabel}`}</Button>
+            ) : null}
+          </div>
         )}
       </div>
 
@@ -115,7 +159,7 @@ export function DataTable<Row extends Record<string, unknown>>({
       {filtered.length === 0 ? (
         <EmptyState message={data.length === 0 ? emptyMessage : "No rows match your search/filter."} />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border">
+        <div className="overflow-x-auto rounded-[4px] border border-border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -123,7 +167,7 @@ export function DataTable<Row extends Record<string, unknown>>({
                 {config.columns.map((col) => (
                   <TableHead key={col.key}>{col.header}</TableHead>
                 ))}
-                {onDeleteClick && <TableHead className="w-10" />}
+                {onDelete && <TableHead className="w-12" />}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -168,16 +212,24 @@ export function DataTable<Row extends Record<string, unknown>>({
                       {col.render ? col.render(row) : String(row[col.key] ?? "")}
                     </TableCell>
                   ))}
-                  {onDeleteClick && (
-                    <TableCell>
+                  {onDelete && (
+                    <TableCell
+                      className="w-12"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPendingDelete(row);
+                      }}
+                    >
                       <Button
+                        type="button"
                         variant="ghost"
                         size="icon-sm"
+                        aria-label={`Delete ${config.entityLabel}`}
+                        title={`Delete ${config.entityLabel}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          onDeleteClick(row);
+                          setPendingDelete(row);
                         }}
-                        aria-label={`Delete ${config.entityLabel}`}
                       >
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
@@ -189,6 +241,28 @@ export function DataTable<Row extends Record<string, unknown>>({
           </Table>
         </div>
       )}
+
+      <DeleteConfirmDialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+        description={
+          pendingDelete
+            ? config.describeRow(pendingDelete)
+            : `Delete this ${config.entityLabel.toLowerCase()}? This cannot be undone.`
+        }
+        onConfirm={() => {
+          if (!pendingDelete || !onDelete) {
+            return Promise.resolve({ success: false, error: "Nothing to delete." });
+          }
+          return onDelete(pendingDelete);
+        }}
+        onDeleted={() => {
+          setPendingDelete(null);
+          onDeleted?.();
+        }}
+      />
     </div>
   );
 }

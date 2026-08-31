@@ -16,6 +16,8 @@ export function getReadableError(error: unknown): string {
         return "That ID is already in use. Choose a different one.";
       case "23503":
         return "This references something that no longer exists.";
+      case "PGRST205":
+        return "This table is not set up yet. Finish the database setup, then try again.";
       default:
         return error.message || "The database rejected this change.";
     }

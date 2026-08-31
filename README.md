@@ -1,24 +1,57 @@
-# Jordan Create Bot Data Registry
+# Jordan Create Admin & Registry V1
 
-Internal admin panel for the Jordan Create events team to view and edit every
-dataset that powers the Jordan Create WhatsApp concierge bot — without ever
-touching the Supabase SQL editor or Table Editor directly.
+Internal admin panel **and** data registry for Jordan Create. This is the one
+place the events team edits shared data that feeds both:
+
+- the **Jordan Create mobile application**
+- the **WhatsApp concierge bot**
+
+Change a session, a speaker, or event logistics here — the app and the bot
+read from the same tables. You should not need the Supabase SQL editor or
+Table Editor for day-to-day edits.
+
+The in-app label is **Admin & Registry V1**.
+
+## What it covers
+
+| Area | Status |
+| --- | --- |
+| Event Info (including extra title + description items), Agenda, Speakers, Venue, Interest Tags, Brand Voice, FAQ, Experience, Other Editions | Live |
+| Dashboard overview + HTML export of each data page | Live |
+| Admin Management (create/edit/remove people who can sign in) | Live — Super Admin only |
+| Request a Feature | Live — Super Admin only |
+| Guests | Coming soon |
+| Tickets Management | Coming soon |
+
+**Still out of scope, on purpose:** `guest_profiles` and
+`conversation_messages` hold live guest PII and chat logs. Nothing in this
+codebase queries, imports, or references them — confirmed by a `grep -ri`
+sweep with zero real hits (the only match is a comment explaining why they're
+absent). The Guests page will be the way those records are managed when it
+ships.
+
+## Who can sign in
+
+Access is an `admins` row plus a Supabase Auth user. An Auth-only account
+without an `admins` row is **not** an admin.
+
+| Level | Access |
+| --- | --- |
+| **Super Admin** | Every route, including Admin Management and Request a Feature. Can preview other levels with **View as**. |
+| **Admin** | All event/registry pages except Admin Management and Request a Feature. |
+| **Guest Manager** | `/guests` only. |
+
+`role` on an admin is a free-text job title (for example “Operations”). It is
+not the permission level — that is `admin_level`.
+
+Super Admins create further admins in **Admin Management**. You can still add
+a user in **Supabase Studio → Authentication → Users** if needed; they will
+not get into the panel until an `admins` row exists for their email.
 
 ## Tech stack
 
 Next.js 16 (App Router) · TypeScript · Tailwind CSS v4 · shadcn/ui ·
 Supabase (`@supabase/supabase-js` + `@supabase/ssr`) · react-hook-form + zod
-
-## What's in scope
-
-Every table below has a full list/edit UI: `event_info`, `agenda_sessions`,
-`speakers`, `venue_zones`, `interest_tags`, `brand_voice`, `faq_entries`,
-`experience`, `jordan_create_one`, `jordan_create_three`.
-
-**Out of scope, on purpose:** `guest_profiles` and `conversation_messages`
-hold live guest PII and chat logs. Nothing in this codebase queries,
-imports, or references them — confirmed by a `grep -ri` sweep with zero
-real hits (the only match is a comment explaining why they're absent).
 
 ## Architecture (read before changing anything)
 
@@ -31,11 +64,15 @@ real hits (the only match is a comment explaining why they're absent).
   Supabase Auth sessions, in `lib/supabase/server.ts`.
 - **Every route requires auth.** `proxy.ts` (Next 16's replacement for
   `middleware.ts`) redirects any unauthenticated request to `/login`. There
-  is no sign-up flow — admin accounts are created manually in Supabase
-  Studio (see below).
-- RLS is disabled on every table by existing project convention. The
-  security boundary is "server-only service role key + auth-gated
-  routes," not RLS — this is intentional, not an oversight.
+  is no public sign-up flow.
+- After login, `lib/auth/guard.ts` checks `admins.admin_level`. Guest
+  Managers are sent to `/guests`; everyone else lands on the dashboard.
+  Forbidden URLs redirect to that home. Super Admin **View as** only changes
+  the UI (cookie `jc_view_as`); mutations still use the real level.
+- RLS is off on the original event tables by existing project convention.
+  Newer tables (`admins`, `feature_requests`) are meant to be service-role
+  only. The security boundary is “server-only service role key + auth-gated
+  routes + `admins` row,” not browser-side RLS.
 - Every create/update/delete is a Server Action in `actions/<table>.ts`,
   validated with a per-table zod schema in `lib/validation/<table>.ts`
   before it ever reaches the database. Constraint violations are turned
@@ -48,6 +85,9 @@ real hits (the only match is a comment explaining why they're absent).
   by a per-table `EntityConfig` in `lib/entity-configs/`. Singleton tables
   (`event_info`, `brand_voice`, `jordan_create_one`/`three`) use
   `SingletonForm.tsx` instead, which reuses the same field renderer.
+- Each data page can **Export** a standalone HTML snapshot. The file and
+  the document both include the date and time of the export. Passwords are
+  never included.
 - `types/database.ts` is **hand-written** to match the exact shape
   `supabase gen types typescript` would produce, since generating it live
   needs an interactive `supabase login` this project didn't need for v1.
@@ -74,13 +114,16 @@ to `/login` until you sign in.
 
 ### Creating an admin login
 
-There's no sign-up page by design. Create accounts manually in
-**Supabase Studio → Authentication → Users → Add user**, with email +
-password, and check **Auto Confirm User** (otherwise the account needs
-email verification it'll never receive). Each team member who needs
-access gets their own user record here.
+Preferred: a Super Admin adds the person in **Admin Management** (email,
+password, name, role, and level). That creates both the Auth user and the
+`admins` row.
 
-### Swapping in generated types
+Fallback: create the Auth user in **Supabase Studio → Authentication →
+Users → Add user**, with **Auto Confirm User** checked, then insert a
+matching `admins` row. An Auth user with no `admins` row sees the missing-
+profile screen, not the panel.
+
+## Swapping in generated types
 
 Once you've run `supabase login` and `supabase link --project-ref
 peaoiihysmthpzrxlcxc`, you can replace `types/database.ts` with the output
@@ -92,28 +135,21 @@ supabase gen types typescript --project-id peaoiihysmthpzrxlcxc > types/database
 
 as long as the generated file still exports a `Database` type with the
 same shape, `types/entities.ts` and everything downstream needs zero
-changes.
+changes. Do not add `guest_profiles` or `conversation_messages` to the
+hand-written file until those pages are explicitly in scope.
 
-## Deploying (not done yet — do this yourself)
+## Deploying
 
-This project was built and verified locally against production data, but
-was deliberately **not** connected to GitHub or Vercel during the build
-(no `gh`/`vercel` CLI auth was available in that environment). To ship it:
+Set these three encrypted environment variables in the host (Vercel or
+otherwise) — do **not** commit them:
 
-1. `git init` is already done locally with a full commit history — create
-   a GitHub repo and push:
-   ```bash
-   gh repo create jordan-create-bot --private --source=. --push
-   ```
-2. Import the repo into Vercel (or run `vercel`), and set these three
-   encrypted environment variables in the Vercel project settings — do
-   **not** commit them to the repo:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-3. After deploying, confirm the login gate works on the live URL: visiting
-   any page while logged out should redirect to `/login`, and no data
-   should be fetchable without a valid session.
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+After deploying, confirm the login gate works on the live URL: visiting
+any page while logged out should redirect to `/login`, and no data should
+be fetchable without a valid session.
 
 ## Manual QA checklist
 
@@ -133,6 +169,8 @@ automated test suite given the timeline this was built under):
 - [ ] Where `updated_at` exists, confirm it changes after a save (the
       database has no auto-update trigger for this column — the app
       stamps it explicitly on every write).
+- [ ] Export downloads an HTML file that includes the export date and the
+      page’s current data.
 
 ### Tables with extra behavior to check
 
@@ -140,7 +178,7 @@ automated test suite given the timeline this was built under):
   (including "— None —"), and reorder buttons (disabled while a
   search/filter is active).
 - **`faq_entries`**: reorder buttons update `sort_order` for the whole list.
-- **`speakers`**: rows with `bio_status = 'missing'` get a gold left
+- **`speakers`**: rows with `bio_status = 'missing'` get an orange left
   border; search and category/bio_status filters work together.
 - **`brand_voice`**: the Values field edits as removable chips but stays
   a semicolon-separated string in the database.
@@ -148,11 +186,13 @@ automated test suite given the timeline this was built under):
 ## Project structure
 
 ```
-app/(dashboard)/      one route per table, auth-gated by proxy.ts
+app/(dashboard)/      one route per area, auth-gated by proxy.ts
 actions/               Server Actions — all reads/writes, one file per table
 lib/supabase/          server (auth) vs admin (data) client separation
+lib/auth/              admin levels, guards, view-as
 lib/entity-configs/     per-table config driving the generic list/edit UI
 lib/validation/        per-table zod schemas
+lib/export-html.ts     HTML snapshot used by the Export button
 components/shared/      DataTable, EntityForm, SingletonForm, and field types
 types/database.ts       hand-written Supabase types (guest_profiles /
                         conversation_messages intentionally absent)

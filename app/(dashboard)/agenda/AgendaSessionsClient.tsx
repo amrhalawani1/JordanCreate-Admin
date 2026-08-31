@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { DataTable } from "@/components/shared/DataTable";
 import { EntityDrawer } from "@/components/shared/EntityDrawer";
 import { EntityForm } from "@/components/shared/EntityForm";
-import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { buildAgendaSessionConfig } from "@/lib/entity-configs/agenda-sessions";
 import { AgendaSessionSchema, type AgendaSessionFormValues } from "@/lib/validation/agenda-sessions";
 import {
@@ -27,7 +26,6 @@ export function AgendaSessionsClient({ initialData, speakers, tags }: AgendaSess
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<AgendaSession | null>(null);
-  const [deletingRow, setDeletingRow] = useState<AgendaSession | null>(null);
 
   const speakerOptions = useMemo(
     () => speakers.map((s) => ({ value: s.handle, label: s.handle })),
@@ -108,7 +106,11 @@ export function AgendaSessionsClient({ initialData, speakers, tags }: AgendaSess
         data={initialData}
         onRowClick={openEdit}
         onAddClick={openAdd}
-        onDeleteClick={setDeletingRow}
+        onDelete={(row) => deleteAgendaSession(row.session_id)}
+        onDeleted={() => {
+          toast.success("Session deleted.");
+          router.refresh();
+        }}
         onMoveUp={(row) => move(row, -1)}
         onMoveDown={(row) => move(row, 1)}
         emptyMessage="No agenda sessions yet. Add the first one to get started."
@@ -117,13 +119,14 @@ export function AgendaSessionsClient({ initialData, speakers, tags }: AgendaSess
       <EntityDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
-        title={editingRow ? `Edit ${editingRow.session_id}` : "Add Session"}
+        title={editingRow ? editingRow.session_id : "Add Session"}
       >
         <EntityForm
           key={editingRow?.session_id ?? "new"}
           fields={config.formFields}
           schema={AgendaSessionSchema}
           defaultValues={defaultValues}
+          startInShowMode={!!editingRow}
           disabledFields={editingRow ? ["session_id"] : []}
           submitLabel={editingRow ? "Save changes" : "Add session"}
           onSubmit={(values) =>
@@ -139,18 +142,6 @@ export function AgendaSessionsClient({ initialData, speakers, tags }: AgendaSess
         />
       </EntityDrawer>
 
-      {deletingRow && (
-        <DeleteConfirmDialog
-          open={!!deletingRow}
-          onOpenChange={(open) => !open && setDeletingRow(null)}
-          description={config.describeRow(deletingRow)}
-          onConfirm={() => deleteAgendaSession(deletingRow.session_id)}
-          onDeleted={() => {
-            toast.success("Session deleted.");
-            router.refresh();
-          }}
-        />
-      )}
     </div>
   );
 }

@@ -38,7 +38,7 @@ export function ChipListField({ id, value, onChange, disabled = false }: ChipLis
               <button
                 type="button"
                 onClick={() => removeChip(i)}
-                className="rounded-full p-0.5 hover:bg-background/50"
+                className="inline-flex size-6 items-center justify-center rounded-full hover:bg-background/50"
                 aria-label={`Remove ${chip}`}
               >
                 <X className="size-3" />

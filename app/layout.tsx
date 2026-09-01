@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans, Host_Grotesk, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
@@ -21,10 +21,17 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   title: "Jordan Create Admin & Registry",
   description:
     "Admin panel for the Jordan Create mobile app and data registry for the WhatsApp concierge bot.",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({
@@ -39,7 +46,7 @@ export default function RootLayout({
     >
       <body className={`${dmSans.className} flex min-h-full flex-col`}>
         {children}
-        <Toaster richColors position="top-right" />
+        <Toaster richColors position="bottom-center" />
       </body>
     </html>
   );

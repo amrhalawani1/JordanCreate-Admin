@@ -121,7 +121,7 @@ export function EntityForm<Row, Values extends FieldValues>({
             )}
 
             {field.type === "boolean" && (
-              <div className="flex items-center gap-2 pt-1">
+              <div className="flex min-h-11 items-center gap-3 pt-1">
                 <Switch
                   id={name}
                   checked={Boolean(watch(name as never))}
@@ -210,9 +210,11 @@ export function EntityForm<Row, Values extends FieldValues>({
               </datalist>
             )}
 
-            {field.helpText && <p className="text-xs text-muted-foreground">{field.helpText}</p>}
+            {field.helpText && <p className="text-sm leading-relaxed text-muted-foreground">{field.helpText}</p>}
             {fieldError && (
-              <p className="text-xs text-destructive">{String(fieldError.message ?? "Invalid value.")}</p>
+              <p className="text-sm text-destructive" role="alert">
+                {String(fieldError.message ?? "Invalid value.")}
+              </p>
             )}
           </div>
         );
@@ -225,15 +227,16 @@ export function EntityForm<Row, Values extends FieldValues>({
       )}
 
       {startInShowMode && !isEditing ? (
-        <Button type="button" className="mt-2" onClick={() => setIsEditing(true)}>
+        <Button type="button" className="mt-2 w-full sm:w-auto" onClick={() => setIsEditing(true)}>
           Edit
         </Button>
       ) : (
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
           {startInShowMode && (
             <Button
               type="button"
               variant="outline"
+              className="w-full sm:w-auto"
               onClick={() => {
                 reset();
                 setFormError(null);
@@ -243,7 +246,7 @@ export function EntityForm<Row, Values extends FieldValues>({
               Cancel
             </Button>
           )}
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
             {isSubmitting ? "Saving…" : submitLabel}
           </Button>
         </div>

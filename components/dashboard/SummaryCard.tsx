@@ -6,7 +6,7 @@ export function SummaryCard({ table }: { table: TableSummary }) {
   return (
     <Link
       href={table.href}
-      className="block bg-card p-6 transition-colors hover:bg-card-hover"
+      className="block bg-card p-5 transition-colors hover:bg-card-hover focus-visible:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-orange/40 md:p-6"
     >
       <p className="jc-label">{table.label}</p>
       <p className="jc-stat mt-4">{table.count}</p>
@@ -14,7 +14,7 @@ export function SummaryCard({ table }: { table: TableSummary }) {
         {table.updatedAt ? (
           <UpdatedAtBadge value={table.updatedAt} />
         ) : (
-          <span className="text-xs text-faint">No updates yet</span>
+          <span className="text-sm text-faint md:text-xs">No updates yet</span>
         )}
       </div>
     </Link>

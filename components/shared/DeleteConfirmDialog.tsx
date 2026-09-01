@@ -51,10 +51,10 @@ export function DeleteConfirmDialog({
         </DialogHeader>
         {error && <p className="text-sm text-destructive">{error}</p>}
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
+          <Button variant="outline" className="w-full sm:w-auto" onClick={() => onOpenChange(false)} disabled={pending}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={handleConfirm} disabled={pending}>
+          <Button variant="destructive" className="w-full sm:w-auto" onClick={handleConfirm} disabled={pending}>
             {pending ? "Deleting…" : "Delete"}
           </Button>
         </DialogFooter>

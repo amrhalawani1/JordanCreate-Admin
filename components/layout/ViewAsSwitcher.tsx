@@ -5,20 +5,36 @@ import { setViewAs } from "@/actions/view-as";
 import { ADMIN_LEVEL_LABELS, ADMIN_LEVEL_VALUES, type AdminLevel } from "@/types/entities";
 import { cn } from "@/lib/utils";
 
-export function ViewAsSwitcher({ viewLevel }: { viewLevel: AdminLevel }) {
+export function ViewAsSwitcher({
+  viewLevel,
+  id = "view-as-level",
+  fullWidth = false,
+}: {
+  viewLevel: AdminLevel;
+  id?: string;
+  fullWidth?: boolean;
+}) {
   return (
-    <form action={setViewAs}>
-      <label className="sr-only" htmlFor="view-as-level">
+    <form action={setViewAs} className={fullWidth ? "w-full" : undefined}>
+      <label
+        className={
+          fullWidth
+            ? "mb-1.5 block font-[family-name:var(--font-ui)] text-xs tracking-wide text-muted-foreground"
+            : "sr-only"
+        }
+        htmlFor={id}
+      >
         View as
       </label>
       <select
-        id="view-as-level"
+        id={id}
         name="level"
         defaultValue={viewLevel}
         onChange={(event) => event.currentTarget.form?.requestSubmit()}
         className={cn(
           buttonVariants({ variant: "outline", size: "sm" }),
           "appearance-none pr-8",
+          fullWidth && "w-full justify-between",
         )}
         style={{
           backgroundImage:

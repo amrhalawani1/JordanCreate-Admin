@@ -138,18 +138,58 @@ same shape, `types/entities.ts` and everything downstream needs zero
 changes. Do not add `guest_profiles` or `conversation_messages` to the
 hand-written file until those pages are explicitly in scope.
 
-## Deploying
+## Deploying (free test host: Vercel Hobby)
 
-Set these three encrypted environment variables in the host (Vercel or
-otherwise) — do **not** commit them:
+This is a **server-only** Next.js app. Table reads and writes use
+`SUPABASE_SERVICE_ROLE_KEY` on the server (`lib/supabase/admin.ts`). The
+GitHub repo is public, so secrets must live only in Vercel (and local
+`.env.local`) — never in git, chat, or screenshots.
+
+The test URL talks to the **same** Supabase project as local. Saves there
+change real event data.
+
+### 1. Import the repo
+
+1. Sign in at [vercel.com](https://vercel.com) with GitHub **amrhalawani1**.
+2. **Add New Project** → import
+   [JordanCreate-Admin](https://github.com/amrhalawani1/JordanCreate-Admin).
+3. Framework: Next.js. Root: repo root. Build: `next build` (default).
+4. Production branch: `main`. Turn **off** Deploy Previews for PRs if the
+   UI offers it, so pull requests never get a live admin.
+
+### 2. Environment variables (Production only)
+
+Paste from local `.env.local`. Attach them to **Production**, not Preview:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
-After deploying, confirm the login gate works on the live URL: visiting
-any page while logged out should redirect to `/login`, and no data should
-be fetchable without a valid session.
+Do **not** prefix the service role with `NEXT_PUBLIC_`. Deploy.
+
+### 3. Supabase Auth URLs
+
+In **Supabase → Authentication → URL configuration**:
+
+- **Redirect URLs:** `http://localhost:3000/**` and
+  `https://<your-vercel-domain>/**`
+- **Site URL:** the Vercel HTTPS origin once this is the shared test host
+  (keep localhost in Redirect URLs so `npm run dev` still works).
+
+Disable public sign-up in Auth. This app has no sign-up screen; Studio
+must match.
+
+### 4. Check the live URL
+
+- Logged out, `/` redirects to `/login`.
+- A wrong password stays on login.
+- A Super Admin reaches the dashboard.
+- `/change-log` stays Super Admin only.
+
+The test host sends `noindex` / `X-Robots-Tag` so crawlers should skip it.
+The login gate is the free inner lock. Vercel password/SSO in front of the
+whole site is a paid extra; Cloudflare Zero Trust Access in front of the
+URL is an optional free layer later.
 
 ## Manual QA checklist
 

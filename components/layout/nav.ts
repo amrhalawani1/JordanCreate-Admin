@@ -1,0 +1,17 @@
+export const NAV_ITEMS = [
+  { href: "/", label: "Dashboard", index: "00" },
+  { href: "/event-info", label: "Event Info", index: "01" },
+  { href: "/agenda", label: "Agenda", index: "02" },
+  { href: "/speakers", label: "Speakers", index: "03" },
+  { href: "/venue", label: "Venue", index: "04" },
+  { href: "/interest-tags", label: "Interest Tags", index: "05" },
+  { href: "/brand-voice", label: "Brand Voice", index: "06" },
+  { href: "/faq", label: "FAQ", index: "07" },
+  { href: "/experience", label: "Experience", index: "08" },
+  { href: "/other-editions", label: "Other Editions", index: "09" },
+  { href: "/guests", label: "Guests", index: "10" },
+  { href: "/tickets-management", label: "Tickets Management", index: "11" },
+  { href: "/request-a-feature", label: "Request a Feature", index: "12" },
+  { href: "/admin-settings", label: "Admin Management", index: "13" },
+  { href: "/change-log", label: "Change Log", index: "14" },
+] as const;

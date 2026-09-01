@@ -46,7 +46,7 @@ export default async function EventInfoPage() {
         title="Event Info"
         description="Core event logistics guests and staff rely on. Add extra title-and-description facts below for the app and the bot."
         action={
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3">
             <UpdatedAtBadge value={eventInfo.updated_at} />
             <ExportButton
               title="Event Info"

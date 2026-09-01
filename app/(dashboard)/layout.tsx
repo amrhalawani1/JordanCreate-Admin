@@ -25,6 +25,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="flex min-h-dvh bg-background">
       <Sidebar adminLevel={viewLevel} />
       <div className="flex min-w-0 flex-1 flex-col">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[100] focus:rounded-full focus:bg-orange focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-[#0a0a0a]"
+        >
+          Skip to main content
+        </a>
         <TopBar
           email={admin.email}
           name={`${admin.first_name} ${admin.last_name}`.trim()}
@@ -32,7 +38,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
           realLevel={admin.admin_level}
           viewLevel={viewLevel}
         />
-        <main className="flex-1 overflow-y-auto px-6 py-8 md:px-8">{children}</main>
+        <main
+          id="main-content"
+          className="flex-1 overflow-x-clip overflow-y-auto px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-8 md:py-8"
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

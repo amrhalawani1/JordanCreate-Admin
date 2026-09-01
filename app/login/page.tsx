@@ -23,7 +23,7 @@ export default function LoginPage() {
         </p>
       </div>
 
-      <div className="flex items-center justify-center px-6 py-16">
+      <div className="flex items-center justify-center px-4 py-12 pt-[max(3rem,env(safe-area-inset-top))] pb-[max(3rem,env(safe-area-inset-bottom))] md:px-6 md:py-16">
         <div className="w-full max-w-sm">
           <p className="jc-label lg:hidden">Admin Panel</p>
           <h2 className="jc-page-title mt-3 lg:hidden">Jordan Create</h2>
@@ -46,14 +46,14 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
                   required
-                  className="pr-10"
+                  className="pr-11"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((open) => !open)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                   aria-pressed={showPassword}
-                  className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-faint transition-colors hover:text-foreground"
+                  className="absolute inset-y-0 right-0 flex w-11 items-center justify-center text-faint transition-colors hover:text-foreground focus-visible:text-foreground focus-visible:outline-none"
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>

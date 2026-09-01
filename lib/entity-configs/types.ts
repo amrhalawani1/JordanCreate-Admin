@@ -57,6 +57,8 @@ export interface EntityConfig<Row> {
   formFields: FieldConfig<Row>[];
   hasUpdatedAt: boolean;
   reorderable?: boolean;
+  /** Column used as the mobile card heading. Defaults to the first column. */
+  cardTitleKey?: keyof Row & string;
   /** Builds the "Delete X?" confirmation message for a specific row. */
   describeRow: (row: Row) => string;
 }

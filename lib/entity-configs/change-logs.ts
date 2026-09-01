@@ -25,7 +25,7 @@ export function tableLabel(tableName: string): string {
 function formatWhen(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  return date.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
 }
 
 export function buildChangeLogConfig(tableNames: string[]): EntityConfig<ChangeLog> {
@@ -78,6 +78,7 @@ export function buildChangeLogConfig(tableNames: string[]): EntityConfig<ChangeL
       { name: "summary", label: "Summary", type: "textarea" },
     ],
     hasUpdatedAt: false,
+    cardTitleKey: "summary",
     describeRow: (row) => row.summary,
   };
 }

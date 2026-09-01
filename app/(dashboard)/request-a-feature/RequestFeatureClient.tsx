@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { DataTable } from "@/components/shared/DataTable";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { featureRequestConfig } from "@/lib/entity-configs/feature-requests";
 import { createFeatureRequest, deleteFeatureRequest } from "@/actions/feature-requests";
 import type { FeatureRequestListItem } from "@/types/entities";
@@ -54,7 +56,7 @@ export function RequestFeatureClient({
       <div className="mb-4 flex justify-end">
         <Link
           href="/request-a-feature?compose=1"
-          className="inline-flex h-9 items-center rounded-full bg-orange px-5 text-xs font-medium uppercase tracking-[0.12em] text-[#0a0a0a] hover:bg-orange-hot"
+          className={cn(buttonVariants(), "w-full sm:w-auto")}
         >
           Request a Feature
         </Link>
@@ -63,7 +65,6 @@ export function RequestFeatureClient({
       <DataTable
         config={featureRequestConfig}
         data={initialData}
-        onRowClick={() => undefined}
         onDelete={(row) => deleteFeatureRequest(row.id)}
         onDeleted={() => {
           toast.success("Feature request deleted.");

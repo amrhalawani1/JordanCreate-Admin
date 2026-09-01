@@ -47,11 +47,17 @@ export function FeatureRequestDialog({
 
   useEffect(() => {
     if (!open) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("feature-title")?.focus();
+    });
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape" && !submitting) onOpenChange(false);
     }
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("keydown", onKeyDown);
+    };
   }, [open, submitting, onOpenChange]);
 
   if (!open) return null;
@@ -61,12 +67,19 @@ export function FeatureRequestDialog({
   }
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-background">
-      <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-6 py-10 md:px-8">
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto bg-background"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="feature-request-title"
+    >
+      <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col px-4 py-6 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-8 md:py-10">
         <div className="flex items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <p className="jc-label">12 / Feedback</p>
-            <h2 className="jc-page-title mt-3 text-[2rem]">Request a Feature</h2>
+            <h2 id="feature-request-title" className="jc-page-title mt-3 break-words text-[1.75rem] md:text-[2rem]">
+              Request a Feature
+            </h2>
             <p className="mt-3 text-base leading-relaxed text-muted-foreground">
               Name the gap — missing app or bot data, or a new admin screen — then submit it. A friend assistant can help you write it.
             </p>
@@ -76,6 +89,7 @@ export function FeatureRequestDialog({
             variant="ghost"
             size="icon"
             aria-label="Close"
+            className="shrink-0"
             onClick={() => onOpenChange(false)}
             disabled={submitting}
           >
@@ -84,7 +98,7 @@ export function FeatureRequestDialog({
         </div>
 
         <form
-          className="mt-10 flex flex-1 flex-col gap-6"
+          className="mt-6 flex flex-1 flex-col gap-6 md:mt-10"
           onSubmit={(event) => {
             event.preventDefault();
             void onSubmit({ title, description });
@@ -112,29 +126,33 @@ export function FeatureRequestDialog({
             />
           </div>
 
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          {error ? (
+            <p className="text-sm text-destructive" role="alert">
+              {error}
+            </p>
+          ) : null}
 
           <div className="space-y-3 border-t border-white/10 pt-6">
             <p className="jc-label">Get help from a friend assistant</p>
-            <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="outline" onClick={() => openAssistant("https://chatgpt.com/")}>
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => openAssistant("https://chatgpt.com/")}>
                 Go to ChatGPT
               </Button>
-              <Button type="button" variant="outline" onClick={() => openAssistant("https://gemini.google.com/app")}>
+              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => openAssistant("https://gemini.google.com/app")}>
                 Go to Gemini
               </Button>
-              <Button type="button" variant="outline" onClick={() => openAssistant("https://claude.ai/new")}>
+              <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => openAssistant("https://claude.ai/new")}>
                 Go to Claude
               </Button>
             </div>
           </div>
 
-          <div className="mt-auto flex flex-wrap gap-2 pt-4">
-            <Button type="submit" disabled={submitting}>
-              {submitting ? "Submitting…" : "Submit request"}
-            </Button>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
+          <div className="mt-auto flex flex-col-reverse gap-2 pt-4 sm:flex-row">
+            <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => onOpenChange(false)} disabled={submitting}>
               Cancel
+            </Button>
+            <Button type="submit" className="w-full sm:w-auto" disabled={submitting}>
+              {submitting ? "Submitting…" : "Submit request"}
             </Button>
           </div>
         </form>

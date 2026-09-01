@@ -27,7 +27,7 @@ function DiffList({ changes }: { changes: unknown }) {
         {Object.entries(created).map(([key, value]) => (
           <div key={key}>
             <dt className="jc-label">{key.replaceAll("_", " ")}</dt>
-            <dd className="mt-1 whitespace-pre-wrap text-sm">{formatValue(value)}</dd>
+            <dd className="mt-1 whitespace-pre-wrap break-words text-sm">{formatValue(value)}</dd>
           </div>
         ))}
       </dl>
@@ -41,7 +41,7 @@ function DiffList({ changes }: { changes: unknown }) {
         {Object.entries(deleted).map(([key, value]) => (
           <div key={key}>
             <dt className="jc-label">{key.replaceAll("_", " ")}</dt>
-            <dd className="mt-1 whitespace-pre-wrap text-sm">{formatValue(value)}</dd>
+            <dd className="mt-1 whitespace-pre-wrap break-words text-sm">{formatValue(value)}</dd>
           </div>
         ))}
       </dl>
@@ -66,11 +66,11 @@ function DiffList({ changes }: { changes: unknown }) {
             <dd className="mt-1 space-y-1 text-sm">
               {diff ? (
                 <>
-                  <p className="text-muted-foreground">From: {formatValue(diff.from)}</p>
-                  <p>To: {formatValue(diff.to)}</p>
+                  <p className="break-words text-muted-foreground">From: {formatValue(diff.from)}</p>
+                  <p className="break-words">To: {formatValue(diff.to)}</p>
                 </>
               ) : (
-                <p className="whitespace-pre-wrap">{formatValue(value)}</p>
+                <p className="whitespace-pre-wrap break-words">{formatValue(value)}</p>
               )}
             </dd>
           </div>
@@ -103,7 +103,7 @@ export function ChangeLogDrawer({
           <dl className="space-y-3 text-sm">
             <div>
               <dt className="jc-label">Who</dt>
-              <dd className="mt-1">
+              <dd className="mt-1 break-words">
                 {row.actor_name}
                 <span className="text-muted-foreground"> · {row.actor_email}</span>
               </dd>
@@ -111,7 +111,7 @@ export function ChangeLogDrawer({
             <div>
               <dt className="jc-label">When</dt>
               <dd className="mt-1">
-                {new Date(row.created_at).toLocaleString(undefined, {
+                {new Date(row.created_at).toLocaleString("en-US", {
                   dateStyle: "medium",
                   timeStyle: "short",
                 })}
@@ -120,7 +120,7 @@ export function ChangeLogDrawer({
             {row.record_id ? (
               <div>
                 <dt className="jc-label">Record</dt>
-                <dd className="mt-1">{row.record_id}</dd>
+                <dd className="mt-1 break-all">{row.record_id}</dd>
               </div>
             ) : null}
           </dl>

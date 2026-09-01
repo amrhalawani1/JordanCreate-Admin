@@ -10,7 +10,7 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { ExportButton } from "@/components/shared/ExportButton";
 import { columnsForHtmlExport, rowsForHtmlExport } from "@/lib/export-html";
-import { Trash2, ChevronUp, ChevronDown } from "lucide-react";
+import { Trash2, ChevronUp, ChevronDown, ChevronRight } from "lucide-react";
 
 const TABLE_EXPORT_TITLES: Record<string, string> = {
   agenda_sessions: "Agenda",
@@ -27,7 +27,7 @@ const TABLE_EXPORT_TITLES: Record<string, string> = {
 interface DataTableProps<Row> {
   config: EntityConfig<Row>;
   data: Row[];
-  onRowClick: (row: Row) => void;
+  onRowClick?: (row: Row) => void;
   onAddClick?: () => void;
   onDelete?: (row: Row) => Promise<{ success: boolean; error?: string }>;
   onDeleted?: () => void;
@@ -84,57 +84,117 @@ export function DataTable<Row extends Record<string, unknown>>({
     return rows;
   }, [data, search, activeFilters, config.searchKeys]);
 
+  function cellValue(row: Row, key: (typeof config.columns)[number]["key"]) {
+    const col = config.columns.find((item) => item.key === key);
+    if (!col) return "";
+    return col.render ? col.render(row) : String(row[col.key] ?? "");
+  }
+
+  function cellText(row: Row, key: (typeof config.columns)[number]["key"]) {
+    const col = config.columns.find((item) => item.key === key);
+    if (!col) return "";
+    if (col.render) {
+      const rendered = col.render(row);
+      if (typeof rendered === "string" || typeof rendered === "number") return String(rendered);
+    }
+    return String(row[col.key] ?? "");
+  }
+
+  function titleColumn() {
+    const key = config.cardTitleKey ?? config.columns[0]?.key;
+    return config.columns.find((column) => column.key === key) ?? config.columns[0];
+  }
+
+  function cardTitle(row: Row) {
+    const column = titleColumn();
+    if (!column) return config.describeRow(row);
+    const value = cellValue(row, column.key);
+    if (value == null || value === "") return config.describeRow(row);
+    return value;
+  }
+
+  function cardTitleText(row: Row) {
+    const column = titleColumn();
+    if (!column) return config.describeRow(row);
+    const value = cellText(row, column.key).trim();
+    return value || config.describeRow(row);
+  }
+
+  function cardExtras() {
+    const titleKey = titleColumn()?.key;
+    return config.columns.filter((column) => column.key !== titleKey).slice(0, 2);
+  }
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center">
         {config.searchKeys?.length ? (
           <Input
+            type="search"
+            enterKeyHint="search"
+            aria-label={`Search ${config.entityLabel.toLowerCase()}`}
             placeholder={`Search ${config.entityLabel.toLowerCase()}…`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-xs"
+            className="w-full md:max-w-xs"
           />
         ) : null}
 
-        {config.filters?.map((filter) => {
-          const selected = activeFilters[filter.key] || ALL_FILTER_VALUE;
-          const allLabel = filter.allLabel ?? `All ${filter.label}`;
-          const selectedLabel =
-            selected === ALL_FILTER_VALUE
-              ? allLabel
-              : (filter.optionLabels?.[selected] ?? selected);
-          return (
-          <Select
-            key={filter.key}
-            value={selected}
-            onValueChange={(value: string | null) =>
-              setActiveFilters((prev) => ({
-                ...prev,
-                [filter.key]: !value || value === ALL_FILTER_VALUE ? "" : value,
-              }))
-            }
+        {config.filters?.length ? (
+          <div
+            className={`grid w-full gap-2 md:flex md:w-auto ${
+              config.filters.length > 1 ? "grid-cols-2" : "grid-cols-1"
+            }`}
           >
-            <SelectTrigger className="w-44">
-              <SelectValue placeholder={allLabel}>{selectedLabel}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL_FILTER_VALUE}>{allLabel}</SelectItem>
-              {filter.options.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {filter.optionLabels?.[option] ?? option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          );
-        })}
+            {config.filters.map((filter) => {
+              const selected = activeFilters[filter.key] || ALL_FILTER_VALUE;
+              const allLabel = filter.allLabel ?? `All ${filter.label}`;
+              const selectedLabel =
+                selected === ALL_FILTER_VALUE
+                  ? allLabel
+                  : (filter.optionLabels?.[selected] ?? selected);
+              return (
+                <Select
+                  key={filter.key}
+                  value={selected}
+                  onValueChange={(value: string | null) =>
+                    setActiveFilters((prev) => ({
+                      ...prev,
+                      [filter.key]: !value || value === ALL_FILTER_VALUE ? "" : value,
+                    }))
+                  }
+                >
+                  <SelectTrigger
+                    className="w-full md:w-44"
+                    aria-label={`Filter by ${filter.label}`}
+                  >
+                    <SelectValue placeholder={allLabel}>{selectedLabel}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL_FILTER_VALUE}>{allLabel}</SelectItem>
+                    {filter.options.map((option) => (
+                      <SelectItem key={option} value={option}>
+                        {filter.optionLabels?.[option] ?? option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              );
+            })}
+          </div>
+        ) : null}
 
         {(!hideExport || onAddClick) && (
-          <div className="ml-auto flex flex-wrap items-center gap-2">
+          <div
+            className={`grid w-full gap-2 md:ml-auto md:flex md:w-auto ${
+              !hideExport && onAddClick ? "grid-cols-2" : "grid-cols-1"
+            }`}
+          >
             {!hideExport ? (
               <ExportButton
                 title={TABLE_EXPORT_TITLES[config.table] ?? config.entityLabel}
                 fileStem={config.table.replaceAll("_", "-")}
+                className="w-full md:w-auto"
                 tables={[
                   {
                     columns: columnsForHtmlExport(config),
@@ -144,7 +204,9 @@ export function DataTable<Row extends Record<string, unknown>>({
               />
             ) : null}
             {onAddClick ? (
-              <Button onClick={onAddClick}>{addLabel ?? `Add ${config.entityLabel}`}</Button>
+              <Button className="w-full md:w-auto" onClick={onAddClick}>
+                {addLabel ?? `Add ${config.entityLabel}`}
+              </Button>
             ) : null}
           </div>
         )}
@@ -159,7 +221,97 @@ export function DataTable<Row extends Record<string, unknown>>({
       {filtered.length === 0 ? (
         <EmptyState message={data.length === 0 ? emptyMessage : "No rows match your search/filter."} />
       ) : (
-        <div className="overflow-x-auto rounded-[4px] border border-border">
+        <>
+        <div className="space-y-2 md:hidden">
+          {filtered.map((row, index) => {
+            const extras = cardExtras();
+            const hasActions = canReorder || Boolean(onDelete);
+            const title = cardTitle(row);
+            const titleText = cardTitleText(row);
+            const extrasBlock =
+              extras.length > 0 ? (
+                <dl className="mt-3 space-y-1.5">
+                  {extras.map((col) => (
+                    <div key={col.key}>
+                      <dt className="jc-label">{col.header}</dt>
+                      <dd className="mt-0.5 break-words text-sm leading-relaxed text-muted-foreground">
+                        {cellValue(row, col.key)}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null;
+            const actions = hasActions ? (
+              <div className="flex items-center justify-end gap-0.5 border-t border-white/10 px-1 py-1">
+                {canReorder ? (
+                  <>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      disabled={!reorderActive || index === 0}
+                      onClick={() => onMoveUp!(row)}
+                      aria-label={`Move ${titleText} up`}
+                    >
+                      <ChevronUp className="size-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      disabled={!reorderActive || index === filtered.length - 1}
+                      onClick={() => onMoveDown!(row)}
+                      aria-label={`Move ${titleText} down`}
+                    >
+                      <ChevronDown className="size-4" />
+                    </Button>
+                  </>
+                ) : null}
+                {onDelete ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Delete ${titleText}`}
+                    title={`Delete ${config.entityLabel}`}
+                    onClick={() => setPendingDelete(row)}
+                  >
+                    <Trash2 className="size-4 text-destructive" />
+                  </Button>
+                ) : null}
+              </div>
+            ) : null;
+
+            return (
+              <article
+                key={String(row[config.pkColumn])}
+                className={`overflow-hidden rounded-[4px] border border-border bg-card ${rowClassName?.(row) ?? ""}`}
+              >
+                {onRowClick ? (
+                  <button
+                    type="button"
+                    onClick={() => onRowClick(row)}
+                    aria-label={`Open ${titleText}`}
+                    className="block w-full p-4 text-left transition-colors hover:bg-card-hover focus-visible:bg-card-hover focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-orange/40"
+                  >
+                    <span className="flex items-start gap-2">
+                      <span className="min-w-0 flex-1 break-words font-medium leading-snug">{title}</span>
+                      <ChevronRight className="mt-0.5 size-4 shrink-0 text-faint" aria-hidden />
+                    </span>
+                    {extrasBlock}
+                  </button>
+                ) : (
+                  <div className="p-4">
+                    <p className="break-words font-medium leading-snug">{title}</p>
+                    {extrasBlock}
+                  </div>
+                )}
+                {actions}
+              </article>
+            );
+          })}
+        </div>
+        <div className="hidden overflow-x-auto rounded-[4px] border border-border md:block">
           <Table>
             <TableHeader>
               <TableRow>
@@ -174,8 +326,8 @@ export function DataTable<Row extends Record<string, unknown>>({
               {filtered.map((row, index) => (
                 <TableRow
                   key={String(row[config.pkColumn])}
-                  onClick={() => onRowClick(row)}
-                  className={`cursor-pointer hover:bg-card-hover ${rowClassName?.(row) ?? ""}`}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  className={`${onRowClick ? "cursor-pointer" : ""} hover:bg-card-hover ${rowClassName?.(row) ?? ""}`}
                 >
                   {canReorder && (
                     <TableCell>
@@ -240,6 +392,7 @@ export function DataTable<Row extends Record<string, unknown>>({
             </TableBody>
           </Table>
         </div>
+        </>
       )}
 
       <DeleteConfirmDialog

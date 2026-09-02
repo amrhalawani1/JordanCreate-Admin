@@ -9,6 +9,9 @@ export function getReadableError(error: unknown): string {
   if (isPostgrestError(error)) {
     switch (error.code) {
       case "23514":
+        if (typeof error.message === "string" && error.message.includes("partners_tier_check")) {
+          return "Tier must be Headline, Supporting, or Community.";
+        }
         return "That value isn't allowed for this field. Please pick one of the listed options.";
       case "23502":
         return "A required field is missing.";

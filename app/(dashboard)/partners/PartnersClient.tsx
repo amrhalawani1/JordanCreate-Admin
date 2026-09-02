@@ -22,10 +22,10 @@ export function PartnersClient({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<Partner | null>(null);
 
-  const config = useMemo(
-    () => buildPartnerConfig(zones, editingRow ? String(editingRow.id) : undefined),
-    [zones, editingRow],
-  );
+  const config = useMemo(() => {
+    const tiers = Array.from(new Set(initialData.map((row) => row.tier).filter(Boolean))).sort();
+    return buildPartnerConfig(zones, editingRow ? String(editingRow.id) : undefined, tiers);
+  }, [zones, editingRow, initialData]);
 
   function openAdd() {
     setEditingRow(null);
@@ -57,7 +57,7 @@ export function PartnersClient({
   const defaultValues: PartnerFormValues = editingRow
     ? {
         name: editingRow.name,
-        tier: editingRow.tier as PartnerFormValues["tier"],
+        tier: editingRow.tier,
         zone_id: editingRow.zone_id,
         description: editingRow.description ?? "",
         website: editingRow.website ?? "",
@@ -66,7 +66,7 @@ export function PartnersClient({
       }
     : {
         name: "",
-        tier: "Supporting",
+        tier: "",
         zone_id: null,
         description: "",
         website: "",

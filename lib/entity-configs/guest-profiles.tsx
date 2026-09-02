@@ -5,12 +5,8 @@ import type { GuestProfile } from "@/types/entities";
 import { PhotoThumb } from "@/components/shared/fields/PhotoThumb";
 import { Badge } from "@/components/ui/badge";
 
-export function buildGuestConfig(
-  channels: string[],
-  arrivalStatuses: string[],
-): EntityConfig<GuestProfile> {
+export function buildGuestConfig(arrivalStatuses: string[]): EntityConfig<GuestProfile> {
   const filters: FilterConfig<GuestProfile>[] = [];
-  if (channels.length) filters.push({ key: "channel", label: "Channel", options: channels });
   if (arrivalStatuses.length) {
     filters.push({ key: "arrival_status", label: "Arrival", options: arrivalStatuses });
   }
@@ -19,7 +15,7 @@ export function buildGuestConfig(
     table: "guest_profiles",
     pkColumn: "guest_id",
     entityLabel: "Guest",
-    searchKeys: ["guest_name", "channel_identifier", "phone_number", "display_name_arabic"],
+    searchKeys: ["guest_name", "phone_number"],
     filters,
     cardTitleKey: "guest_name",
     columns: [
@@ -30,7 +26,6 @@ export function buildGuestConfig(
         render: (row) => <PhotoThumb src={row.photo_url} alt={row.guest_name ?? "Guest"} />,
       },
       { key: "guest_name", header: "Name" },
-      { key: "channel", header: "Channel" },
       { key: "arrival_status", header: "Arrival" },
       {
         key: "vip_flag",
@@ -66,26 +61,10 @@ export function buildGuestConfig(
         imageSlugFrom: "guest_id",
       },
       { name: "guest_name", label: "Display name", type: "text" },
-      { name: "display_name_arabic", label: "Display name (Arabic)", type: "text" },
       { name: "role", label: "Role", type: "text" },
       { name: "bio", label: "Bio", type: "textarea" },
       { name: "location", label: "Location", type: "text" },
       { name: "phone_number", label: "Phone number", type: "text" },
-      {
-        name: "channel",
-        label: "Channel",
-        type: "suggest-text",
-        required: true,
-        referenceOptions: channels.map((v) => ({ value: v, label: v })),
-        placeholder: "e.g. telegram",
-      },
-      {
-        name: "channel_identifier",
-        label: "Channel identifier",
-        type: "text",
-        required: true,
-        placeholder: "Telegram user id or username",
-      },
       {
         name: "stated_interests",
         label: "Stated interests",
@@ -104,6 +83,6 @@ export function buildGuestConfig(
     ],
     hasUpdatedAt: false,
     describeRow: (row) =>
-      `Delete guest "${row.guest_name ?? row.channel_identifier}"? This permanently removes them from the list.`,
+      `Delete guest "${row.guest_name ?? row.guest_id}"? This permanently removes them from the list.`,
   };
 }

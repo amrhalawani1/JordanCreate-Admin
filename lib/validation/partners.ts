@@ -1,10 +1,9 @@
 import { z } from "zod";
 import { requiredText, nullableText, optionalUrl } from "./shared";
-import { PARTNER_TIER_VALUES } from "@/types/entities";
 
 export const PartnerSchema = z.object({
   name: requiredText("Name is required."),
-  tier: z.enum(PARTNER_TIER_VALUES),
+  tier: requiredText("Tier is required."),
   zone_id: z
     .union([z.string(), z.null()])
     .transform((v) => (typeof v === "string" && v.trim() === "" ? null : v)),

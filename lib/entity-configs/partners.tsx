@@ -1,30 +1,26 @@
 "use client";
 
-import type { EntityConfig } from "./types";
+import type { EntityConfig, FilterConfig } from "./types";
 import type { Partner, VenueZone } from "@/types/entities";
-import { PARTNER_TIER_VALUES } from "@/types/entities";
 import { PhotoThumb } from "@/components/shared/fields/PhotoThumb";
 import { Badge } from "@/components/ui/badge";
-
-const TIER_VARIANT: Record<(typeof PARTNER_TIER_VALUES)[number], "default" | "secondary" | "outline"> = {
-  Headline: "default",
-  Supporting: "secondary",
-  Community: "outline",
-};
 
 export function buildPartnerConfig(
   zones: VenueZone[],
   imageSlug?: string,
+  tiers: string[] = [],
 ): EntityConfig<Partner> {
   const zoneOptions = zones.map((zone) => ({ value: zone.zone_id, label: `${zone.zone_id} · ${zone.name}` }));
   const zoneName = (zoneId: string | null) => zones.find((zone) => zone.zone_id === zoneId)?.name ?? zoneId ?? "—";
+  const filters: FilterConfig<Partner>[] = [];
+  if (tiers.length) filters.push({ key: "tier", label: "Tier", options: tiers });
 
   return {
     table: "partners",
     pkColumn: "id",
     entityLabel: "Partner",
     searchKeys: ["name", "description", "website"],
-    filters: [{ key: "tier", label: "Tier", options: PARTNER_TIER_VALUES }],
+    filters,
     columns: [
       {
         key: "image_url",
@@ -36,11 +32,7 @@ export function buildPartnerConfig(
       {
         key: "tier",
         header: "Tier",
-        render: (row) => (
-          <Badge variant={TIER_VARIANT[row.tier as (typeof PARTNER_TIER_VALUES)[number]] ?? "outline"}>
-            {row.tier}
-          </Badge>
-        ),
+        render: (row) => <Badge variant="outline">{row.tier}</Badge>,
       },
       {
         key: "zone_id",
@@ -53,9 +45,15 @@ export function buildPartnerConfig(
       {
         name: "tier",
         label: "Tier",
-        type: "enum",
+        type: "suggest-text",
         required: true,
-        enumValues: PARTNER_TIER_VALUES,
+        placeholder: "e.g. Headline",
+        helpText: "Must be Headline, Supporting, or Community.",
+        referenceOptions: [
+          { value: "Headline", label: "Headline" },
+          { value: "Supporting", label: "Supporting" },
+          { value: "Community", label: "Community" },
+        ],
       },
       {
         name: "zone_id",

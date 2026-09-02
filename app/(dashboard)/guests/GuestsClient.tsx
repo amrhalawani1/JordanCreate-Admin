@@ -17,8 +17,6 @@ import type { GuestProfile, GuestSocialLink, SocialLinkDraft } from "@/types/ent
 
 const EMPTY_VALUES = {
   guest_id: "",
-  channel: "telegram",
-  channel_identifier: "",
   guest_name: "",
   stated_interests: "",
   arrival_status: "not_arrived",
@@ -27,7 +25,6 @@ const EMPTY_VALUES = {
   bio: "",
   photo_url: "",
   location: "",
-  display_name_arabic: "",
   phone_number: "",
   attended_jc1: false,
   attended_jc2: false,
@@ -47,11 +44,10 @@ export function GuestsClient({
   const [draftGuestId, setDraftGuestId] = useState("");
 
   const config = useMemo(() => {
-    const channels = Array.from(new Set(initialData.map((r) => r.channel).filter(Boolean))).sort();
     const arrivalStatuses = Array.from(
       new Set(initialData.map((r) => r.arrival_status).filter((v): v is string => Boolean(v))),
     ).sort();
-    return buildGuestConfig(channels, arrivalStatuses);
+    return buildGuestConfig(arrivalStatuses);
   }, [initialData]);
 
   function linksFor(guestId: string) {
@@ -75,8 +71,6 @@ export function GuestsClient({
     editingRow
       ? {
           guest_id: editingRow.guest_id,
-          channel: editingRow.channel,
-          channel_identifier: editingRow.channel_identifier,
           guest_name: editingRow.guest_name ?? "",
           stated_interests: serializeChipList(editingRow.stated_interests ?? []),
           arrival_status: editingRow.arrival_status ?? "",
@@ -85,7 +79,6 @@ export function GuestsClient({
           bio: editingRow.bio ?? "",
           photo_url: editingRow.photo_url ?? "",
           location: editingRow.location ?? "",
-          display_name_arabic: editingRow.display_name_arabic ?? "",
           phone_number: editingRow.phone_number ?? "",
           attended_jc1: editingRow.attended_jc1,
           attended_jc2: editingRow.attended_jc2,

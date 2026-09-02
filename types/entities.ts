@@ -78,9 +78,6 @@ export const SOCIAL_PLATFORM_VALUES = [
 ] as const;
 export type SocialPlatform = (typeof SOCIAL_PLATFORM_VALUES)[number];
 
-export const PARTNER_TIER_VALUES = ["Headline", "Supporting", "Community"] as const;
-export type PartnerTier = (typeof PARTNER_TIER_VALUES)[number];
-
 export type SocialLinkDraft = {
   platform: SocialPlatform;
   handle: string;

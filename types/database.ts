@@ -124,8 +124,6 @@ export interface Database {
         Relationships: [];
         Row: {
           guest_id: string;
-          channel: string;
-          channel_identifier: string;
           guest_name: string | null;
           stated_interests: string[] | null;
           arrival_status: string | null;
@@ -136,7 +134,6 @@ export interface Database {
           bio: string | null;
           photo_url: string | null;
           location: string | null;
-          display_name_arabic: string | null;
           phone_number: string | null;
           attended_jc1: boolean;
           attended_jc2: boolean;
@@ -152,7 +149,6 @@ export interface Database {
           bio?: string | null;
           photo_url?: string | null;
           location?: string | null;
-          display_name_arabic?: string | null;
           phone_number?: string | null;
           attended_jc1?: boolean;
           attended_jc2?: boolean;

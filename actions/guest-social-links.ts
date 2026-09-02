@@ -21,7 +21,7 @@ export async function replaceGuestSocialLinks(guestId: string, values: unknown):
   const gate = await requireGuestEditor();
   if (!gate.ok) return gate;
   const parsed = parseSocialLinkDrafts(values);
-  if (!parsed.ok) return parsed;
+  if (!parsed.ok) return { success: false, error: parsed.error };
 
   try {
     const supabase = createAdminClient();

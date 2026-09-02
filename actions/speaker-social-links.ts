@@ -24,7 +24,7 @@ export async function replaceSpeakerSocialLinks(
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = parseSocialLinkDrafts(values);
-  if (!parsed.ok) return parsed;
+  if (!parsed.ok) return { success: false, error: parsed.error };
 
   try {
     const supabase = createAdminClient();

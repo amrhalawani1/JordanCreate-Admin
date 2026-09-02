@@ -14,4 +14,4 @@ export const SpeakerSchema = z.object({
   tags: nullableChipList(),
 });
 
-export type SpeakerFormValues = z.infer<typeof SpeakerSchema>;
+export type SpeakerFormValues = z.input<typeof SpeakerSchema>;

@@ -19,4 +19,4 @@ export const GuestProfileSchema = z.object({
   attended_jc2: z.boolean(),
 });
 
-export type GuestProfileFormValues = z.infer<typeof GuestProfileSchema>;
+export type GuestProfileFormValues = z.input<typeof GuestProfileSchema>;

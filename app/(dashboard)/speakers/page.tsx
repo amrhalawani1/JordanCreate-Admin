@@ -1,9 +1,10 @@
 import { getSpeakers } from "@/actions/speakers";
+import { getSpeakerSocialLinks } from "@/actions/speaker-social-links";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SpeakersClient } from "./SpeakersClient";
 
 export default async function SpeakersPage() {
-  const speakers = await getSpeakers();
+  const [speakers, socialLinks] = await Promise.all([getSpeakers(), getSpeakerSocialLinks()]);
   const missingCount = speakers.filter((s) => s.bio_status === "missing").length;
 
   return (
@@ -20,7 +21,7 @@ export default async function SpeakersPage() {
           </>
         }
       />
-      <SpeakersClient initialData={speakers} />
+      <SpeakersClient initialData={speakers} socialLinks={socialLinks} />
     </div>
   );
 }

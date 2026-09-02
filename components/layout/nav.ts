@@ -3,6 +3,7 @@ export const NAV_ITEMS = [
   { href: "/event-info", label: "Event Info", index: "01" },
   { href: "/agenda", label: "Agenda", index: "02" },
   { href: "/speakers", label: "Speakers", index: "03" },
+  { href: "/partners", label: "Partners", index: "04" },
   { href: "/venue", label: "Venue", index: "04" },
   { href: "/interest-tags", label: "Interest Tags", index: "05" },
   { href: "/brand-voice", label: "Brand Voice", index: "06" },

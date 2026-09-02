@@ -17,6 +17,22 @@ export type Speaker = Tables["speakers"]["Row"];
 export type SpeakerInsert = Tables["speakers"]["Insert"];
 export type SpeakerUpdate = Tables["speakers"]["Update"];
 
+export type SpeakerSocialLink = Tables["speaker_social_links"]["Row"];
+export type SpeakerSocialLinkInsert = Tables["speaker_social_links"]["Insert"];
+export type SpeakerSocialLinkUpdate = Tables["speaker_social_links"]["Update"];
+
+export type GuestProfile = Tables["guest_profiles"]["Row"];
+export type GuestProfileInsert = Tables["guest_profiles"]["Insert"];
+export type GuestProfileUpdate = Tables["guest_profiles"]["Update"];
+
+export type GuestSocialLink = Tables["guest_social_links"]["Row"];
+export type GuestSocialLinkInsert = Tables["guest_social_links"]["Insert"];
+export type GuestSocialLinkUpdate = Tables["guest_social_links"]["Update"];
+
+export type Partner = Tables["partners"]["Row"];
+export type PartnerInsert = Tables["partners"]["Insert"];
+export type PartnerUpdate = Tables["partners"]["Update"];
+
 export type VenueZone = Tables["venue_zones"]["Row"];
 export type VenueZoneInsert = Tables["venue_zones"]["Insert"];
 export type VenueZoneUpdate = Tables["venue_zones"]["Update"];
@@ -49,6 +65,27 @@ export type AgendaStatus = (typeof AGENDA_STATUS_VALUES)[number];
 
 export const SPEAKER_BIO_STATUS_VALUES = ["confirmed", "missing", "unconfirmed"] as const;
 export type SpeakerBioStatus = (typeof SPEAKER_BIO_STATUS_VALUES)[number];
+
+export const SOCIAL_PLATFORM_VALUES = [
+  "Instagram",
+  "LinkedIn",
+  "Behance",
+  "Website",
+  "TikTok",
+  "Facebook",
+  "Snapchat",
+  "Other",
+] as const;
+export type SocialPlatform = (typeof SOCIAL_PLATFORM_VALUES)[number];
+
+export const PARTNER_TIER_VALUES = ["Headline", "Supporting", "Community"] as const;
+export type PartnerTier = (typeof PARTNER_TIER_VALUES)[number];
+
+export type SocialLinkDraft = {
+  platform: SocialPlatform;
+  handle: string;
+  url: string;
+};
 
 export type Admin = Tables["admins"]["Row"];
 export type AdminInsert = Tables["admins"]["Insert"];

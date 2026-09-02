@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+export type MediaFolder = "speakers" | "guests" | "partners";
+
 export type FieldType =
   | "text"
   | "textarea"
@@ -13,7 +15,8 @@ export type FieldType =
   | "multiselect-ref"
   | "select-ref"
   | "chip-list"
-  | "password";
+  | "password"
+  | "image";
 
 export interface FieldConfig<Row> {
   name: keyof Row & string;
@@ -30,6 +33,12 @@ export interface FieldConfig<Row> {
   distinctFrom?: (keyof Row & string) | "self";
   /** 'multiselect-ref' / 'select-ref' — options fetched by the page, not baked into the config. */
   referenceOptions?: { value: string; label: string }[];
+  /** 'image' — Storage folder inside the public-media bucket. */
+  imageFolder?: MediaFolder;
+  /** 'image' — form field whose value becomes the filename slug. */
+  imageSlugFrom?: keyof Row & string;
+  /** 'image' — fixed slug, used when the filename is an already-known id. */
+  imageSlug?: string;
 }
 
 export interface ColumnConfig<Row> {

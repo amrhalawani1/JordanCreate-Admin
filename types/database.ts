@@ -1,8 +1,8 @@
 /**
  * Hand-written to match the exact shape `supabase gen types typescript` would
  * produce for project `peaoiihysmthpzrxlcxc`. Only tables this app is allowed
- * to touch are declared here — `guest_profiles` and `conversation_messages`
- * are deliberately absent so nothing in this codebase can reference them.
+ * to touch are declared here — `conversation_messages` stays absent so
+ * nothing in this codebase can reference chat logs.
  *
  * If you later run `supabase gen types typescript --project-id peaoiihysmthpzrxlcxc`,
  * the generated file can replace this one as long as it still exports a
@@ -97,10 +97,101 @@ export interface Database {
           known_for: string | null;
           availability: string | null;
           bio_status: "confirmed" | "missing" | "unconfirmed";
+          photo_url: string | null;
+          tags: string[] | null;
           updated_at: string;
         };
         Insert: Omit<Database["public"]["Tables"]["speakers"]["Row"], "updated_at">;
         Update: Partial<Omit<Database["public"]["Tables"]["speakers"]["Row"], "handle">>;
+      };
+      speaker_social_links: {
+        Relationships: [];
+        Row: {
+          id: number;
+          speaker_handle: string;
+          platform: string;
+          handle: string;
+          url: string;
+          sort_order: number;
+        };
+        Insert: Omit<Database["public"]["Tables"]["speaker_social_links"]["Row"], "id"> & {
+          id?: number;
+          sort_order?: number;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["speaker_social_links"]["Row"], "id">>;
+      };
+      guest_profiles: {
+        Relationships: [];
+        Row: {
+          guest_id: string;
+          channel: string;
+          channel_identifier: string;
+          guest_name: string | null;
+          stated_interests: string[] | null;
+          arrival_status: string | null;
+          last_interaction_time: string | null;
+          vip_flag: boolean | null;
+          created_at: string | null;
+          role: string | null;
+          bio: string | null;
+          photo_url: string | null;
+          location: string | null;
+          display_name_arabic: string | null;
+          phone_number: string | null;
+          attended_jc1: boolean;
+          attended_jc2: boolean;
+        };
+        Insert: Omit<Database["public"]["Tables"]["guest_profiles"]["Row"], "created_at" | "last_interaction_time"> & {
+          created_at?: string | null;
+          last_interaction_time?: string | null;
+          guest_name?: string | null;
+          stated_interests?: string[] | null;
+          arrival_status?: string | null;
+          vip_flag?: boolean | null;
+          role?: string | null;
+          bio?: string | null;
+          photo_url?: string | null;
+          location?: string | null;
+          display_name_arabic?: string | null;
+          phone_number?: string | null;
+          attended_jc1?: boolean;
+          attended_jc2?: boolean;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["guest_profiles"]["Row"], "guest_id">>;
+      };
+      guest_social_links: {
+        Relationships: [];
+        Row: {
+          id: number;
+          guest_id: string;
+          platform: string;
+          handle: string;
+          url: string;
+          sort_order: number;
+        };
+        Insert: Omit<Database["public"]["Tables"]["guest_social_links"]["Row"], "id"> & {
+          id?: number;
+          sort_order?: number;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["guest_social_links"]["Row"], "id">>;
+      };
+      partners: {
+        Relationships: [];
+        Row: {
+          id: number;
+          name: string;
+          tier: string;
+          zone_id: string | null;
+          description: string | null;
+          website: string | null;
+          image_url: string | null;
+          sort_order: number;
+        };
+        Insert: Omit<Database["public"]["Tables"]["partners"]["Row"], "id"> & {
+          id?: number;
+          sort_order?: number;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["partners"]["Row"], "id">>;
       };
       venue_zones: {
         Relationships: [];

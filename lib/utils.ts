@@ -16,3 +16,12 @@ export function parseChipList(value: string): string[] {
 export function serializeChipList(chips: string[]): string {
   return chips.join("; ")
 }
+
+/** Safe Storage object name from a handle, guest id, or partner name. */
+export function sanitizeMediaSlug(value: string): string {
+  const cleaned = value
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return cleaned.slice(0, 80);
+}

@@ -19,6 +19,8 @@ const TABLE_EXPORT_TITLES: Record<string, string> = {
   interest_tags: "Interest Tags",
   faq_entries: "FAQ",
   experience: "Experience",
+  partners: "Partners",
+  guest_profiles: "Guests",
   admins: "Admin Management",
   feature_requests: "Feature Requests",
   change_logs: "Change Log",

@@ -1,9 +1,10 @@
-import type { NextConfig } from "next";
 import path from "path";
+import { fileURLToPath } from "url";
 
-const projectRoot = path.resolve(process.cwd());
+const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   // This repo sits under a huge Desktop tree. Without an explicit root,
   // Next/Turbopack walks parent folders and startup takes minutes.
   outputFileTracingRoot: projectRoot,

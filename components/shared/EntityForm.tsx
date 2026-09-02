@@ -3,7 +3,7 @@
 import { useForm, type FieldValues, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ZodType } from "zod";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { FieldConfig } from "@/lib/entity-configs/types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { ChipListField } from "@/components/shared/fields/ChipListField";
 import { MultiSelectField } from "@/components/shared/fields/MultiSelectField";
 import { SingleSelectField } from "@/components/shared/fields/SingleSelectField";
+import { ImageUploadField } from "@/components/shared/fields/ImageUploadField";
+import { sanitizeMediaSlug } from "@/lib/utils";
 
 export interface EntityFormResult {
   success: boolean;
@@ -30,6 +32,8 @@ interface EntityFormProps<Row, Values extends FieldValues> {
   disabledFields?: (keyof Row & string)[];
   /** Existing records open read-only until the user presses Edit. */
   startInShowMode?: boolean;
+  children?: ReactNode | ((ctx: { isEditing: boolean }) => ReactNode);
+  onCancel?: () => void;
 }
 
 export function EntityForm<Row, Values extends FieldValues>({
@@ -41,6 +45,8 @@ export function EntityForm<Row, Values extends FieldValues>({
   submitLabel = "Save",
   disabledFields = [],
   startInShowMode = false,
+  children,
+  onCancel,
 }: EntityFormProps<Row, Values>) {
   const [formError, setFormError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(!startInShowMode);
@@ -202,6 +208,20 @@ export function EntityForm<Row, Values extends FieldValues>({
               />
             )}
 
+            {field.type === "image" && field.imageFolder && (
+              <ImageUploadField
+                id={name}
+                disabled={isDisabled}
+                folder={field.imageFolder}
+                slug={
+                  field.imageSlug
+                  ?? sanitizeMediaSlug(String(watch((field.imageSlugFrom ?? field.name) as never) ?? ""))
+                }
+                value={(watch(name as never) as unknown as string | null) ?? null}
+                onChange={(value) => setValue(name as never, value as never, { shouldValidate: true })}
+              />
+            )}
+
             {field.type === "suggest-text" && field.referenceOptions && (
               <datalist id={`${name}-suggestions`}>
                 {field.referenceOptions.map((opt) => (
@@ -219,6 +239,8 @@ export function EntityForm<Row, Values extends FieldValues>({
           </div>
         );
       })}
+
+      {typeof children === "function" ? children({ isEditing }) : children}
 
       {formError && (
         <p className="rounded-[4px] bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
@@ -241,6 +263,7 @@ export function EntityForm<Row, Values extends FieldValues>({
                 reset();
                 setFormError(null);
                 setIsEditing(false);
+                onCancel?.();
               }}
             >
               Cancel

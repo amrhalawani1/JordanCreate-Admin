@@ -1,15 +1,19 @@
-import { ComingSoon } from "@/components/shared/ComingSoon";
+import { getGuestProfiles } from "@/actions/guest-profiles";
+import { getGuestSocialLinks } from "@/actions/guest-social-links";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { GuestsClient } from "./GuestsClient";
 
-export default function GuestsPage() {
+export default async function GuestsPage() {
+  const [guests, socialLinks] = await Promise.all([getGuestProfiles(), getGuestSocialLinks()]);
+
   return (
     <div>
       <PageHeader
         eyebrow="10 / People"
         title="Guests"
-        description="The guest list the app, concierge bot, and door team will use."
+        description={`${guests.length} guest${guests.length === 1 ? "" : "s"} on the list the app, concierge bot, and door team will use.`}
       />
-      <ComingSoon message="This page is not ready yet." />
+      <GuestsClient initialData={guests} socialLinks={socialLinks} />
     </div>
   );
 }

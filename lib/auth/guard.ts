@@ -26,8 +26,25 @@ export async function requireSuperAdmin(): Promise<GuardResult> {
   return { ok: true, admin };
 }
 
+export async function requireGuestEditor(): Promise<GuardResult> {
+  const admin = await getCurrentAdmin();
+  if (!admin) {
+    return { ok: false, success: false, error: "You don't have an admin profile." };
+  }
+  if (!isStaffLevel(admin.admin_level) && admin.admin_level !== "guest_manager") {
+    return { ok: false, success: false, error: "You don't have permission to do that." };
+  }
+  return { ok: true, admin };
+}
+
 export async function assertStaff(): Promise<CurrentAdmin> {
   const gate = await requireStaff();
+  if (!gate.ok) throw new Error(gate.error);
+  return gate.admin;
+}
+
+export async function assertGuestEditor(): Promise<CurrentAdmin> {
+  const gate = await requireGuestEditor();
   if (!gate.ok) throw new Error(gate.error);
   return gate.admin;
 }

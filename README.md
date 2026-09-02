@@ -16,19 +16,15 @@ The in-app label is **Admin & Registry V1**.
 
 | Area | Status |
 | --- | --- |
-| Event Info (including extra title + description items), Agenda, Speakers, Venue, Interest Tags, Brand Voice, FAQ, Experience, Other Editions | Live |
+| Event Info (including extra title + description items), Agenda, Speakers, Venue, Partners, Interest Tags, Brand Voice, FAQ, Experience, Other Editions | Live |
 | Dashboard overview + HTML export of each data page | Live |
 | Admin Management (create/edit/remove people who can sign in) | Live — Super Admin only |
 | Request a Feature | Live — Super Admin only |
-| Guests | Coming soon |
+| Guests | Live — Guest Managers can access this page only |
 | Tickets Management | Coming soon |
 
-**Still out of scope, on purpose:** `guest_profiles` and
-`conversation_messages` hold live guest PII and chat logs. Nothing in this
-codebase queries, imports, or references them — confirmed by a `grep -ri`
-sweep with zero real hits (the only match is a comment explaining why they're
-absent). The Guests page will be the way those records are managed when it
-ships.
+**Still out of scope, on purpose:** `conversation_messages` holds live chat
+logs. Nothing in this codebase queries, imports, or references them.
 
 ## Who can sign in
 
@@ -135,8 +131,7 @@ supabase gen types typescript --project-id peaoiihysmthpzrxlcxc > types/database
 
 as long as the generated file still exports a `Database` type with the
 same shape, `types/entities.ts` and everything downstream needs zero
-changes. Do not add `guest_profiles` or `conversation_messages` to the
-hand-written file until those pages are explicitly in scope.
+changes. Do not add `conversation_messages` to the hand-written file.
 
 ## Deploying (free test host: Vercel Hobby)
 
@@ -234,6 +229,6 @@ lib/entity-configs/     per-table config driving the generic list/edit UI
 lib/validation/        per-table zod schemas
 lib/export-html.ts     HTML snapshot used by the Export button
 components/shared/      DataTable, EntityForm, SingletonForm, and field types
-types/database.ts       hand-written Supabase types (guest_profiles /
-                        conversation_messages intentionally absent)
+types/database.ts       hand-written Supabase types (conversation_messages
+                        intentionally absent)
 ```

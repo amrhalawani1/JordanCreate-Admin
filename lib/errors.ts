@@ -12,6 +12,9 @@ export function getReadableError(error: unknown): string {
         if (typeof error.message === "string" && error.message.includes("partners_tier_check")) {
           return "Tier must be Headline, Supporting, or Community.";
         }
+        if (typeof error.message === "string" && error.message.includes("entertainment_act_type_check")) {
+          return "Type must be DJ, Magic Show, Live Performance, Band, or Other.";
+        }
         return "That value isn't allowed for this field. Please pick one of the listed options.";
       case "23502":
         return "A required field is missing.";

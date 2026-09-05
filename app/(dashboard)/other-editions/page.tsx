@@ -18,7 +18,7 @@ export default async function OtherEditionsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow="09 / Series"
+        eyebrow="11 / Series"
         title="Other Editions"
         description="Placeholder records for the other Jordan Create events in the series."
         action={

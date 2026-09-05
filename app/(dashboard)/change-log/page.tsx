@@ -10,7 +10,7 @@ export default async function ChangeLogPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="14 / Audit"
+        eyebrow="16 / Audit"
         title="Change Log"
         description="Every save on this admin: what changed, and who did it."
       />

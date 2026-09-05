@@ -5,7 +5,7 @@ export default function TicketsManagementPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="11 / Access"
+        eyebrow="13 / Access"
         title="Tickets Management"
         description="Issue, track, and resolve tickets for the event."
       />

@@ -23,7 +23,7 @@ export default async function BrandVoicePage() {
   return (
     <div>
       <PageHeader
-        eyebrow="06 / Voice"
+        eyebrow="08 / Voice"
         title="Brand Voice"
         description="Mission, values, and tone the app and bot should reflect."
         action={

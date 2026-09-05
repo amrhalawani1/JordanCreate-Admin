@@ -8,7 +8,7 @@ export default async function AdminSettingsPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="13 / Control"
+        eyebrow="15 / Control"
         title="Admin Management"
         description="Create and manage who can sign in, and at what level."
       />

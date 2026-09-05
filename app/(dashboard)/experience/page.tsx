@@ -8,7 +8,7 @@ export default async function ExperiencePage() {
   return (
     <div>
       <PageHeader
-        eyebrow="08 / Extra"
+        eyebrow="10 / Extra"
         title="Experience"
         description="Extra experiences the app and bot can surface, e.g. the event playlist."
       />

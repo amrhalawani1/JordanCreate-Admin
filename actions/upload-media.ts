@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireGuestEditor, requireStaff } from "@/lib/auth/guard";
 import { sanitizeMediaSlug } from "@/lib/utils";
 
-const FOLDERS = ["speakers", "guests", "partners"] as const;
+const FOLDERS = ["speakers", "guests", "partners", "entertainment"] as const;
 type MediaFolder = (typeof FOLDERS)[number];
 
 const ALLOWED_TYPES: Record<string, string> = {

@@ -189,6 +189,30 @@ export interface Database {
         };
         Update: Partial<Omit<Database["public"]["Tables"]["partners"]["Row"], "id">>;
       };
+      entertainment: {
+        Relationships: [];
+        Row: {
+          id: number;
+          act_type: "DJ" | "Magic Show" | "Live Performance" | "Band" | "Other";
+          title: string;
+          performer_name: string | null;
+          description: string | null;
+          start_time: string | null;
+          end_time: string | null;
+          location_within_venue: string | null;
+          photo_url: string | null;
+          link: string | null;
+          sort_order: number;
+          status: "draft" | "confirmed";
+          updated_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["entertainment"]["Row"], "id" | "updated_at"> & {
+          id?: number;
+          sort_order?: number;
+          status?: "draft" | "confirmed";
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["entertainment"]["Row"], "id">>;
+      };
       venue_zones: {
         Relationships: [];
         Row: {

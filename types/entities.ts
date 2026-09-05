@@ -33,6 +33,10 @@ export type Partner = Tables["partners"]["Row"];
 export type PartnerInsert = Tables["partners"]["Insert"];
 export type PartnerUpdate = Tables["partners"]["Update"];
 
+export type Entertainment = Tables["entertainment"]["Row"];
+export type EntertainmentInsert = Tables["entertainment"]["Insert"];
+export type EntertainmentUpdate = Tables["entertainment"]["Update"];
+
 export type VenueZone = Tables["venue_zones"]["Row"];
 export type VenueZoneInsert = Tables["venue_zones"]["Insert"];
 export type VenueZoneUpdate = Tables["venue_zones"]["Update"];
@@ -62,6 +66,18 @@ export type JordanCreateThreeUpdate = Tables["jordan_create_three"]["Update"];
 // schemas both derive from these so an invalid value can never be submitted.
 export const AGENDA_STATUS_VALUES = ["draft", "confirmed"] as const;
 export type AgendaStatus = (typeof AGENDA_STATUS_VALUES)[number];
+
+export const ENTERTAINMENT_ACT_TYPE_VALUES = [
+  "DJ",
+  "Magic Show",
+  "Live Performance",
+  "Band",
+  "Other",
+] as const;
+export type EntertainmentActType = (typeof ENTERTAINMENT_ACT_TYPE_VALUES)[number];
+
+export const ENTERTAINMENT_STATUS_VALUES = ["draft", "confirmed"] as const;
+export type EntertainmentStatus = (typeof ENTERTAINMENT_STATUS_VALUES)[number];
 
 export const SPEAKER_BIO_STATUS_VALUES = ["confirmed", "missing", "unconfirmed"] as const;
 export type SpeakerBioStatus = (typeof SPEAKER_BIO_STATUS_VALUES)[number];

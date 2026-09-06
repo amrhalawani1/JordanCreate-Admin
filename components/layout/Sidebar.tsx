@@ -34,45 +34,42 @@ export function Sidebar({ adminLevel }: { adminLevel: AdminLevel }) {
   return (
     <aside
       className={cn(
-        "hidden shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ease-in-out lg:flex",
+        "sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ease-in-out lg:flex",
         collapsed ? "w-16" : "w-60",
       )}
     >
       <div
         className={cn(
-          "border-b border-white/10 py-6",
-          collapsed ? "px-3 text-center" : "px-5",
+          "flex shrink-0 items-center gap-1 border-b border-white/10 py-6",
+          collapsed ? "flex-col items-center px-2" : "px-3 pr-2",
         )}
       >
-        {collapsed ? (
-          <p className="jc-label" title="Admin & Registry V1 · Jordan Create">
-            JC
-          </p>
-        ) : (
-          <>
-            <p className="jc-label">Admin & Registry V1</p>
-            <p className="mt-2 font-[family-name:var(--font-display)] text-xl leading-none uppercase tracking-tight text-foreground">
-              Jordan Create
+        <div className={cn("min-w-0 flex-1", collapsed ? "px-0 text-center" : "px-2")}>
+          {collapsed ? (
+            <p className="jc-label" title="Admin & Registry V1 · Jordan Create">
+              JC
             </p>
-          </>
-        )}
+          ) : (
+            <>
+              <p className="jc-label">Admin & Registry V1</p>
+              <p className="mt-2 font-[family-name:var(--font-display)] text-xl leading-none uppercase tracking-tight text-foreground">
+                Jordan Create
+              </p>
+            </>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="flex size-9 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/40"
+        >
+          {collapsed ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}
+        </button>
       </div>
 
       <NavLinks adminLevel={adminLevel} collapsed={collapsed} />
-
-      <button
-        type="button"
-        onClick={toggle}
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        className={cn(
-          "flex min-h-11 shrink-0 items-center gap-2 border-t border-white/10 px-3 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/40",
-          collapsed && "justify-center px-0",
-        )}
-      >
-        {collapsed ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}
-        <span className={cn(collapsed && "sr-only")}>Collapse</span>
-      </button>
     </aside>
   );
 }

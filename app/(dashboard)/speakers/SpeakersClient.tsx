@@ -9,7 +9,7 @@ import { EntityForm } from "@/components/shared/EntityForm";
 import { SocialLinksEditor } from "@/components/shared/fields/SocialLinksEditor";
 import { buildSpeakerConfig } from "@/lib/entity-configs/speakers";
 import { SpeakerSchema, type SpeakerFormValues } from "@/lib/validation/speakers";
-import { createSpeaker, updateSpeaker, deleteSpeaker } from "@/actions/speakers";
+import { createSpeaker, updateSpeaker, deleteSpeaker, setSpeakerArchived } from "@/actions/speakers";
 import { replaceSpeakerSocialLinks } from "@/actions/speaker-social-links";
 import { toSocialLinkDrafts } from "@/lib/social-link-drafts";
 import { serializeChipList } from "@/lib/utils";
@@ -90,6 +90,8 @@ export function SpeakersClient({
           toast.success("Speaker deleted.");
           router.refresh();
         }}
+        onArchive={(row) => setSpeakerArchived(row.handle, !row.archived)}
+        onArchiveToggled={() => router.refresh()}
         emptyMessage="No speakers yet. Add the first one to get started."
         rowClassName={(row) =>
           row.bio_status === "missing" ? "border-l-2 border-l-orange bg-orange/5" : undefined

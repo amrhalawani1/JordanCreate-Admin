@@ -1,6 +1,10 @@
+"use client";
+
 import type { EntityConfig, FilterConfig } from "./types";
 import type { AgendaSession } from "@/types/entities";
 import { AGENDA_STATUS_VALUES } from "@/types/entities";
+import { archiveFilter } from "@/lib/archive";
+import { ArchiveStatusBadge } from "@/components/shared/ArchiveStatusBadge";
 
 interface Option {
   value: string;
@@ -15,6 +19,7 @@ export function buildAgendaSessionConfig(
   const filters: FilterConfig<AgendaSession>[] = [
     { key: "session_type", label: "Type", options: sessionTypes },
     { key: "status", label: "Status", options: AGENDA_STATUS_VALUES },
+    archiveFilter<AgendaSession>(),
   ];
 
   return {
@@ -29,6 +34,11 @@ export function buildAgendaSessionConfig(
       { key: "title", header: "Title" },
       { key: "session_type", header: "Type" },
       { key: "status", header: "Status" },
+      {
+        key: "archived",
+        header: "App",
+        render: (row) => <ArchiveStatusBadge archived={row.archived} />,
+      },
     ],
     formFields: [
       { name: "session_id", label: "Session ID", type: "text", required: true, placeholder: "e.g. S01" },
@@ -69,6 +79,7 @@ export function buildAgendaSessionConfig(
     ],
     hasUpdatedAt: true,
     reorderable: true,
+    archivable: true,
     describeRow: (row) => `Delete session "${row.title}" (${row.session_id})? This cannot be undone.`,
   };
 }

@@ -96,6 +96,36 @@ export async function deletePartner(id: number): Promise<ActionResult> {
   }
 }
 
+export async function setPartnerArchived(id: number, archived: boolean): Promise<ActionResult> {
+  const gate = await requireStaff();
+  if (!gate.ok) return gate;
+  try {
+    const supabase = createAdminClient();
+    const before = await fetchByPk<Partner>(supabase, "partners", { column: "id", value: id });
+    const after = await updateRow<Partner, PartnerUpdate>(
+      supabase,
+      "partners",
+      { column: "id", value: id },
+      { archived },
+    );
+    await logChange({
+      actor: gate.admin,
+      action: "update",
+      table: "partners",
+      recordId: id,
+      summary: archived
+        ? `Archived partner ${after.name}`
+        : `Restored partner ${after.name} to the app`,
+      before,
+      after,
+    });
+    revalidatePath("/partners");
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: getReadableError(err) };
+  }
+}
+
 export async function reorderPartners(orderedIds: number[]): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;

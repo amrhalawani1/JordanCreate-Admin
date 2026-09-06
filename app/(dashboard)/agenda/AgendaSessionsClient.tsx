@@ -13,6 +13,7 @@ import {
   updateAgendaSession,
   deleteAgendaSession,
   reorderAgendaSessions,
+  setAgendaSessionArchived,
 } from "@/actions/agenda-sessions";
 import type { AgendaSession, Speaker, InterestTag } from "@/types/entities";
 
@@ -111,6 +112,8 @@ export function AgendaSessionsClient({ initialData, speakers, tags }: AgendaSess
           toast.success("Session deleted.");
           router.refresh();
         }}
+        onArchive={(row) => setAgendaSessionArchived(row.session_id, !row.archived)}
+        onArchiveToggled={() => router.refresh()}
         onMoveUp={(row) => move(row, -1)}
         onMoveDown={(row) => move(row, 1)}
         emptyMessage="No agenda sessions yet. Add the first one to get started."

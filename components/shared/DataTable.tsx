@@ -10,7 +10,9 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { ExportButton } from "@/components/shared/ExportButton";
 import { columnsForHtmlExport, rowsForHtmlExport } from "@/lib/export-html";
-import { Trash2, ChevronUp, ChevronDown, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
+import { isArchivedRow } from "@/lib/archive";
+import { Archive, ArchiveRestore, Trash2, ChevronUp, ChevronDown, ChevronRight } from "lucide-react";
 
 const TABLE_EXPORT_TITLES: Record<string, string> = {
   agenda_sessions: "Agenda",
@@ -34,6 +36,8 @@ interface DataTableProps<Row> {
   onAddClick?: () => void;
   onDelete?: (row: Row) => Promise<{ success: boolean; error?: string }>;
   onDeleted?: () => void;
+  onArchive?: (row: Row) => Promise<{ success: boolean; error?: string }>;
+  onArchiveToggled?: () => void;
   emptyMessage: string;
   addLabel?: string;
   hideExport?: boolean;
@@ -54,6 +58,8 @@ export function DataTable<Row extends Record<string, unknown>>({
   onAddClick,
   onDelete,
   onDeleted,
+  onArchive,
+  onArchiveToggled,
   emptyMessage,
   addLabel,
   hideExport = false,
@@ -64,6 +70,7 @@ export function DataTable<Row extends Record<string, unknown>>({
   const [search, setSearch] = useState("");
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const [pendingDelete, setPendingDelete] = useState<Row | null>(null);
+  const [pendingArchiveId, setPendingArchiveId] = useState<string | null>(null);
 
   const canReorder = Boolean(onMoveUp && onMoveDown);
   const isFilteredOrSearched = Boolean(search.trim()) || Object.values(activeFilters).some(Boolean);
@@ -126,6 +133,64 @@ export function DataTable<Row extends Record<string, unknown>>({
   function cardExtras() {
     const titleKey = titleColumn()?.key;
     return config.columns.filter((column) => column.key !== titleKey).slice(0, 2);
+  }
+
+  function rowArchived(row: Row) {
+    return isArchivedRow(row as { archived?: boolean | null });
+  }
+
+  async function handleArchive(row: Row) {
+    if (!onArchive) return;
+    const id = String(row[config.pkColumn]);
+    const currentlyArchived = rowArchived(row);
+    setPendingArchiveId(id);
+    const result = await onArchive(row);
+    setPendingArchiveId(null);
+    if (result.success) {
+      toast.success(currentlyArchived ? "Restored to the app." : "Archived. Hidden from the app.");
+      onArchiveToggled?.();
+    } else {
+      toast.error(result.error ?? "Could not update archive state.");
+    }
+  }
+
+  function archiveButton(row: Row, titleText: string) {
+    if (!onArchive) return null;
+    const archived = rowArchived(row);
+    const pending = pendingArchiveId === String(row[config.pkColumn]);
+    const ArchiveIcon = archived ? ArchiveRestore : Archive;
+    const label = pending
+      ? archived
+        ? "Restoring…"
+        : "Archiving…"
+      : archived
+        ? "Unarchive"
+        : "Archive";
+    return (
+      <Button
+        type="button"
+        variant={archived ? "default" : "outline"}
+        size="xs"
+        disabled={pending}
+        aria-label={
+          archived
+            ? `Unarchive ${titleText} so it shows on the app`
+            : `Archive ${titleText} to hide it from the app`
+        }
+        title={
+          archived
+            ? "Put this back on the app"
+            : "Hide this from the app. It stays in the admin."
+        }
+        onClick={(e) => {
+          e.stopPropagation();
+          void handleArchive(row);
+        }}
+      >
+        <ArchiveIcon className="size-3" />
+        {label}
+      </Button>
+    );
   }
 
   return (
@@ -228,7 +293,7 @@ export function DataTable<Row extends Record<string, unknown>>({
         <div className="space-y-2 md:hidden">
           {filtered.map((row, index) => {
             const extras = cardExtras();
-            const hasActions = canReorder || Boolean(onDelete);
+            const hasActions = canReorder || Boolean(onDelete) || Boolean(onArchive);
             const title = cardTitle(row);
             const titleText = cardTitleText(row);
             const extrasBlock =
@@ -245,7 +310,7 @@ export function DataTable<Row extends Record<string, unknown>>({
                 </dl>
               ) : null;
             const actions = hasActions ? (
-              <div className="flex items-center justify-end gap-0.5 border-t border-white/10 px-1 py-1">
+              <div className="flex items-center justify-end gap-1.5 border-t border-white/10 px-3 py-2">
                 {canReorder ? (
                   <>
                     <Button
@@ -270,6 +335,7 @@ export function DataTable<Row extends Record<string, unknown>>({
                     </Button>
                   </>
                 ) : null}
+                {onArchive ? archiveButton(row, titleText) : null}
                 {onDelete ? (
                   <Button
                     type="button"
@@ -288,7 +354,7 @@ export function DataTable<Row extends Record<string, unknown>>({
             return (
               <article
                 key={String(row[config.pkColumn])}
-                className={`overflow-hidden rounded-[4px] border border-border bg-card ${rowClassName?.(row) ?? ""}`}
+                className={`overflow-hidden rounded-[4px] border border-border bg-card ${rowArchived(row) ? "border-white/15 bg-white/[0.03]" : ""} ${rowClassName?.(row) ?? ""}`}
               >
                 {onRowClick ? (
                   <button
@@ -322,7 +388,9 @@ export function DataTable<Row extends Record<string, unknown>>({
                 {config.columns.map((col) => (
                   <TableHead key={col.key}>{col.header}</TableHead>
                 ))}
-                {onDelete && <TableHead className="w-12" />}
+                {(onArchive || onDelete) && (
+                  <TableHead className="text-right">{onArchive ? "Actions" : ""}</TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -330,7 +398,7 @@ export function DataTable<Row extends Record<string, unknown>>({
                 <TableRow
                   key={String(row[config.pkColumn])}
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
-                  className={`${onRowClick ? "cursor-pointer" : ""} hover:bg-card-hover ${rowClassName?.(row) ?? ""}`}
+                  className={`${onRowClick ? "cursor-pointer" : ""} hover:bg-card-hover ${rowArchived(row) ? "bg-white/[0.03]" : ""} ${rowClassName?.(row) ?? ""}`}
                 >
                   {canReorder && (
                     <TableCell>
@@ -367,27 +435,29 @@ export function DataTable<Row extends Record<string, unknown>>({
                       {col.render ? col.render(row) : String(row[col.key] ?? "")}
                     </TableCell>
                   ))}
-                  {onDelete && (
+                  {(onArchive || onDelete) && (
                     <TableCell
-                      className="w-12"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPendingDelete(row);
-                      }}
+                      className="w-px whitespace-nowrap"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        aria-label={`Delete ${config.entityLabel}`}
-                        title={`Delete ${config.entityLabel}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPendingDelete(row);
-                        }}
-                      >
-                        <Trash2 className="size-4 text-destructive" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {onArchive ? archiveButton(row, cardTitleText(row)) : null}
+                        {onDelete ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            aria-label={`Delete ${config.entityLabel}`}
+                            title={`Delete ${config.entityLabel}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPendingDelete(row);
+                            }}
+                          >
+                            <Trash2 className="size-4 text-destructive" />
+                          </Button>
+                        ) : null}
+                      </div>
                     </TableCell>
                   )}
                 </TableRow>

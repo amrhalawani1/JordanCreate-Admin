@@ -123,6 +123,42 @@ export async function deleteAgendaSession(sessionId: string): Promise<ActionResu
   }
 }
 
+export async function setAgendaSessionArchived(
+  sessionId: string,
+  archived: boolean,
+): Promise<ActionResult> {
+  const gate = await requireStaff();
+  if (!gate.ok) return gate;
+  try {
+    const supabase = createAdminClient();
+    const before = await fetchByPk<AgendaSession>(supabase, "agenda_sessions", {
+      column: "session_id",
+      value: sessionId,
+    });
+    const after = await updateRow<AgendaSession, AgendaSessionUpdate>(
+      supabase,
+      "agenda_sessions",
+      { column: "session_id", value: sessionId },
+      { archived, updated_at: new Date().toISOString() },
+    );
+    await logChange({
+      actor: gate.admin,
+      action: "update",
+      table: "agenda_sessions",
+      recordId: sessionId,
+      summary: archived
+        ? `Archived session ${sessionId}`
+        : `Restored session ${sessionId} to the app`,
+      before,
+      after,
+    });
+    revalidatePath("/agenda");
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: getReadableError(err) };
+  }
+}
+
 export async function reorderAgendaSessions(orderedIds: string[]): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;

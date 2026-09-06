@@ -8,7 +8,7 @@ import { EntityDrawer } from "@/components/shared/EntityDrawer";
 import { EntityForm } from "@/components/shared/EntityForm";
 import { buildPartnerConfig } from "@/lib/entity-configs/partners";
 import { PartnerSchema, type PartnerFormValues } from "@/lib/validation/partners";
-import { createPartner, updatePartner, deletePartner, reorderPartners } from "@/actions/partners";
+import { createPartner, updatePartner, deletePartner, reorderPartners, setPartnerArchived } from "@/actions/partners";
 import type { Partner, VenueZone } from "@/types/entities";
 
 export function PartnersClient({
@@ -87,6 +87,8 @@ export function PartnersClient({
           toast.success("Partner deleted.");
           router.refresh();
         }}
+        onArchive={(row) => setPartnerArchived(row.id, !row.archived)}
+        onArchiveToggled={() => router.refresh()}
         onMoveUp={(row) => move(row, -1)}
         onMoveDown={(row) => move(row, 1)}
         emptyMessage="No partners yet — add the first one"

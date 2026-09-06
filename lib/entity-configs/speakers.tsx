@@ -3,7 +3,9 @@
 import type { EntityConfig, FilterConfig } from "./types";
 import type { Speaker } from "@/types/entities";
 import { SPEAKER_BIO_STATUS_VALUES } from "@/types/entities";
+import { archiveFilter } from "@/lib/archive";
 import { PhotoThumb } from "@/components/shared/fields/PhotoThumb";
+import { ArchiveStatusBadge } from "@/components/shared/ArchiveStatusBadge";
 
 export function buildSpeakerConfig(categories: string[]): EntityConfig<Speaker> {
   const categoryOptions = categories.map((v) => ({ value: v, label: v }));
@@ -11,6 +13,7 @@ export function buildSpeakerConfig(categories: string[]): EntityConfig<Speaker> 
   const filters: FilterConfig<Speaker>[] = [
     { key: "category", label: "Category", options: categories },
     { key: "bio_status", label: "Bio Status", options: SPEAKER_BIO_STATUS_VALUES },
+    archiveFilter<Speaker>(),
   ];
 
   return {
@@ -30,6 +33,11 @@ export function buildSpeakerConfig(categories: string[]): EntityConfig<Speaker> 
       { key: "category", header: "Category" },
       { key: "followers_range", header: "Followers" },
       { key: "bio_status", header: "Bio Status" },
+      {
+        key: "archived",
+        header: "App",
+        render: (row) => <ArchiveStatusBadge archived={row.archived} />,
+      },
     ],
     formFields: [
       { name: "handle", label: "Handle", type: "text", required: true, placeholder: "e.g. Raghadzamell" },
@@ -60,6 +68,7 @@ export function buildSpeakerConfig(categories: string[]): EntityConfig<Speaker> 
       { name: "bio_status", label: "Bio Status", type: "enum", required: true, enumValues: SPEAKER_BIO_STATUS_VALUES },
     ],
     hasUpdatedAt: true,
+    archivable: true,
     cardTitleKey: "handle",
     describeRow: (row) => `Delete speaker "${row.handle}"? This permanently removes them from the roster.`,
   };

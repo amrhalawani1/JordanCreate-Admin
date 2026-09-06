@@ -22,6 +22,12 @@ export function getReadableError(error: unknown): string {
         return "That ID is already in use. Choose a different one.";
       case "23503":
         return "This references something that no longer exists.";
+      case "PGRST204":
+      case "42703":
+        if (typeof error.message === "string" && error.message.includes("archived")) {
+          return "Archive is not set up yet. Run the archive SQL in Supabase, then refresh this page.";
+        }
+        return error.message || "The database rejected this change.";
       case "PGRST205":
         return "This table is not set up yet. Finish the database setup, then try again.";
       default:

@@ -96,3 +96,31 @@ export async function deleteSpeaker(handle: string): Promise<ActionResult> {
     return { success: false, error: getReadableError(err) };
   }
 }
+
+export async function setSpeakerArchived(handle: string, archived: boolean): Promise<ActionResult> {
+  const gate = await requireStaff();
+  if (!gate.ok) return gate;
+  try {
+    const supabase = createAdminClient();
+    const before = await fetchByPk<Speaker>(supabase, "speakers", { column: "handle", value: handle });
+    const after = await updateRow<Speaker, SpeakerUpdate>(
+      supabase,
+      "speakers",
+      { column: "handle", value: handle },
+      { archived, updated_at: new Date().toISOString() },
+    );
+    await logChange({
+      actor: gate.admin,
+      action: "update",
+      table: "speakers",
+      recordId: handle,
+      summary: archived ? `Archived speaker ${handle}` : `Restored speaker ${handle} to the app`,
+      before,
+      after,
+    });
+    revalidatePath("/speakers");
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: getReadableError(err) };
+  }
+}

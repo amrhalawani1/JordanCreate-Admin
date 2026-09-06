@@ -66,6 +66,8 @@ export interface EntityConfig<Row> {
   formFields: FieldConfig<Row>[];
   hasUpdatedAt: boolean;
   reorderable?: boolean;
+  /** When true, the table shows an archive control that hides the row from the app. */
+  archivable?: boolean;
   /** Column used as the mobile card heading. Defaults to the first column. */
   cardTitleKey?: keyof Row & string;
   /** Builds the "Delete X?" confirmation message for a specific row. */

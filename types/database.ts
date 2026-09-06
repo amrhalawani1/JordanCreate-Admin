@@ -80,9 +80,12 @@ export interface Database {
           status: "draft" | "confirmed";
           flag_notes: string | null;
           sort_order: number;
+          archived: boolean;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["agenda_sessions"]["Row"], "updated_at">;
+        Insert: Omit<Database["public"]["Tables"]["agenda_sessions"]["Row"], "updated_at" | "archived"> & {
+          archived?: boolean;
+        };
         Update: Partial<
           Omit<Database["public"]["Tables"]["agenda_sessions"]["Row"], "session_id">
         >;
@@ -99,9 +102,12 @@ export interface Database {
           bio_status: "confirmed" | "missing" | "unconfirmed";
           photo_url: string | null;
           tags: string[] | null;
+          archived: boolean;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["speakers"]["Row"], "updated_at">;
+        Insert: Omit<Database["public"]["Tables"]["speakers"]["Row"], "updated_at" | "archived"> & {
+          archived?: boolean;
+        };
         Update: Partial<Omit<Database["public"]["Tables"]["speakers"]["Row"], "handle">>;
       };
       speaker_social_links: {
@@ -182,10 +188,12 @@ export interface Database {
           website: string | null;
           image_url: string | null;
           sort_order: number;
+          archived: boolean;
         };
-        Insert: Omit<Database["public"]["Tables"]["partners"]["Row"], "id"> & {
+        Insert: Omit<Database["public"]["Tables"]["partners"]["Row"], "id" | "archived"> & {
           id?: number;
           sort_order?: number;
+          archived?: boolean;
         };
         Update: Partial<Omit<Database["public"]["Tables"]["partners"]["Row"], "id">>;
       };

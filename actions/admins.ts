@@ -25,6 +25,15 @@ export async function getAdmins(): Promise<Admin[]> {
   return fetchAll<Admin>(supabase, "admins", { column: "last_name" });
 }
 
+/** True once the admin_level enum accepts admin_view_only. */
+export async function adminViewOnlyLevelReady(): Promise<boolean> {
+  const gate = await requireSuperAdmin();
+  if (!gate.ok) return false;
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("admins").select("id").eq("admin_level", "admin_view_only").limit(1);
+  return !error;
+}
+
 export async function createAdmin(values: unknown): Promise<ActionResult> {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate;

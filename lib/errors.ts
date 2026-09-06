@@ -9,13 +9,19 @@ export function getReadableError(error: unknown): string {
   if (isPostgrestError(error)) {
     switch (error.code) {
       case "23514":
-        if (typeof error.message === "string" && error.message.includes("partners_tier_check")) {
+      case "22P02": {
+        const text = `${error.message} ${error.details ?? ""}`;
+        if (text.includes("admin_level")) {
+          return "The database does not allow this access level yet. Run the Admin - View Only SQL on Admin Management, then try again.";
+        }
+        if (text.includes("partners_tier_check")) {
           return "Tier must be Headline, Supporting, or Community.";
         }
-        if (typeof error.message === "string" && error.message.includes("entertainment_act_type_check")) {
+        if (text.includes("entertainment_act_type_check")) {
           return "Type must be DJ, Magic Show, Live Performance, Band, or Other.";
         }
         return "That value isn't allowed for this field. Please pick one of the listed options.";
+      }
       case "23502":
         return "A required field is missing.";
       case "23505":

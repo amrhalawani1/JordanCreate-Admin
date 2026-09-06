@@ -22,6 +22,16 @@ export function canAccessPath(level: AdminLevel, pathname: string): boolean {
   );
 }
 
+/** Can open staff event/registry pages (reads). Includes view-only admins. */
 export function isStaffLevel(level: AdminLevel): boolean {
+  return level === "super_admin" || level === "admin" || level === "admin_view_only";
+}
+
+/** Can create, update, archive, or delete event/registry data. */
+export function isStaffEditorLevel(level: AdminLevel): boolean {
   return level === "super_admin" || level === "admin";
+}
+
+export function isViewOnlyLevel(level: AdminLevel): boolean {
+  return level === "admin_view_only";
 }

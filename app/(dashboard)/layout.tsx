@@ -5,6 +5,8 @@ import { effectiveLevel, VIEW_AS_COOKIE } from "@/lib/auth/view-as";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { MissingAdminProfile } from "@/components/layout/MissingAdminProfile";
+import { AdminAccessProvider } from "@/components/layout/AdminAccessProvider";
+import { ADMIN_LEVEL_LABELS } from "@/types/entities";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabaseClient();
@@ -42,7 +44,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
           id="main-content"
           className="flex-1 overflow-x-clip overflow-y-auto px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-8 md:py-8"
         >
-          {children}
+          <AdminAccessProvider viewLevel={viewLevel}>
+            {viewLevel === "admin_view_only" ? (
+              <p className="mb-6 rounded-[4px] border border-orange/40 bg-orange/5 px-4 py-3 text-sm leading-relaxed text-foreground">
+                You have {ADMIN_LEVEL_LABELS.admin_view_only} access. You can browse event data, but
+                you cannot add, edit, archive, or delete.
+              </p>
+            ) : null}
+            {children}
+          </AdminAccessProvider>
         </main>
       </div>
     </div>

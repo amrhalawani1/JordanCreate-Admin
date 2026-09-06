@@ -34,7 +34,8 @@ without an `admins` row is **not** an admin.
 | Level | Access |
 | --- | --- |
 | **Super Admin** | Every route, including Admin Management and Request a Feature. Can preview other levels with **View as**. |
-| **Admin** | All event/registry pages except Admin Management and Request a Feature. |
+| **Admin - Full Edit** | All event/registry pages except Admin Management and Request a Feature. Can add, edit, archive, and delete. Stored as `admin`. |
+| **Admin - View Only** | Same pages as Admin - Full Edit, but cannot add, edit, archive, or delete. Stored as `admin_view_only`. |
 | **Guest Manager** | `/guests` only. |
 
 `role` on an admin is a free-text job title (for example “Operations”). It is
@@ -63,7 +64,8 @@ Supabase (`@supabase/supabase-js` + `@supabase/ssr`) · react-hook-form + zod
   is no public sign-up flow.
 - After login, `lib/auth/guard.ts` checks `admins.admin_level`. Guest
   Managers are sent to `/guests`; everyone else lands on the dashboard.
-  Forbidden URLs redirect to that home. Super Admin **View as** only changes
+  Forbidden URLs redirect to that home. **Admin - View Only** can read staff
+  pages but mutations are rejected. Super Admin **View as** only changes
   the UI (cookie `jc_view_as`); mutations still use the real level.
 - RLS is off on the original event tables by existing project convention.
   Newer tables (`admins`, `feature_requests`) are meant to be service-role

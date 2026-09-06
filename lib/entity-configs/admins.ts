@@ -44,6 +44,8 @@ export const adminConfig: EntityConfig<AdminListItem> = {
       required: true,
       enumValues: ADMIN_LEVEL_VALUES,
       enumLabels: ADMIN_LEVEL_LABELS,
+      helpText:
+        "Admin - Full Edit can change event data. Admin - View Only sees the same pages but cannot save changes.",
     },
     { name: "email", label: "Email", type: "text", required: true },
     {

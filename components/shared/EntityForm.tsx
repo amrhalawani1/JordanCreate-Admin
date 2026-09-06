@@ -16,6 +16,7 @@ import { MultiSelectField } from "@/components/shared/fields/MultiSelectField";
 import { SingleSelectField } from "@/components/shared/fields/SingleSelectField";
 import { ImageUploadField } from "@/components/shared/fields/ImageUploadField";
 import { sanitizeMediaSlug } from "@/lib/utils";
+import { useAdminAccess } from "@/components/layout/AdminAccessProvider";
 
 export interface EntityFormResult {
   success: boolean;
@@ -48,8 +49,10 @@ export function EntityForm<Row, Values extends FieldValues>({
   children,
   onCancel,
 }: EntityFormProps<Row, Values>) {
+  const { canEdit } = useAdminAccess();
   const [formError, setFormError] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(!startInShowMode);
+  const [isEditing, setIsEditing] = useState(canEdit && !startInShowMode);
+  const editing = canEdit && isEditing;
   const {
     register,
     handleSubmit,
@@ -63,6 +66,7 @@ export function EntityForm<Row, Values extends FieldValues>({
   });
 
   const submit = handleSubmit(async (values) => {
+    if (!canEdit) return;
     setFormError(null);
     const result = await onSubmit(values);
     if (result.success) {
@@ -77,7 +81,7 @@ export function EntityForm<Row, Values extends FieldValues>({
     <form onSubmit={submit} className="flex flex-col gap-4">
       {fields.map((field) => {
         const name = field.name as string;
-        const isDisabled = !isEditing || disabledFields.includes(field.name);
+        const isDisabled = !editing || disabledFields.includes(field.name);
         const fieldError = errors[name as keyof Values];
 
         return (
@@ -240,7 +244,7 @@ export function EntityForm<Row, Values extends FieldValues>({
         );
       })}
 
-      {typeof children === "function" ? children({ isEditing }) : children}
+      {typeof children === "function" ? children({ isEditing: editing }) : children}
 
       {formError && (
         <p className="rounded-[4px] bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
@@ -248,32 +252,34 @@ export function EntityForm<Row, Values extends FieldValues>({
         </p>
       )}
 
-      {startInShowMode && !isEditing ? (
-        <Button type="button" className="mt-2 w-full sm:w-auto" onClick={() => setIsEditing(true)}>
-          Edit
-        </Button>
-      ) : (
-        <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
-          {startInShowMode && (
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full sm:w-auto"
-              onClick={() => {
-                reset();
-                setFormError(null);
-                setIsEditing(false);
-                onCancel?.();
-              }}
-            >
-              Cancel
-            </Button>
-          )}
-          <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
-            {isSubmitting ? "Saving…" : submitLabel}
+      {canEdit ? (
+        startInShowMode && !isEditing ? (
+          <Button type="button" className="mt-2 w-full sm:w-auto" onClick={() => setIsEditing(true)}>
+            Edit
           </Button>
-        </div>
-      )}
+        ) : (
+          <div className="mt-2 flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
+            {startInShowMode && (
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => {
+                  reset();
+                  setFormError(null);
+                  setIsEditing(false);
+                  onCancel?.();
+                }}
+              >
+                Cancel
+              </Button>
+            )}
+            <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
+              {isSubmitting ? "Saving…" : submitLabel}
+            </Button>
+          </div>
+        )
+      ) : null}
     </form>
   );
 }

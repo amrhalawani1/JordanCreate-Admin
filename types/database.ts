@@ -314,7 +314,7 @@ export interface Database {
           first_name: string;
           last_name: string;
           role: string;
-          admin_level: "super_admin" | "admin" | "guest_manager";
+          admin_level: "super_admin" | "admin" | "admin_view_only" | "guest_manager";
           email: string;
           created_at: string;
           updated_at: string;

@@ -12,6 +12,7 @@ import { ExportButton } from "@/components/shared/ExportButton";
 import { columnsForHtmlExport, rowsForHtmlExport } from "@/lib/export-html";
 import { toast } from "sonner";
 import { isArchivedRow } from "@/lib/archive";
+import { useAdminAccess } from "@/components/layout/AdminAccessProvider";
 import { Archive, ArchiveRestore, Trash2, ChevronUp, ChevronDown, ChevronRight } from "lucide-react";
 
 const TABLE_EXPORT_TITLES: Record<string, string> = {
@@ -67,12 +68,16 @@ export function DataTable<Row extends Record<string, unknown>>({
   onMoveUp,
   onMoveDown,
 }: DataTableProps<Row>) {
+  const { canEdit } = useAdminAccess();
   const [search, setSearch] = useState("");
   const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   const [pendingDelete, setPendingDelete] = useState<Row | null>(null);
   const [pendingArchiveId, setPendingArchiveId] = useState<string | null>(null);
 
-  const canReorder = Boolean(onMoveUp && onMoveDown);
+  const showAdd = canEdit && Boolean(onAddClick);
+  const showDelete = canEdit && Boolean(onDelete);
+  const showArchive = canEdit && Boolean(onArchive);
+  const canReorder = canEdit && Boolean(onMoveUp && onMoveDown);
   const isFilteredOrSearched = Boolean(search.trim()) || Object.values(activeFilters).some(Boolean);
   const reorderActive = canReorder && !isFilteredOrSearched;
 
@@ -252,10 +257,10 @@ export function DataTable<Row extends Record<string, unknown>>({
           </div>
         ) : null}
 
-        {(!hideExport || onAddClick) && (
+        {(!hideExport || showAdd) && (
           <div
             className={`grid w-full gap-2 md:ml-auto md:flex md:w-auto ${
-              !hideExport && onAddClick ? "grid-cols-2" : "grid-cols-1"
+              !hideExport && showAdd ? "grid-cols-2" : "grid-cols-1"
             }`}
           >
             {!hideExport ? (
@@ -271,7 +276,7 @@ export function DataTable<Row extends Record<string, unknown>>({
                 ]}
               />
             ) : null}
-            {onAddClick ? (
+            {showAdd ? (
               <Button className="w-full md:w-auto" onClick={onAddClick}>
                 {addLabel ?? `Add ${config.entityLabel}`}
               </Button>
@@ -293,7 +298,7 @@ export function DataTable<Row extends Record<string, unknown>>({
         <div className="space-y-2 md:hidden">
           {filtered.map((row, index) => {
             const extras = cardExtras();
-            const hasActions = canReorder || Boolean(onDelete) || Boolean(onArchive);
+            const hasActions = canReorder || showDelete || showArchive;
             const title = cardTitle(row);
             const titleText = cardTitleText(row);
             const extrasBlock =
@@ -335,8 +340,8 @@ export function DataTable<Row extends Record<string, unknown>>({
                     </Button>
                   </>
                 ) : null}
-                {onArchive ? archiveButton(row, titleText) : null}
-                {onDelete ? (
+                {showArchive ? archiveButton(row, titleText) : null}
+                {showDelete ? (
                   <Button
                     type="button"
                     variant="ghost"
@@ -388,8 +393,8 @@ export function DataTable<Row extends Record<string, unknown>>({
                 {config.columns.map((col) => (
                   <TableHead key={col.key}>{col.header}</TableHead>
                 ))}
-                {(onArchive || onDelete) && (
-                  <TableHead className="text-right">{onArchive ? "Actions" : ""}</TableHead>
+                {(showArchive || showDelete) && (
+                  <TableHead className="text-right">{showArchive ? "Actions" : ""}</TableHead>
                 )}
               </TableRow>
             </TableHeader>
@@ -435,14 +440,14 @@ export function DataTable<Row extends Record<string, unknown>>({
                       {col.render ? col.render(row) : String(row[col.key] ?? "")}
                     </TableCell>
                   ))}
-                  {(onArchive || onDelete) && (
+                  {(showArchive || showDelete) && (
                     <TableCell
                       className="w-px whitespace-nowrap"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="flex items-center justify-end gap-1.5">
-                        {onArchive ? archiveButton(row, cardTitleText(row)) : null}
-                        {onDelete ? (
+                        {showArchive ? archiveButton(row, cardTitleText(row)) : null}
+                        {showDelete ? (
                           <Button
                             type="button"
                             variant="ghost"

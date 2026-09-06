@@ -104,12 +104,13 @@ export type Admin = Tables["admins"]["Row"];
 export type AdminInsert = Tables["admins"]["Insert"];
 export type AdminUpdate = Tables["admins"]["Update"];
 
-export const ADMIN_LEVEL_VALUES = ["super_admin", "admin", "guest_manager"] as const;
+export const ADMIN_LEVEL_VALUES = ["super_admin", "admin", "admin_view_only", "guest_manager"] as const;
 export type AdminLevel = (typeof ADMIN_LEVEL_VALUES)[number];
 
 export const ADMIN_LEVEL_LABELS: Record<AdminLevel, string> = {
   super_admin: "Super Admin",
-  admin: "Admin",
+  admin: "Admin - Full Edit",
+  admin_view_only: "Admin - View Only",
   guest_manager: "Guest Manager",
 };
 

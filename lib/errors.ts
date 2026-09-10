@@ -24,8 +24,13 @@ export function getReadableError(error: unknown): string {
       }
       case "23502":
         return "A required field is missing.";
-      case "23505":
+      case "23505": {
+        const text = `${error.message} ${error.details ?? ""}`;
+        if (text.includes("ticket_ref")) {
+          return "That ticket reference is already in use. If a webhook later hits the same reference as a manual ticket, that is a collision. Do not overwrite the manual row.";
+        }
         return "That ID is already in use. Choose a different one.";
+      }
       case "23503":
         return "This references something that no longer exists.";
       case "PGRST204":
@@ -36,8 +41,22 @@ export function getReadableError(error: unknown): string {
         return error.message || "The database rejected this change.";
       case "PGRST205":
         return "This table is not set up yet. Finish the database setup, then try again.";
-      default:
+      default: {
+        const text = `${error.message} ${error.details ?? ""}`;
+        if (text.includes("TICKET_SOURCE_COLLISION")) {
+          return "This manual ticket collides with an inbound update. The original row was left unchanged.";
+        }
+        if (text.includes("already void")) {
+          return "Access is already revoked.";
+        }
+        if (text.includes("Void them instead") || text.includes("cannot be rejected")) {
+          return "Approved tickets cannot be rejected. Revoke access instead.";
+        }
+        if (text.includes("NO_PERMISSION") || error.code === "42501") {
+          return "You don't have permission to do that.";
+        }
         return error.message || "The database rejected this change.";
+      }
     }
   }
 

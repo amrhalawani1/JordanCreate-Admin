@@ -26,8 +26,8 @@ export function SingletonForm<Row, Values extends FieldValues>({
   const router = useRouter();
 
   return (
-    <Card className="max-w-2xl">
-      <CardContent className="pt-6">
+    <Card className="jc-content-narrow w-full">
+      <CardContent className="pt-1">
         <EntityForm
           fields={fields}
           schema={schema}

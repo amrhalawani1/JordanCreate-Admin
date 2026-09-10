@@ -23,7 +23,7 @@ export async function replaceSpeakerSocialLinks(
 ): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
-  const parsed = parseSocialLinkDrafts(values);
+  const parsed = parseSocialLinkDrafts(values, { min: 1 });
   if (!parsed.ok) return { success: false, error: parsed.error };
 
   try {

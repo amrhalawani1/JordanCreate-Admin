@@ -12,7 +12,6 @@ export default async function RequestAFeaturePage({
   return (
     <div>
       <PageHeader
-        eyebrow="14 / Feedback"
         title="Request a Feature"
         description="This admin feeds the app and the bot. Ask for missing data, or a capability neither of them has yet."
       />

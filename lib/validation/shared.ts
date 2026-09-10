@@ -29,6 +29,14 @@ export function optionalUrl(message = "Enter a valid URL.") {
     });
 }
 
+export function requiredUrl(emptyMessage = "This field is required.", invalidMessage = "Enter a valid URL.") {
+  return z
+    .string()
+    .trim()
+    .min(1, { message: emptyMessage })
+    .refine((v) => z.url().safeParse(v).success, { message: invalidMessage });
+}
+
 /** Chip-list form string (or already-parsed array) → `text[] | null`. */
 export function nullableChipList() {
   return z

@@ -20,7 +20,7 @@ export function buildPartnerConfig(
   return {
     table: "partners",
     pkColumn: "id",
-    entityLabel: "Partner",
+    entityLabel: "Sponsor",
     searchKeys: ["name", "description", "website"],
     filters,
     columns: [
@@ -68,12 +68,13 @@ export function buildPartnerConfig(
         type: "select-ref",
         referenceOptions: zoneOptions,
       },
-      { name: "description", label: "Description", type: "textarea" },
-      { name: "website", label: "Website", type: "url", placeholder: "https://" },
+      { name: "description", label: "Description", type: "textarea", required: true },
+      { name: "website", label: "Website", type: "url", required: true, placeholder: "https://" },
       {
         name: "image_url",
         label: "Image",
         type: "image",
+        required: true,
         imageFolder: "partners",
         imageSlugFrom: "name",
         imageSlug,

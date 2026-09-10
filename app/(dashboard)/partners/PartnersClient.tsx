@@ -91,7 +91,7 @@ export function PartnersClient({
         onArchiveToggled={() => router.refresh()}
         onMoveUp={(row) => move(row, -1)}
         onMoveDown={(row) => move(row, 1)}
-        emptyMessage="No partners yet — add the first one"
+        emptyMessage="No sponsors yet — add the first one"
       />
 
       <EntityDrawer

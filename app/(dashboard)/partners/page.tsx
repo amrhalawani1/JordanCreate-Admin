@@ -16,9 +16,8 @@ export default async function PartnersPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="04 / Partners"
-        title="Partners"
-        description={`${partners.length} partner${partners.length === 1 ? "" : "s"} shown across the event${
+        title="Sponsors"
+        description={`${partners.length} sponsor${partners.length === 1 ? "" : "s"} shown across the event${
           archivedCount > 0 ? ` · ${archivedCount} archived` : ""
         }.`}
       />

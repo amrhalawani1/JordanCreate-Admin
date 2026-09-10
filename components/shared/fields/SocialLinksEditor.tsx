@@ -11,6 +11,7 @@ interface SocialLinksEditorProps {
   value: SocialLinkDraft[];
   onChange: (value: SocialLinkDraft[]) => void;
   disabled?: boolean;
+  required?: boolean;
 }
 
 const EMPTY_ROW: SocialLinkDraft = {
@@ -19,7 +20,16 @@ const EMPTY_ROW: SocialLinkDraft = {
   url: "",
 };
 
-export function SocialLinksEditor({ value, onChange, disabled = false }: SocialLinksEditorProps) {
+function isFilled(row: SocialLinkDraft) {
+  return row.handle.trim().length > 0;
+}
+
+function handlePlaceholder(platform: SocialPlatform) {
+  if (platform === "Website" || platform === "Other") return "example.com";
+  return "Handle";
+}
+
+export function SocialLinksEditor({ value, onChange, disabled = false, required = false }: SocialLinksEditorProps) {
   function update(index: number, patch: Partial<SocialLinkDraft>) {
     onChange(value.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   }
@@ -32,23 +42,30 @@ export function SocialLinksEditor({ value, onChange, disabled = false }: SocialL
     onChange(next);
   }
 
+  const visibleRows = disabled ? value.filter(isFilled) : value;
+
   return (
     <div className="space-y-3">
       <div>
-        <Label>Social links</Label>
+        <Label>
+          Social links
+          {required ? <span className="text-destructive"> *</span> : null}
+        </Label>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-          Saved with this record. Leave a row blank to skip it.
+          {required
+            ? "At least one social link is required. Saved with this record."
+            : "Saved with this record. Leave a row blank to skip it."}
         </p>
       </div>
 
-      {value.length === 0 && disabled && (
+      {disabled && visibleRows.length === 0 && (
         <p className="text-sm text-muted-foreground">None</p>
       )}
 
       <div className="flex flex-col gap-3">
-        {value.map((row, index) => (
-          <div key={`${row.platform}-${index}`} className="rounded-[4px] border border-white/10 p-3">
-            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+        {visibleRows.map((row, index) => (
+          <div key={`${row.platform}-${index}`} className="rounded-xl border border-border bg-white/[0.02] p-3 sm:p-3.5">
+            <div className="grid gap-2 sm:grid-cols-[minmax(0,11rem)_1fr_auto] sm:items-center">
               <Select
                 value={row.platform}
                 disabled={disabled}
@@ -65,8 +82,14 @@ export function SocialLinksEditor({ value, onChange, disabled = false }: SocialL
                   ))}
                 </SelectContent>
               </Select>
-              {!disabled && (
-                <div className="flex gap-1">
+              <Input
+                value={row.handle}
+                disabled={disabled}
+                placeholder={handlePlaceholder(row.platform)}
+                onChange={(e) => update(index, { handle: e.target.value })}
+              />
+              {!disabled ? (
+                <div className="flex gap-1 justify-self-end">
                   <Button
                     type="button"
                     variant="ghost"
@@ -92,27 +115,15 @@ export function SocialLinksEditor({ value, onChange, disabled = false }: SocialL
                     variant="ghost"
                     size="icon-sm"
                     aria-label="Remove link"
+                    disabled={required && value.length <= 1}
                     onClick={() => onChange(value.filter((_, i) => i !== index))}
                   >
                     <Trash2 />
                   </Button>
                 </div>
+              ) : (
+                <span className="hidden sm:block" />
               )}
-            </div>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2">
-              <Input
-                value={row.handle}
-                disabled={disabled}
-                placeholder="Handle"
-                onChange={(e) => update(index, { handle: e.target.value })}
-              />
-              <Input
-                type="url"
-                value={row.url}
-                disabled={disabled}
-                placeholder="https://"
-                onChange={(e) => update(index, { url: e.target.value })}
-              />
             </div>
           </div>
         ))}

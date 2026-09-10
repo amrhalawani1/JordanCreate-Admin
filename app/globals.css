@@ -5,44 +5,48 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Jordan Create design system — registry edition.
-  Black is the stage. Orange signals action. Serif for drama, sans for work.
+  Jordan Create Admin — operational dark UI.
+  Canvas black, orange for action, calm surfaces, readable ratios.
 */
 :root {
-  --jc-color-canvas: #0f0f0f;
-  --jc-color-canvas-deep: #0a0a0a;
-  --jc-color-canvas-deeper: #070708;
-  --jc-color-surface: #111114;
-  --jc-color-surface-alt: #121212;
-  --jc-color-border: #303030;
+  --jc-color-canvas: #0c0c0d;
+  --jc-color-canvas-deep: #080809;
+  --jc-color-canvas-deeper: #050506;
+  --jc-color-surface: #131316;
+  --jc-color-surface-alt: #18181b;
+  --jc-color-border: rgba(255, 255, 255, 0.08);
+  --jc-color-border-strong: rgba(255, 255, 255, 0.14);
   --jc-color-white-10: rgba(255, 255, 255, 0.1);
-  --jc-color-text-primary: #ffffff;
-  --jc-color-text-muted: #a6a6a6;
-  --jc-color-text-quiet: #858585;
+  --jc-color-text-primary: #f4f4f5;
+  --jc-color-text-muted: #a1a1aa;
+  --jc-color-text-quiet: #71717a;
   --jc-color-orange: #ea8f2d;
   --jc-color-orange-hot: #ff6b00;
 
   --jc-text-page: 7.75rem;
   --jc-text-hero: 4.125rem;
   --jc-text-section: 3.5rem;
-  --jc-text-display-compact: 2.25rem;
+  --jc-text-display-compact: 1.75rem;
   --jc-text-faq-title: 2rem;
-  --jc-text-stat: 2.875rem;
-  --jc-text-body: 1rem;
-  --jc-text-label: 0.75rem;
+  --jc-text-stat: 2rem;
+  --jc-text-body: 0.9375rem;
+  --jc-text-label: 0.6875rem;
 
-  --jc-radius-card: 4px;
-  --jc-radius-field: 4px;
-  --jc-radius-pill: 20px;
+  --jc-radius-card: 0.625rem;
+  --jc-radius-field: 0.5rem;
+  --jc-radius-pill: 999px;
+
+  --jc-content-max: 72rem;
+  --jc-content-narrow: 42rem;
 
   --background: var(--jc-color-canvas);
   --foreground: var(--jc-color-text-primary);
 
   --card: var(--jc-color-surface);
   --card-foreground: var(--jc-color-text-primary);
-  --card-hover: #161618;
+  --card-hover: #1a1a1f;
 
-  --popover: var(--jc-color-surface);
+  --popover: var(--jc-color-surface-alt);
   --popover-foreground: var(--jc-color-text-primary);
 
   --primary: var(--jc-color-orange);
@@ -55,7 +59,7 @@
   --muted-foreground: var(--jc-color-text-muted);
   --faint: var(--jc-color-text-quiet);
 
-  --accent: #1a1a1c;
+  --accent: #1c1c21;
   --accent-foreground: var(--jc-color-text-primary);
 
   --warning: var(--jc-color-orange);
@@ -65,7 +69,7 @@
   --destructive-foreground: #ffffff;
 
   --border: var(--jc-color-border);
-  --input: var(--jc-color-border);
+  --input: var(--jc-color-border-strong);
   --ring: var(--jc-color-orange);
 
   --chart-1: var(--jc-color-orange);
@@ -78,12 +82,12 @@
   --sidebar-foreground: var(--jc-color-text-primary);
   --sidebar-primary: var(--jc-color-orange);
   --sidebar-primary-foreground: #0a0a0a;
-  --sidebar-accent: #161616;
+  --sidebar-accent: #141417;
   --sidebar-accent-foreground: var(--jc-color-text-primary);
   --sidebar-border: var(--jc-color-border);
   --sidebar-ring: var(--jc-color-orange);
 
-  --radius: 0.25rem;
+  --radius: 0.5rem;
 }
 
 .dark {
@@ -91,7 +95,7 @@
   --foreground: var(--jc-color-text-primary);
   --card: var(--jc-color-surface);
   --card-foreground: var(--jc-color-text-primary);
-  --popover: var(--jc-color-surface);
+  --popover: var(--jc-color-surface-alt);
   --popover-foreground: var(--jc-color-text-primary);
   --primary: var(--jc-color-orange);
   --primary-foreground: #0a0a0a;
@@ -99,18 +103,18 @@
   --secondary-foreground: var(--jc-color-text-primary);
   --muted: var(--jc-color-surface-alt);
   --muted-foreground: var(--jc-color-text-muted);
-  --accent: #1a1a1c;
+  --accent: #1c1c21;
   --accent-foreground: var(--jc-color-text-primary);
   --destructive: #e5484d;
   --destructive-foreground: #ffffff;
   --border: var(--jc-color-border);
-  --input: var(--jc-color-border);
+  --input: var(--jc-color-border-strong);
   --ring: var(--jc-color-orange);
   --sidebar: var(--jc-color-canvas-deep);
   --sidebar-foreground: var(--jc-color-text-primary);
   --sidebar-primary: var(--jc-color-orange);
   --sidebar-primary-foreground: #0a0a0a;
-  --sidebar-accent: #161616;
+  --sidebar-accent: #141417;
   --sidebar-accent-foreground: var(--jc-color-text-primary);
   --sidebar-border: var(--jc-color-border);
   --sidebar-ring: var(--jc-color-orange);
@@ -159,10 +163,10 @@
   --color-canvas-deep: var(--jc-color-canvas-deep);
   --color-canvas-deeper: var(--jc-color-canvas-deeper);
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.25rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 1.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
 
   --font-sans: var(--font-dm-sans), "DM Sans", sans-serif;
   --font-ui: var(--font-host-grotesk), "Host Grotesk", sans-serif;
@@ -196,33 +200,50 @@ body {
     font-family: var(--font-ui);
     font-size: var(--jc-text-label);
     font-weight: 500;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--jc-color-orange);
   }
 
   .jc-page-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.75rem, 3vw, var(--jc-text-display-compact));
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-    text-transform: uppercase;
+    font-family: var(--font-ui);
+    font-size: clamp(1.375rem, 2.2vw, var(--jc-text-display-compact));
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
     text-wrap: balance;
+    color: var(--jc-color-text-primary);
   }
 
   .jc-stat {
     font-family: var(--font-sans);
-    font-size: clamp(2rem, 3vw, var(--jc-text-stat));
-    font-weight: 700;
+    font-size: clamp(1.5rem, 2.4vw, var(--jc-text-stat));
+    font-weight: 600;
     letter-spacing: -0.03em;
     line-height: 1;
-    color: var(--jc-color-orange);
+    color: var(--jc-color-text-primary);
     font-variant-numeric: tabular-nums;
   }
 
   .jc-rule {
     height: 1px;
     background: var(--jc-color-white-10);
+  }
+
+  .jc-content {
+    width: 100%;
+    max-width: var(--jc-content-max);
+    margin-inline: auto;
+  }
+
+  .jc-content-narrow {
+    width: 100%;
+    max-width: var(--jc-content-narrow);
+  }
+
+  .jc-panel {
+    border: 1px solid var(--jc-color-border);
+    border-radius: var(--jc-radius-card);
+    background: var(--jc-color-surface);
   }
 }

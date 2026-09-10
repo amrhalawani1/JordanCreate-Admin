@@ -14,7 +14,12 @@ export function canAccessPath(level: AdminLevel, pathname: string): boolean {
   if (level === "super_admin") return true;
 
   if (level === "guest_manager") {
-    return pathname === "/guests" || pathname.startsWith("/guests/");
+    return (
+      pathname === "/guests" ||
+      pathname.startsWith("/guests/") ||
+      pathname === "/tickets-management" ||
+      pathname.startsWith("/tickets-management/")
+    );
   }
 
   return !SUPER_ADMIN_ONLY_PREFIXES.some(

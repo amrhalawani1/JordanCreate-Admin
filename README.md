@@ -20,8 +20,8 @@ The in-app label is **Admin & Registry V1**.
 | Dashboard overview + HTML export of each data page | Live |
 | Admin Management (create/edit/remove people who can sign in) | Live — Super Admin only |
 | Request a Feature | Live — Super Admin only |
-| Guests | Live — Guest Managers can access this page only |
-| Tickets Management | Coming soon |
+| Guests | Live — Guest Managers can access this page and Tickets |
+| Tickets Management | Live — Guest Managers may approve and reject; only Super Admin and Admin may revoke access or delete |
 
 **Still out of scope, on purpose:** `conversation_messages` holds live chat
 logs. Nothing in this codebase queries, imports, or references them.
@@ -36,7 +36,7 @@ without an `admins` row is **not** an admin.
 | **Super Admin** | Every route, including Admin Management and Request a Feature. Can preview other levels with **View as**. |
 | **Admin - Full Edit** | All event/registry pages except Admin Management and Request a Feature. Can add, edit, archive, and delete. Stored as `admin`. |
 | **Admin - View Only** | Same pages as Admin - Full Edit, but cannot add, edit, archive, or delete. Stored as `admin_view_only`. |
-| **Guest Manager** | `/guests` only. |
+| **Guest Manager** | `/guests` and `/tickets-management`. May approve, reject, restore, and add manual tickets. Cannot revoke access or delete. |
 
 `role` on an admin is a free-text job title (for example “Operations”). It is
 not the permission level — that is `admin_level`.
@@ -217,8 +217,9 @@ automated test suite given the timeline this was built under):
 - **`faq_entries`**: reorder buttons update `sort_order` for the whole list.
 - **`speakers`**: rows with `bio_status = 'missing'` get an orange left
   border; search and category/bio_status filters work together.
-- **`brand_voice`**: the Values field edits as removable chips but stays
-  a semicolon-separated string in the database.
+- **`tickets`**: approval queue at `/tickets-management`. Never exports `qr_token`.
+  Guest Managers can approve/reject; revoke access and delete stay Super Admin / Admin.
+  Bulk approve reports partial failure instead of rolling back successes.
 
 ## Project structure
 

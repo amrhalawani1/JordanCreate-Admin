@@ -4,7 +4,7 @@ import type { CurrentAdmin } from "@/lib/auth/current-admin";
 import type { Json } from "@/types/database";
 import type { ChangeAction, ChangeLogInsert } from "@/types/entities";
 
-const SKIP_KEYS = new Set(["password", "created_at", "updated_at"]);
+const SKIP_KEYS = new Set(["password", "created_at", "updated_at", "qr_token"]);
 
 export function asRecord(value: unknown): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -15,7 +15,7 @@ function redact(value: Record<string, unknown> | null | undefined): Record<strin
   if (!value) return null;
   const out: Record<string, unknown> = {};
   for (const [key, item] of Object.entries(value)) {
-    if (SKIP_KEYS.has(key) || key.toLowerCase().includes("password")) continue;
+    if (SKIP_KEYS.has(key) || key.toLowerCase().includes("password") || key.toLowerCase().includes("qr_token")) continue;
     out[key] = item;
   }
   return out;

@@ -42,7 +42,6 @@ export default async function EventInfoPage() {
   return (
     <div className="space-y-10">
       <PageHeader
-        eyebrow="01 / Logistics"
         title="Event Info"
         description="Core event logistics guests and staff rely on. Add extra title-and-description facts below for the app and the bot."
         action={

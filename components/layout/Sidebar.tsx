@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronsLeft, ChevronsRight } from "lucide-react";
+import { PanelLeftClose, PanelLeft } from "lucide-react";
+import { BrandLogo } from "@/components/layout/BrandLogo";
 import { NavLinks } from "@/components/layout/NavLinks";
 import { cn } from "@/lib/utils";
 import type { AdminLevel } from "@/types/entities";
@@ -35,26 +36,27 @@ export function Sidebar({ adminLevel }: { adminLevel: AdminLevel }) {
     <aside
       className={cn(
         "sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ease-in-out lg:flex",
-        collapsed ? "w-16" : "w-60",
+        collapsed ? "w-[4.25rem]" : "w-60",
       )}
     >
       <div
         className={cn(
-          "flex shrink-0 items-center gap-1 border-b border-white/10 py-6",
-          collapsed ? "flex-col items-center px-2" : "px-3 pr-2",
+          "flex shrink-0 items-center gap-1 border-b border-border",
+          collapsed ? "flex-col gap-2 px-2 py-4" : "px-3 py-4 pr-2",
         )}
       >
         <div className={cn("min-w-0 flex-1", collapsed ? "px-0 text-center" : "px-2")}>
           {collapsed ? (
-            <p className="jc-label" title="Admin & Registry V1 · Jordan Create">
+            <p
+              className="font-[family-name:var(--font-display)] text-lg italic leading-none text-foreground"
+              title="Jordan Create"
+            >
               JC
             </p>
           ) : (
             <>
-              <p className="jc-label">Admin & Registry V1</p>
-              <p className="mt-2 font-[family-name:var(--font-display)] text-xl leading-none uppercase tracking-tight text-foreground">
-                Jordan Create
-              </p>
+              <p className="jc-label">Admin</p>
+              <BrandLogo className="mt-2 h-6" priority />
             </>
           )}
         </div>
@@ -63,9 +65,9 @@ export function Sidebar({ adminLevel }: { adminLevel: AdminLevel }) {
           onClick={toggle}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="flex size-9 shrink-0 items-center justify-center rounded-[4px] text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/40"
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange/30"
         >
-          {collapsed ? <ChevronsRight className="size-4" /> : <ChevronsLeft className="size-4" />}
+          {collapsed ? <PanelLeft className="size-4" /> : <PanelLeftClose className="size-4" />}
         </button>
       </div>
 

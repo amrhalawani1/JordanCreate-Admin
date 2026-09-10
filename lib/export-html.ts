@@ -17,7 +17,7 @@ export interface HtmlExportDocument {
   tables: HtmlExportTable[];
 }
 
-const SKIP_EXPORT_FIELDS = new Set(["password"]);
+const SKIP_EXPORT_FIELDS = new Set(["password", "qr_token"]);
 
 export function formatExportValue(value: unknown): string {
   if (value == null || value === "") return "—";

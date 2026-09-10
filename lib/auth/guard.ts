@@ -62,3 +62,30 @@ export async function assertGuestEditor(): Promise<CurrentAdmin> {
   }
   return admin;
 }
+
+export async function assertTicketReader(): Promise<CurrentAdmin> {
+  const admin = await getCurrentAdmin();
+  if (!admin) throw new Error(NO_PROFILE_ERROR);
+  if (!isStaffLevel(admin.admin_level) && admin.admin_level !== "guest_manager") {
+    throw new Error(NO_PERMISSION_ERROR);
+  }
+  return admin;
+}
+
+export async function requireTicketEditor(): Promise<GuardResult> {
+  const admin = await getCurrentAdmin();
+  if (!admin) {
+    return { ok: false, success: false, error: NO_PROFILE_ERROR };
+  }
+  if (isViewOnlyLevel(admin.admin_level)) {
+    return { ok: false, success: false, error: VIEW_ONLY_ERROR };
+  }
+  if (!isStaffEditorLevel(admin.admin_level) && admin.admin_level !== "guest_manager") {
+    return { ok: false, success: false, error: NO_PERMISSION_ERROR };
+  }
+  return { ok: true, admin };
+}
+
+export async function requireTicketAdmin(): Promise<GuardResult> {
+  return requireStaff();
+}

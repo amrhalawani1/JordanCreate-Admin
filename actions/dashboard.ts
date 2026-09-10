@@ -37,6 +37,8 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     jc1Res,
     jc3Res,
     missingBiosRes,
+    ticketsAwaitingRes,
+    ticketsCountRes,
   ] = await Promise.all([
     supabase.from("event_info").select("*").maybeSingle(),
     supabase.from("agenda_sessions").select("*", { count: "exact", head: true }),
@@ -49,6 +51,13 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     supabase.from("jordan_create_one").select("*").maybeSingle(),
     supabase.from("jordan_create_three").select("*").maybeSingle(),
     supabase.from("speakers").select("*", { count: "exact", head: true }).eq("bio_status", "missing"),
+    supabase
+      .from("tickets")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "active")
+      .is("approved_at", null)
+      .is("rejected_at", null),
+    supabase.from("tickets").select("id", { count: "exact", head: true }),
   ]);
 
   const flags: string[] = [];
@@ -61,6 +70,12 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
 
   const missingBios = missingBiosRes.count ?? 0;
   if (missingBios > 0) flags.push(`Speakers: ${missingBios} missing bio${missingBios === 1 ? "" : "s"}`);
+
+  const awaitingTickets = ticketsAwaitingRes.error ? 0 : (ticketsAwaitingRes.count ?? 0);
+  const ticketCount = ticketsCountRes.error ? 0 : (ticketsCountRes.count ?? 0);
+  if (awaitingTickets > 0) {
+    flags.push(`Tickets: ${awaitingTickets} awaiting approval`);
+  }
 
   const jc1 = jc1Res.data as JordanCreateOne | null;
   if (jc1 && isTbdOrEmpty(jc1.status)) flags.push("Other Editions: Jordan Create 1 status is TBD");
@@ -105,6 +120,13 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
       label: "Other Editions",
       href: "/other-editions",
       count: (jc1 ? 1 : 0) + (jc3 ? 1 : 0),
+      updatedAt: null,
+    },
+    {
+      key: "tickets",
+      label: "Tickets",
+      href: "/tickets-management",
+      count: ticketCount,
       updatedAt: null,
     },
   ];

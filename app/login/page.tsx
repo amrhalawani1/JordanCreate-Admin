@@ -14,22 +14,23 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-dvh bg-canvas-deeper lg:grid-cols-2">
       <div className="hidden flex-col justify-end border-r border-white/10 bg-canvas-deeper p-12 lg:flex">
-        <p className="jc-label">Admin Panel</p>
-        <h1 className="jc-page-title mt-5 text-[3.5rem] leading-[1.05]">
+        <p className="jc-label">Admin</p>
+        <h1 className="mt-4 font-[family-name:var(--font-ui)] text-4xl font-semibold tracking-tight text-foreground">
           Jordan Create
         </h1>
-        <p className="mt-6 max-w-sm text-base leading-relaxed text-muted-foreground">
-          Where we build the frame
+        <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
+          Sign in to manage event data for the app and concierge bot.
         </p>
       </div>
 
       <div className="flex items-center justify-center px-4 py-12 pt-[max(3rem,env(safe-area-inset-top))] pb-[max(3rem,env(safe-area-inset-bottom))] md:px-6 md:py-16">
-        <div className="w-full max-w-sm">
-          <p className="jc-label lg:hidden">Admin Panel</p>
-          <h2 className="jc-page-title mt-3 lg:hidden">Jordan Create</h2>
-          <p className="jc-label hidden lg:block">Sign in</p>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Admin and registry. Sign in to edit the data that feeds the app and the bot.
+        <div className="w-full max-w-sm rounded-xl border border-border bg-card p-6 sm:p-7">
+          <p className="jc-label">Sign in</p>
+          <h2 className="mt-2 font-[family-name:var(--font-ui)] text-xl font-semibold tracking-tight text-foreground lg:hidden">
+            Jordan Create
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Use your admin account to continue.
           </p>
 
           <form action={formAction} className="mt-8 space-y-5">

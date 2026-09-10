@@ -8,7 +8,6 @@ export default async function EntertainmentPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="06 / Entertainment"
         title="Entertainment"
         description={`${acts.length} act${acts.length === 1 ? "" : "s"} lined up for the event.`}
       />

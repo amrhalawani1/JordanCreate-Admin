@@ -53,11 +53,12 @@ export function buildAgendaSessionConfig(
         placeholder: "e.g. Panel",
       },
       { name: "title", label: "Title", type: "text", required: true },
-      { name: "description", label: "Description", type: "textarea" },
+      { name: "description", label: "Description", type: "textarea", required: true },
       {
         name: "speaker_handles",
         label: "Speakers",
         type: "multiselect-ref",
+        required: true,
         referenceOptions: speakerOptions,
       },
       {

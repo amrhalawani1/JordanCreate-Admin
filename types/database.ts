@@ -373,9 +373,102 @@ export interface Database {
         };
         Update: Partial<Omit<Database["public"]["Tables"]["change_logs"]["Row"], "id">>;
       };
+      tickets: {
+        Relationships: [];
+        Row: {
+          id: string;
+          guest_id: string | null;
+          phone: string | null;
+          email: string | null;
+          customer_name: string | null;
+          first_name: string | null;
+          last_name: string | null;
+          holder_name: string | null;
+          ticket_ref: string | null;
+          ticket_type: string | null;
+          qr_token: string | null;
+          status: string;
+          match_status: string | null;
+          approved_at: string | null;
+          approved_by: string | null;
+          rejected_at: string | null;
+          rejected_by: string | null;
+          rejection_note: string | null;
+          source: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          guest_id?: string | null;
+          phone?: string | null;
+          email?: string | null;
+          customer_name?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
+          holder_name?: string | null;
+          ticket_ref?: string | null;
+          ticket_type?: string | null;
+          qr_token?: string | null;
+          status?: string;
+          match_status?: string | null;
+          approved_at?: string | null;
+          approved_by?: string | null;
+          rejected_at?: string | null;
+          rejected_by?: string | null;
+          rejection_note?: string | null;
+          source?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["tickets"]["Row"], "id">>;
+      };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Views: {
+      tickets_queue: {
+        Relationships: [];
+        Row: {
+          id: string;
+          guest_id: string | null;
+          phone: string | null;
+          email: string | null;
+          customer_name: string | null;
+          holder_name: string | null;
+          ticket_ref: string | null;
+          ticket_type: string | null;
+          status: string;
+          match_status: string | null;
+          approved_at: string | null;
+          approved_by: string | null;
+          rejected_at: string | null;
+          rejected_by: string | null;
+          rejection_note: string | null;
+          source: string | null;
+          created_at: string;
+          approved: boolean;
+        };
+      };
+    };
+    Functions: {
+      approve_tickets: {
+        Args: { p_actor_id: string; p_ids: string[]; p_token_overrides?: Json };
+        Returns: Json;
+      };
+      reject_ticket: {
+        Args: { p_actor_id: string; p_id: string; p_note: string };
+        Returns: undefined;
+      };
+      restore_ticket: {
+        Args: { p_actor_id: string; p_id: string };
+        Returns: undefined;
+      };
+      void_ticket: {
+        Args: { p_actor_id: string; p_id: string };
+        Returns: undefined;
+      };
+      delete_ticket: {
+        Args: { p_actor_id: string; p_id: string };
+        Returns: undefined;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { getDashboardSummary } from "@/actions/dashboard";
 import { SummaryCard } from "@/components/dashboard/SummaryCard";
@@ -11,9 +12,8 @@ export default async function DashboardPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="00 / Overview"
         title="Dashboard"
-        description="One place to edit the data that feeds the Jordan Create app and concierge bot."
+        description="Edit the shared data that powers the Jordan Create app and concierge bot."
         action={
           <ExportButton
             title="Dashboard"
@@ -47,20 +47,28 @@ export default async function DashboardPage() {
       />
 
       {flags.length > 0 && (
-        <Alert className="mb-8 rounded-[4px] border-orange/40 bg-orange/5">
+        <Alert className="mb-6 rounded-xl border-orange/30 bg-orange/5">
           <AlertTriangle className="text-orange" />
           <AlertTitle className="text-orange">Needs attention</AlertTitle>
           <AlertDescription>
             <ul className="mt-1 list-disc space-y-0.5 pl-4 text-foreground/90">
               {flags.map((flag) => (
-                <li key={flag}>{flag}</li>
+                <li key={flag}>
+                  {flag.startsWith("Tickets:") ? (
+                    <Link href="/tickets-management" className="underline decoration-orange/60 underline-offset-2 hover:text-orange">
+                      {flag}
+                    </Link>
+                  ) : (
+                    flag
+                  )}
+                </li>
               ))}
             </ul>
           </AlertDescription>
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[4px] border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {tables.map((table) => (
           <SummaryCard key={table.key} table={table} />
         ))}

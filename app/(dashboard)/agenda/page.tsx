@@ -15,7 +15,6 @@ export default async function AgendaPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="02 / Run of show"
         title="Agenda"
         description={`${sessions.length} sessions, in run-of-show order${
           archivedCount > 0 ? ` · ${archivedCount} archived` : ""

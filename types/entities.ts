@@ -135,3 +135,24 @@ export const CHANGE_ACTION_LABELS: Record<ChangeAction, string> = {
   delete: "Deleted",
   reorder: "Reordered",
 };
+
+export type Ticket = Tables["tickets"]["Row"];
+export type TicketInsert = Tables["tickets"]["Insert"];
+export type TicketUpdate = Tables["tickets"]["Update"];
+
+/** Admin list/detail row. `qr_token` is never selected. */
+export type TicketQueueRow = Database["public"]["Views"]["tickets_queue"]["Row"];
+
+export const TICKET_TYPE_VALUES = ["general", "vip", "early-bird", "student", "comp"] as const;
+export type TicketType = (typeof TICKET_TYPE_VALUES)[number];
+
+export const TICKET_TYPE_LABELS: Record<TicketType, string> = {
+  general: "General",
+  vip: "VIP",
+  "early-bird": "Early bird",
+  student: "Student",
+  comp: "Comp",
+};
+
+export const TICKET_SOURCE_VALUES = ["webhook", "manual"] as const;
+export type TicketSource = (typeof TICKET_SOURCE_VALUES)[number];

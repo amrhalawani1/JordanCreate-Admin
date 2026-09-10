@@ -6,7 +6,8 @@
     "dev": "NEXT_TELEMETRY_DISABLED=1 next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "npx tsx --test lib/tickets/permissions.test.ts lib/tickets/queue.test.ts lib/tickets/query.test.ts lib/phone.test.ts lib/errors.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -16,6 +17,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "libphonenumber-js": "^1.13.12",
     "lucide-react": "^1.25.0",
     "next": "16.2.11",
     "next-themes": "^0.4.6",
@@ -37,6 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "tailwindcss": "^4",
+    "tsx": "^4.23.13",
     "typescript": "^5"
   }
 }

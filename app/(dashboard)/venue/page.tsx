@@ -8,7 +8,6 @@ export default async function VenuePage() {
   return (
     <div>
       <PageHeader
-        eyebrow="05 / Venue"
         title="Venue Zones"
         description="Zones guests are directed to around the venue (Z1–Z5, VIP)."
       />

@@ -17,7 +17,6 @@ export default async function SpeakersPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="03 / Voices"
         title="Speakers"
         description={
           <>

@@ -9,6 +9,7 @@ import { EntityForm } from "@/components/shared/EntityForm";
 import { SocialLinksEditor } from "@/components/shared/fields/SocialLinksEditor";
 import { buildSpeakerConfig } from "@/lib/entity-configs/speakers";
 import { SpeakerSchema, type SpeakerFormValues } from "@/lib/validation/speakers";
+import { parseSocialLinkDrafts } from "@/lib/validation/social-links";
 import { createSpeaker, updateSpeaker, deleteSpeaker, setSpeakerArchived } from "@/actions/speakers";
 import { replaceSpeakerSocialLinks } from "@/actions/speaker-social-links";
 import { toSocialLinkDrafts } from "@/lib/social-link-drafts";
@@ -25,6 +26,12 @@ const EMPTY_VALUES = {
   bio_status: "unconfirmed" as const,
   photo_url: "",
   tags: "",
+};
+
+const EMPTY_SOCIAL_ROW: SocialLinkDraft = {
+  platform: "Instagram",
+  handle: "",
+  url: "",
 };
 
 export function SpeakersClient({
@@ -52,13 +59,14 @@ export function SpeakersClient({
 
   function openAdd() {
     setEditingRow(null);
-    setLinkDrafts([]);
+    setLinkDrafts([{ ...EMPTY_SOCIAL_ROW }]);
     setDrawerOpen(true);
   }
 
   function openEdit(row: Speaker) {
     setEditingRow(row);
-    setLinkDrafts(linksFor(row.handle));
+    const existing = linksFor(row.handle);
+    setLinkDrafts(existing.length > 0 ? existing : [{ ...EMPTY_SOCIAL_ROW }]);
     setDrawerOpen(true);
   }
 
@@ -102,6 +110,11 @@ export function SpeakersClient({
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
         title={editingRow ? editingRow.handle : "Add Speaker"}
+        description={
+          editingRow
+            ? "Review or update this speaker’s profile and social links."
+            : "Create a speaker profile for the app and concierge bot."
+        }
       >
         <EntityForm
           key={editingRow?.handle ?? "new"}
@@ -112,14 +125,20 @@ export function SpeakersClient({
           disabledFields={editingRow ? ["handle"] : []}
           submitLabel={editingRow ? "Save changes" : "Add speaker"}
           onCancel={() => {
-            if (editingRow) setLinkDrafts(linksFor(editingRow.handle));
+            if (!editingRow) return;
+            const existing = linksFor(editingRow.handle);
+            setLinkDrafts(existing.length > 0 ? existing : [{ ...EMPTY_SOCIAL_ROW }]);
           }}
           onSubmit={async (values) => {
+            const links = parseSocialLinkDrafts(linkDrafts, { min: 1 });
+            if (!links.ok) return { success: false, error: links.error };
+
             const result = editingRow
               ? await updateSpeaker(editingRow.handle, values)
               : await createSpeaker(values);
-            if (!result.success || !editingRow) return result;
-            return replaceSpeakerSocialLinks(editingRow.handle, linkDrafts);
+            if (!result.success) return result;
+
+            return replaceSpeakerSocialLinks(editingRow?.handle ?? values.handle, links.data);
           }}
           onSuccess={() => {
             setDrawerOpen(false);
@@ -127,13 +146,14 @@ export function SpeakersClient({
             router.refresh();
           }}
         >
-          {({ isEditing }) =>
-            editingRow ? (
-              <SocialLinksEditor value={linkDrafts} onChange={setLinkDrafts} disabled={!isEditing} />
-            ) : (
-              <p className="text-sm text-muted-foreground">Save the speaker first to add social links.</p>
-            )
-          }
+          {({ isEditing }) => (
+            <SocialLinksEditor
+              value={linkDrafts}
+              onChange={setLinkDrafts}
+              disabled={!isEditing}
+              required
+            />
+          )}
         </EntityForm>
       </EntityDrawer>
     </div>

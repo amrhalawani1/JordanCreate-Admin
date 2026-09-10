@@ -9,7 +9,6 @@ export default async function GuestsPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="12 / People"
         title="Guests"
         description={`${guests.length} guest${guests.length === 1 ? "" : "s"} on the list the app, concierge bot, and door team will use.`}
       />

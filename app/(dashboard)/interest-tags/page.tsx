@@ -8,7 +8,6 @@ export default async function InterestTagsPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="07 / Matching"
         title="Interest Tags"
         description="Tags used to match guests with relevant agenda sessions."
       />

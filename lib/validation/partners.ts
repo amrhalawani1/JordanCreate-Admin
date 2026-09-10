@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { requiredText, nullableText, optionalUrl } from "./shared";
+import { requiredText, requiredUrl } from "./shared";
 
 export const PartnerSchema = z.object({
   name: requiredText("Name is required."),
@@ -7,9 +7,9 @@ export const PartnerSchema = z.object({
   zone_id: z
     .union([z.string(), z.null()])
     .transform((v) => (typeof v === "string" && v.trim() === "" ? null : v)),
-  description: nullableText(),
-  website: optionalUrl(),
-  image_url: optionalUrl(),
+  description: requiredText("Description is required."),
+  website: requiredUrl("Website is required."),
+  image_url: requiredUrl("Image is required."),
   sort_order: z.number({ error: "Sort order is required." }).int(),
 });
 

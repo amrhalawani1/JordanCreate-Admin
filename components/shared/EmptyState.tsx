@@ -1,7 +1,7 @@
 export function EmptyState({ message }: { message: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-[4px] border border-dashed border-border py-16 text-center">
-      <p className="max-w-sm px-4 text-base leading-relaxed text-muted-foreground">{message}</p>
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/40 px-4 py-14 text-center sm:py-16">
+      <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">{message}</p>
     </div>
   );
 }

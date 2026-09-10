@@ -8,7 +8,6 @@ export default async function FaqPage() {
   return (
     <div>
       <PageHeader
-        eyebrow="09 / Answers"
         title="FAQ"
         description="Frequently asked questions the app and bot answer, in display order."
       />

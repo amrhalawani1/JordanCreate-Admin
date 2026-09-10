@@ -42,16 +42,18 @@ export default async function DashboardLayout({ children }: { children: React.Re
         />
         <main
           id="main-content"
-          className="flex-1 overflow-x-clip overflow-y-auto px-4 py-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-8 md:py-8"
+          className="flex-1 overflow-x-clip overflow-y-auto px-4 py-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-6 md:px-8 md:py-7"
         >
           <AdminAccessProvider viewLevel={viewLevel}>
-            {viewLevel === "admin_view_only" ? (
-              <p className="mb-6 rounded-[4px] border border-orange/40 bg-orange/5 px-4 py-3 text-sm leading-relaxed text-foreground">
-                You have {ADMIN_LEVEL_LABELS.admin_view_only} access. You can browse event data, but
-                you cannot add, edit, archive, or delete.
-              </p>
-            ) : null}
-            {children}
+            <div className="jc-content">
+              {viewLevel === "admin_view_only" ? (
+                <p className="mb-5 rounded-xl border border-orange/30 bg-orange/5 px-4 py-3 text-sm leading-relaxed text-foreground">
+                  You have {ADMIN_LEVEL_LABELS.admin_view_only} access. You can browse event data, but
+                  you cannot add, edit, archive, or delete.
+                </p>
+              ) : null}
+              {children}
+            </div>
           </AdminAccessProvider>
         </main>
       </div>

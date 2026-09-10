@@ -55,16 +55,16 @@ function parseApprovePayload(data: unknown): { succeeded: string[]; failed: Tick
 
 async function fetchQueueRow(id: string): Promise<TicketQueueRow | null> {
   const supabase = createAdminClient();
-  const queued = await selectOmittingUnknownColumns(TICKETS_QUEUE_SELECT, (select) =>
+  const queued = await selectOmittingUnknownColumns<Record<string, unknown>>(TICKETS_QUEUE_SELECT, (select) =>
     supabase.from("tickets_queue").select(select).eq("id", id).maybeSingle(),
   );
-  if (!queued.error) return queued.data ? toQueueRow(queued.data as Record<string, unknown>) : null;
+  if (!queued.error) return queued.data ? toQueueRow(queued.data) : null;
 
-  const table = await selectOmittingUnknownColumns(TICKETS_TABLE_SELECT, (select) =>
+  const table = await selectOmittingUnknownColumns<Record<string, unknown>>(TICKETS_TABLE_SELECT, (select) =>
     supabase.from("tickets").select(select).eq("id", id).maybeSingle(),
   );
   if (table.error) throw table.error;
-  return table.data ? toQueueRow(table.data as Record<string, unknown>) : null;
+  return table.data ? toQueueRow(table.data) : null;
 }
 
 async function loadTicketRefs(ids: string[]): Promise<Map<string, string | null>> {
@@ -82,12 +82,12 @@ async function mutateOmittingUnknown<T>(
   payload: Record<string, unknown>,
   run: (
     row: Record<string, unknown>,
-  ) => Promise<{ data: T | null; error: { code?: string; message?: string } | null }>,
+  ) => PromiseLike<{ data: unknown; error: { code?: string; message?: string } | null }>,
 ): Promise<T | null> {
   let current = payload;
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const result = await run(current);
-    if (!result.error) return result.data;
+    if (!result.error) return (result.data as T | null) ?? null;
     const next = omitUnknownColumn(current, result.error);
     if (!next) throw result.error;
     current = next;
@@ -178,15 +178,15 @@ export async function getTickets(): Promise<{
   }
 
   const supabase = createAdminClient();
-  const queued = await selectOmittingUnknownColumns(TICKETS_QUEUE_SELECT, (select) =>
+  const queued = await selectOmittingUnknownColumns<Record<string, unknown>[]>(TICKETS_QUEUE_SELECT, (select) =>
     supabase.from("tickets_queue").select(select).order("created_at", { ascending: true }),
   );
 
   if (!queued.error) {
-    return { rows: (queued.data ?? []).map((row) => toQueueRow(row as Record<string, unknown>)) };
+    return { rows: (queued.data ?? []).map((row) => toQueueRow(row)) };
   }
 
-  const table = await selectOmittingUnknownColumns(TICKETS_TABLE_SELECT, (select) =>
+  const table = await selectOmittingUnknownColumns<Record<string, unknown>[]>(TICKETS_TABLE_SELECT, (select) =>
     supabase.from("tickets").select(select).order("created_at", { ascending: true }),
   );
 
@@ -199,7 +199,7 @@ export async function getTickets(): Promise<{
   }
 
   return {
-    rows: (table.data ?? []).map((row) => toQueueRow(row as Record<string, unknown>)),
+    rows: (table.data ?? []).map((row) => toQueueRow(row)),
     needsFunctions: true,
   };
 }

@@ -69,22 +69,34 @@ function asNullableString(value: unknown): string | null {
 
 type QueryResult<T> = { data: T | null; error: { code?: string; message?: string } | null };
 
+type LooseQueryResult = {
+  data: unknown;
+  error: { code?: string; message?: string } | null;
+};
+
+/**
+ * Retries a select while stripping unknown columns from the projection.
+ * Supabase builders are thenable with dynamic `select(string)` types — keep
+ * the runner loose and cast the successful payload to T.
+ */
 export async function selectOmittingUnknownColumns<T>(
   startSelect: string,
-  run: (select: string) => Promise<QueryResult<T>>,
+  run: (select: string) => PromiseLike<LooseQueryResult>,
 ): Promise<QueryResult<T>> {
   let select = startSelect;
-  let last: QueryResult<T> = { data: null, error: { message: "No query ran." } };
+  let last: LooseQueryResult = { data: null, error: { message: "No query ran." } };
   for (let attempt = 0; attempt < 8; attempt += 1) {
     last = await run(select);
-    if (!last.error) return last;
+    if (!last.error) {
+      return { data: (last.data as T | null) ?? null, error: null };
+    }
     const column = missingColumnName(last.error);
-    if (!column) return last;
+    if (!column) return { data: null, error: last.error };
     const next = stripSelectColumn(select, column);
-    if (next === select) return last;
+    if (next === select) return { data: null, error: last.error };
     select = next;
   }
-  return last;
+  return { data: null, error: last.error };
 }
 
 export function omitUnknownColumn<T extends Record<string, unknown>>(

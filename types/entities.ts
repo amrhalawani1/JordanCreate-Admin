@@ -114,6 +114,9 @@ export const ADMIN_LEVEL_LABELS: Record<AdminLevel, string> = {
   guest_manager: "Guest Manager",
 };
 
+export type Broadcast = Tables["broadcasts"]["Row"];
+export type BroadcastListItem = Broadcast & { sender_name: string };
+
 export type FeatureRequest = Tables["feature_requests"]["Row"];
 export type FeatureRequestInsert = Tables["feature_requests"]["Insert"];
 export type FeatureRequestUpdate = Tables["feature_requests"]["Update"];

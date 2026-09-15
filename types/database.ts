@@ -325,6 +325,52 @@ export interface Database {
         };
         Update: Partial<Omit<Database["public"]["Tables"]["admins"]["Row"], "id">>;
       };
+      broadcasts: {
+        Relationships: [];
+        Row: {
+          id: string;
+          body: string;
+          deep_link: string | null;
+          created_by: string;
+          status: "draft" | "sending" | "sent" | "failed" | "cancelled";
+          sent_at: string | null;
+          recipients: number | null;
+          delivered: number | null;
+          failed: number | null;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          body: string;
+          deep_link?: string | null;
+          created_by: string;
+          status?: "draft" | "sending" | "sent" | "failed" | "cancelled";
+          sent_at?: string | null;
+          recipients?: number | null;
+          delivered?: number | null;
+          failed?: number | null;
+          created_at?: string | null;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["broadcasts"]["Row"], "id">>;
+      };
+      push_devices: {
+        Relationships: [];
+        Row: {
+          id: string;
+          guest_id: string;
+          token: string;
+          platform: "ios" | "android";
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          guest_id: string;
+          token: string;
+          platform: "ios" | "android";
+          created_at?: string | null;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["push_devices"]["Row"], "id">>;
+      };
       feature_requests: {
         Relationships: [];
         Row: {

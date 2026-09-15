@@ -17,6 +17,7 @@ import {
   Lightbulb,
   Shield,
   History,
+  BellRing,
 } from "lucide-react";
 
 export type NavItem = {
@@ -72,6 +73,7 @@ export const NAV_GROUPS = [
     items: [
       { href: "/guests", label: "Guests", icon: Users },
       { href: "/tickets-management", label: "Tickets", icon: Ticket },
+      { href: "/broadcasts", label: "Notifications", icon: BellRing },
     ],
   },
   {

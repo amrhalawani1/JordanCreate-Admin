@@ -5,6 +5,7 @@ import type { AgendaSession } from "@/types/entities";
 import { AGENDA_STATUS_VALUES } from "@/types/entities";
 import { archiveFilter } from "@/lib/archive";
 import { ArchiveStatusBadge } from "@/components/shared/ArchiveStatusBadge";
+import { InterestTagBadges } from "@/components/shared/InterestTagBadges";
 
 interface Option {
   value: string;
@@ -34,6 +35,11 @@ export function buildAgendaSessionConfig(
       { key: "start_time", header: "Start" },
       { key: "title", header: "Title" },
       { key: "session_type", header: "Type" },
+      {
+        key: "interest_tag_ids",
+        header: "Interest Tags",
+        render: (row) => <InterestTagBadges ids={row.interest_tag_ids} options={tagOptions} />,
+      },
       { key: "status", header: "Status" },
       {
         key: "archived",
@@ -80,7 +86,9 @@ export function buildAgendaSessionConfig(
         name: "interest_tag_ids",
         label: "Interest Tags",
         type: "multiselect-ref",
+        required: true,
         referenceOptions: tagOptions,
+        helpText: "Guests who picked any of these interests see this under For you on the app's Home.",
       },
       { name: "location_within_venue", label: "Location Within Venue", type: "text" },
       { name: "status", label: "Status", type: "enum", required: true, enumValues: AGENDA_STATUS_VALUES },

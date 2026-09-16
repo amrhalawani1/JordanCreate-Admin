@@ -20,6 +20,7 @@ export const EntertainmentSchema = z.object({
   link: optionalUrl(),
   sort_order: z.number({ error: "Sort order is required." }).int(),
   status: z.enum(ENTERTAINMENT_STATUS_VALUES),
+  interest_tag_ids: z.array(z.string()).min(1, { message: "Pick at least one interest tag." }),
 });
 
 export type EntertainmentFormValues = z.infer<typeof EntertainmentSchema>;

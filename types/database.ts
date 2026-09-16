@@ -216,9 +216,12 @@ export interface Database {
           sort_order: number;
           status: "draft" | "confirmed";
           updated_at: string;
+          /** interest_tags.tag_id values; the app suggests the act to matching guests. */
+          interest_tag_ids: string[];
         };
-        Insert: Omit<Database["public"]["Tables"]["entertainment"]["Row"], "id" | "updated_at"> & {
+        Insert: Omit<Database["public"]["Tables"]["entertainment"]["Row"], "id" | "updated_at" | "interest_tag_ids"> & {
           id?: number;
+          interest_tag_ids?: string[];
           sort_order?: number;
           status?: "draft" | "confirmed";
         };

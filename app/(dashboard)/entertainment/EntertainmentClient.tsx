@@ -14,17 +14,19 @@ import {
   deleteEntertainment,
   reorderEntertainment,
 } from "@/actions/entertainment";
-import type { Entertainment } from "@/types/entities";
+import type { Entertainment, InterestTag } from "@/types/entities";
 
-export function EntertainmentClient({ initialData }: { initialData: Entertainment[] }) {
+export function EntertainmentClient({ initialData, tags }: { initialData: Entertainment[]; tags: InterestTag[] }) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<Entertainment | null>(null);
 
+  const tagOptions = useMemo(() => tags.map((t) => ({ value: t.tag_id, label: t.tag_label })), [tags]);
+
   const config = useMemo(() => {
     const actTypes = Array.from(new Set(initialData.map((row) => row.act_type))).sort();
-    return buildEntertainmentConfig(editingRow ? String(editingRow.id) : undefined, actTypes);
-  }, [editingRow, initialData]);
+    return buildEntertainmentConfig(editingRow ? String(editingRow.id) : undefined, actTypes, tagOptions);
+  }, [editingRow, initialData, tagOptions]);
 
   function openAdd() {
     setEditingRow(null);
@@ -66,6 +68,7 @@ export function EntertainmentClient({ initialData }: { initialData: Entertainmen
         link: editingRow.link ?? "",
         sort_order: editingRow.sort_order,
         status: editingRow.status,
+        interest_tag_ids: editingRow.interest_tag_ids ?? [],
       }
     : {
         act_type: "DJ",
@@ -79,6 +82,7 @@ export function EntertainmentClient({ initialData }: { initialData: Entertainmen
         link: "",
         sort_order: initialData.length,
         status: "draft",
+        interest_tag_ids: [],
       };
 
   return (

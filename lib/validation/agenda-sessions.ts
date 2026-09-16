@@ -15,7 +15,7 @@ export const AgendaSessionSchema = z.object({
   speaker_handles: z.array(z.string()).min(1, { message: "At least one speaker is required." }),
   moderator_handle: z.string().nullable(),
   duration_minutes: z.number({ error: "Duration is required." }).int().nonnegative(),
-  interest_tag_ids: z.array(z.string()),
+  interest_tag_ids: z.array(z.string()).min(1, { message: "Pick at least one interest tag." }),
   location_within_venue: nullableText(),
   status: z.enum(AGENDA_STATUS_VALUES),
   flag_notes: nullableText(),

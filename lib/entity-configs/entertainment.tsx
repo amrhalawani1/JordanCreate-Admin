@@ -5,10 +5,12 @@ import type { Entertainment } from "@/types/entities";
 import { ENTERTAINMENT_STATUS_VALUES } from "@/types/entities";
 import { PhotoThumb } from "@/components/shared/fields/PhotoThumb";
 import { Badge } from "@/components/ui/badge";
+import { InterestTagBadges } from "@/components/shared/InterestTagBadges";
 
 export function buildEntertainmentConfig(
   imageSlug?: string,
   actTypes: string[] = [],
+  tagOptions: { value: string; label: string }[] = [],
 ): EntityConfig<Entertainment> {
   const filters: FilterConfig<Entertainment>[] = [
     { key: "act_type", label: "Type", options: actTypes },
@@ -35,6 +37,11 @@ export function buildEntertainmentConfig(
         render: (row) => <Badge variant="outline">{row.act_type}</Badge>,
       },
       { key: "performer_name", header: "Performer" },
+      {
+        key: "interest_tag_ids",
+        header: "Interest Tags",
+        render: (row) => <InterestTagBadges ids={row.interest_tag_ids} options={tagOptions} />,
+      },
       { key: "start_time", header: "Start" },
       { key: "status", header: "Status" },
     ],
@@ -54,6 +61,14 @@ export function buildEntertainmentConfig(
       { name: "start_time", label: "Start Time", type: "time" },
       { name: "end_time", label: "End Time", type: "time" },
       { name: "location_within_venue", label: "Location Within Venue", type: "text" },
+      {
+        name: "interest_tag_ids",
+        label: "Interest Tags",
+        type: "multiselect-ref",
+        required: true,
+        referenceOptions: tagOptions,
+        helpText: "Guests who picked any of these interests see this under For you on the app's Home.",
+      },
       {
         name: "photo_url",
         label: "Photo",

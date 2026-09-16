@@ -67,6 +67,8 @@ export interface Database {
         Relationships: [];
         Row: {
           session_id: string;
+          /** YYYY-MM-DD. Defaults to event_info.event_date in the database. */
+          session_date: string;
           start_time: string;
           end_time: string;
           session_type: string;
@@ -83,8 +85,9 @@ export interface Database {
           archived: boolean;
           updated_at: string;
         };
-        Insert: Omit<Database["public"]["Tables"]["agenda_sessions"]["Row"], "updated_at" | "archived"> & {
+        Insert: Omit<Database["public"]["Tables"]["agenda_sessions"]["Row"], "updated_at" | "archived" | "session_date"> & {
           archived?: boolean;
+          session_date?: string;
         };
         Update: Partial<
           Omit<Database["public"]["Tables"]["agenda_sessions"]["Row"], "session_id">

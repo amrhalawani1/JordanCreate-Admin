@@ -4,6 +4,9 @@ import { AGENDA_STATUS_VALUES } from "@/types/entities";
 
 export const AgendaSessionSchema = z.object({
   session_id: requiredText("Session ID is required."),
+  session_date: requiredText("Date is required.").regex(/^\d{4}-\d{2}-\d{2}$/, {
+    message: "Enter the date as YYYY-MM-DD.",
+  }),
   start_time: requiredText("Start time is required."),
   end_time: requiredText("End time is required."),
   session_type: requiredText("Session type is required."),

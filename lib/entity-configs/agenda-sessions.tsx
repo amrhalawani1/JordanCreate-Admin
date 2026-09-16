@@ -30,6 +30,7 @@ export function buildAgendaSessionConfig(
     filters,
     columns: [
       { key: "session_id", header: "ID" },
+      { key: "session_date", header: "Date" },
       { key: "start_time", header: "Start" },
       { key: "title", header: "Title" },
       { key: "session_type", header: "Type" },
@@ -42,6 +43,13 @@ export function buildAgendaSessionConfig(
     ],
     formFields: [
       { name: "session_id", label: "Session ID", type: "text", required: true, placeholder: "e.g. S01" },
+      {
+        name: "session_date",
+        label: "Date",
+        type: "date",
+        required: true,
+        helpText: "Starts on the event date. Reminders in the app use this date with the start time.",
+      },
       { name: "start_time", label: "Start Time", type: "time", required: true },
       { name: "end_time", label: "End Time", type: "time", required: true },
       {

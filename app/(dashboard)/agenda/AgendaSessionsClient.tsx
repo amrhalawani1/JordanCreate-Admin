@@ -21,9 +21,11 @@ interface AgendaSessionsClientProps {
   initialData: AgendaSession[];
   speakers: Speaker[];
   tags: InterestTag[];
+  /** Event Info date (YYYY-MM-DD) — the starting value for a new session's date. */
+  eventDate: string;
 }
 
-export function AgendaSessionsClient({ initialData, speakers, tags }: AgendaSessionsClientProps) {
+export function AgendaSessionsClient({ initialData, speakers, tags, eventDate }: AgendaSessionsClientProps) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<AgendaSession | null>(null);
@@ -69,6 +71,7 @@ export function AgendaSessionsClient({ initialData, speakers, tags }: AgendaSess
   const defaultValues: AgendaSessionFormValues = editingRow
     ? {
         session_id: editingRow.session_id,
+        session_date: editingRow.session_date ?? eventDate,
         start_time: editingRow.start_time,
         end_time: editingRow.end_time,
         session_type: editingRow.session_type,
@@ -85,6 +88,7 @@ export function AgendaSessionsClient({ initialData, speakers, tags }: AgendaSess
       }
     : {
         session_id: "",
+        session_date: eventDate,
         start_time: "",
         end_time: "",
         session_type: "",

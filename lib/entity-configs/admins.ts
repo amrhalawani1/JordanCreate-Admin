@@ -1,6 +1,5 @@
 import type { EntityConfig } from "./types";
 import type { Admin } from "@/types/entities";
-import type { AdminFormValues } from "@/lib/validation/admins";
 import { ADMIN_LEVEL_LABELS, ADMIN_LEVEL_VALUES } from "@/types/entities";
 
 export type AdminListItem = Admin & { password: string };

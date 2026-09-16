@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,9 +34,13 @@ export function MobileNav({
   const pathname = usePathname();
   const subtitle = [email, role].filter(Boolean).join(" · ");
 
-  useEffect(() => {
+  // Close on navigation. Done during render so the menu is already gone on
+  // the first paint of the new page.
+  const [lastPath, setLastPath] = useState(pathname);
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
     setOpen(false);
-  }, [pathname]);
+  }
 
   return (
     <div className="lg:hidden">

@@ -12,8 +12,11 @@ const COLLAPSED_STORAGE_KEY = "jc-admin-sidebar-collapsed";
 export function Sidebar({ adminLevel }: { adminLevel: AdminLevel }) {
   const [collapsed, setCollapsed] = useState(false);
 
+  // Deliberately after mount: the server cannot read localStorage, and
+  // seeding state from it during render would break hydration.
   useEffect(() => {
     try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCollapsed(window.localStorage.getItem(COLLAPSED_STORAGE_KEY) === "true");
     } catch {
       // Private browsing / blocked storage — fall back to expanded.

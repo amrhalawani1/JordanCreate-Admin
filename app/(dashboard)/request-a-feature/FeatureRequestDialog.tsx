@@ -38,12 +38,16 @@ export function FeatureRequestDialog({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  useEffect(() => {
+  // Clearing on the open→closed change during render, rather than in an
+  // effect, keeps the next open from flashing the previous answers.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
     if (!open) {
       setTitle("");
       setDescription("");
     }
-  }, [open]);
+  }
 
   useEffect(() => {
     if (!open) return;

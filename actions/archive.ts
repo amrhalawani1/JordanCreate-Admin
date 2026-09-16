@@ -3,9 +3,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertStaff } from "@/lib/auth/guard";
 
-const ARCHIVE_TABLES = ["speakers", "agenda_sessions", "partners"] as const;
-
-export type ArchiveTable = (typeof ARCHIVE_TABLES)[number];
+export type ArchiveTable = "speakers" | "agenda_sessions" | "partners";
 
 export async function archiveColumnReady(table: ArchiveTable): Promise<boolean> {
   await assertStaff();

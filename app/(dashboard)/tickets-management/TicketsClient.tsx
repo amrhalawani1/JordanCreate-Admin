@@ -70,9 +70,13 @@ export function TicketsClient({ initialData }: { initialData: TicketQueueRow[] }
   const [drawerRow, setDrawerRow] = useState<TicketQueueRow | null | "add">(null);
   const [copiedSeed, setCopiedSeed] = useState(false);
 
-  useEffect(() => {
+  // Adopt refreshed server data during render, so a revalidate never paints
+  // one frame of the stale list.
+  const [lastInitial, setLastInitial] = useState(initialData);
+  if (initialData !== lastInitial) {
+    setLastInitial(initialData);
     setTickets(initialData);
-  }, [initialData]);
+  }
 
   const counts = useMemo(() => ticketTabCounts(tickets), [tickets]);
   const warnings = useMemo(() => groupOrderWarnings(tickets), [tickets]);
@@ -769,7 +773,10 @@ function TicketState({ row }: { row: TicketQueueRow }) {
 
 function ArrivalLabel({ iso }: { iso: string }) {
   const [label, setLabel] = useState<string | null>(null);
+  // Deliberately client-only: formatArrival uses the viewer's timezone, which
+  // the server does not know. Rendering it after mount avoids a mismatch.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLabel(formatArrival(iso));
   }, [iso]);
   return <time dateTime={iso} suppressHydrationWarning>{label ?? "\u00a0"}</time>;

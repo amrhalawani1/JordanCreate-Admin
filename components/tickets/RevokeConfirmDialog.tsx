@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Ban } from "lucide-react";
 import {
   Dialog,
@@ -27,9 +27,12 @@ export function RevokeConfirmDialog({
   const [error, setError] = useState<string | null>(null);
   const [displayed, setDisplayed] = useState(ticket);
 
-  useEffect(() => {
+  // Keep the last ticket on screen while the dialog animates closed.
+  const [lastTicket, setLastTicket] = useState(ticket);
+  if (ticket !== lastTicket) {
+    setLastTicket(ticket);
     if (ticket) setDisplayed(ticket);
-  }, [ticket]);
+  }
 
   async function handleConfirm() {
     setPending(true);

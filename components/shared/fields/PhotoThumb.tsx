@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -32,9 +32,12 @@ export function PhotoThumb({
 }) {
   const [failed, setFailed] = useState(false);
 
-  useEffect(() => {
+  // A new photo starts out unbroken again.
+  const [lastSrc, setLastSrc] = useState(src);
+  if (src !== lastSrc) {
+    setLastSrc(src);
     setFailed(false);
-  }, [src]);
+  }
 
   if (!src || failed) {
     const initials = initialsFromAlt(alt);

@@ -54,19 +54,19 @@ export function BroadcastsClient({
   const [body, setBody] = useState("");
   const [destination, setDestination] = useState<string>(NO_LINK);
   const [audience, setAudience] = useState<Audience>("test");
-  const [testPhone, setTestPhone] = useState("");
+  const [testRecipient, setTestRecipient] = useState("");
   const [confirming, setConfirming] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string>();
 
   const remaining = MAX_BROADCAST_LENGTH - body.trim().length;
   const deepLink = destination === NO_LINK ? "" : destination;
-  const readyToSend = canEdit && body.trim().length > 0 && remaining >= 0 && (audience === "all" ? deviceCount > 0 : testPhone.trim().length > 0);
+  const readyToSend = canEdit && body.trim().length > 0 && remaining >= 0 && (audience === "all" ? deviceCount > 0 : testRecipient.trim().length > 0);
 
   async function send() {
     setSending(true);
     setError(undefined);
-    const result = await sendBroadcast({ body, deepLink, audience, testPhone });
+    const result = await sendBroadcast({ body, deepLink, audience, testRecipient });
     setSending(false);
     setConfirming(false);
     if (!result.success) {
@@ -155,19 +155,22 @@ export function BroadcastsClient({
             />
             <span>
               <span className="font-medium">One guest, as a test</span>
-              <span className="block text-muted-foreground">Use the phone number of a guest account you can check.</span>
+              <span className="block text-muted-foreground">Use the email or phone number of a guest account you can check.</span>
             </span>
           </label>
           {audience === "test" ? (
             <Input
-              id="broadcast-test-phone"
-              inputMode="tel"
-              value={testPhone}
-              onChange={(event) => setTestPhone(event.target.value)}
-              placeholder="0791234567"
-              className="ml-7 max-w-64"
+              id="broadcast-test-recipient"
+              inputMode="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              value={testRecipient}
+              onChange={(event) => setTestRecipient(event.target.value)}
+              placeholder="guest@email.com or 0791234567"
+              className="ml-7 max-w-80"
               disabled={!canEdit || sending}
-              aria-label="Test guest phone number"
+              aria-label="Test guest email or phone number"
             />
           ) : null}
           <label className="flex cursor-pointer items-start gap-3 text-sm">

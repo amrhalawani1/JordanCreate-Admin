@@ -12,12 +12,30 @@ export const BroadcastSchema = z
       .max(MAX_BROADCAST_LENGTH, `Keep it to ${MAX_BROADCAST_LENGTH} characters so it fits on a lock screen.`),
     deepLink: z.string().refine(isBroadcastDestination, "Pick a screen from the list."),
     audience: z.enum(["all", "test"]),
-    testPhone: z.string().trim().optional(),
+    /** Email or phone number of the guest account that receives a test. Guests sign in with email, so most tests use it. */
+    testRecipient: z.string().trim().optional(),
   })
   .superRefine((value, ctx) => {
-    if (value.audience === "test" && !toE164(value.testPhone ?? "")) {
-      ctx.addIssue({ code: "custom", path: ["testPhone"], message: "Enter the phone number of the guest account to test with." });
+    if (value.audience === "test" && !parseTestRecipient(value.testRecipient ?? "")) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["testRecipient"],
+        message: "Enter the email or phone number of the guest account to test with.",
+      });
     }
   });
+
+export type TestRecipient = { kind: "email"; email: string } | { kind: "phone"; phone: string };
+
+/** Reads the test field as an email (anything with an @) or a phone number in any common format. */
+export function parseTestRecipient(raw: string): TestRecipient | null {
+  const value = raw.trim();
+  if (!value) return null;
+  if (value.includes("@")) {
+    return z.string().email().safeParse(value).success ? { kind: "email", email: value.toLowerCase() } : null;
+  }
+  const phone = toE164(value);
+  return phone ? { kind: "phone", phone } : null;
+}
 
 export type BroadcastFormValues = z.infer<typeof BroadcastSchema>;

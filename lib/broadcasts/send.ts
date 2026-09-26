@@ -37,7 +37,7 @@ export type SendOutcome = {
   delivered: number;
   failed: number;
   removedTokens: number;
-  /** Last transport error, e.g. missing Firebase credentials on Expo. */
+  /** Last transport error, e.g. missing Apple or Firebase credentials on Expo. */
   lastError?: string;
 };
 
@@ -124,7 +124,7 @@ export async function sendToDevices(
 export function explainSendFailure(lastError: string | undefined): string {
   if (!lastError) return "No phones accepted the notification.";
   if (/InvalidCredentials|FCM|credentials/i.test(lastError)) {
-    return "Expo has no Firebase key for the app. Upload the FCM V1 service account key with `eas credentials`, then send again.";
+    return "Expo is missing push credentials for the app. iPhones need the Apple push key and Android phones need the Firebase (FCM V1) key; add the missing one with `eas credentials`, then send again.";
   }
   if (/MessageRateExceeded|429/.test(lastError)) return "Expo is rate limiting sends. Wait a minute and send again.";
   if (/DeviceNotRegistered/.test(lastError)) return "Those phones no longer have the app or turned notifications off.";

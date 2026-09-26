@@ -87,7 +87,8 @@ test("missing Firebase credentials get an actionable explanation", async () => {
     { status: "error", message: "Unable to retrieve the FCM server key", details: { error: "InvalidCredentials" } },
   ]);
   assert.equal(outcome.delivered, 0);
-  assert.match(explainSendFailure(outcome.lastError), /Firebase key/);
+  assert.match(explainSendFailure(outcome.lastError), /Apple push key/);
+  assert.match(explainSendFailure(outcome.lastError), /Firebase \(FCM V1\) key/);
 });
 
 test("broadcast links are limited to known app screens", () => {

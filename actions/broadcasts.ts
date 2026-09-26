@@ -5,8 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { assertStaff, requireStaff } from "@/lib/auth/guard";
 import { getReadableError } from "@/lib/errors";
 import { logChange } from "@/lib/audit";
-import { toE164 } from "@/lib/phone";
-import { BroadcastSchema } from "@/lib/validation/broadcasts";
+import { BroadcastSchema, parseTestRecipient, type TestRecipient } from "@/lib/validation/broadcasts";
 import { explainSendFailure, expoTransport, sendToDevices, uniquePushTokens } from "@/lib/broadcasts/send";
 import type { BroadcastListItem } from "@/types/entities";
 
@@ -28,12 +27,16 @@ async function allDeviceTokens(supabase: AdminClient): Promise<string[]> {
   return tokens;
 }
 
-async function guestDeviceTokens(supabase: AdminClient, phone: string): Promise<{ guestName: string; tokens: string[] } | null> {
-  const { data: guest, error } = await supabase
-    .from("guest_profiles")
-    .select("guest_id, guest_name")
-    .eq("phone_number", phone)
-    .maybeSingle();
+async function guestDeviceTokens(
+  supabase: AdminClient,
+  recipient: TestRecipient,
+): Promise<{ guestName: string; tokens: string[] } | null> {
+  // Emails are matched case-insensitively; escaping keeps % and _ in an address literal.
+  const lookup = supabase.from("guest_profiles").select("guest_id, guest_name");
+  const { data: guest, error } = await (recipient.kind === "email"
+    ? lookup.ilike("email", recipient.email.replace(/[\\%_]/g, (character) => `\\${character}`))
+    : lookup.eq("phone_number", recipient.phone)
+  ).maybeSingle();
   if (error) throw error;
   if (!guest) return null;
   const { data: devices, error: devicesError } = await supabase.from("push_devices").select("token").eq("guest_id", guest.guest_id);
@@ -83,9 +86,14 @@ export async function sendBroadcast(values: unknown): Promise<SendBroadcastResul
     let audienceLabel = "every guest with event updates on";
 
     if (isTest) {
-      const phone = toE164(parsed.data.testPhone ?? "")!;
-      const guest = await guestDeviceTokens(supabase, phone);
-      if (!guest) return { success: false, error: "No guest account uses that phone number." };
+      const recipient = parseTestRecipient(parsed.data.testRecipient ?? "")!;
+      const guest = await guestDeviceTokens(supabase, recipient);
+      if (!guest) {
+        return {
+          success: false,
+          error: recipient.kind === "email" ? "No guest account uses that email." : "No guest account uses that phone number.",
+        };
+      }
       if (!uniquePushTokens(guest.tokens).length) {
         return {
           success: false,

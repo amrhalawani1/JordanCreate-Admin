@@ -79,6 +79,12 @@ export type EntertainmentActType = (typeof ENTERTAINMENT_ACT_TYPE_VALUES)[number
 export const ENTERTAINMENT_STATUS_VALUES = ["draft", "confirmed"] as const;
 export type EntertainmentStatus = (typeof ENTERTAINMENT_STATUS_VALUES)[number];
 
+export const GUEST_GENDER_VALUES = ["male", "female"] as const;
+export type GuestGender = (typeof GUEST_GENDER_VALUES)[number];
+
+export const GUEST_ARRIVAL_STATUS_VALUES = ["not_arrived", "arrived"] as const;
+export type GuestArrivalStatus = (typeof GUEST_ARRIVAL_STATUS_VALUES)[number];
+
 export const SPEAKER_BIO_STATUS_VALUES = ["confirmed", "missing", "unconfirmed"] as const;
 export type SpeakerBioStatus = (typeof SPEAKER_BIO_STATUS_VALUES)[number];
 

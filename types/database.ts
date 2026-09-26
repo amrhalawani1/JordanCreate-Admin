@@ -146,10 +146,33 @@ export interface Database {
           phone_number: string | null;
           attended_jc1: boolean;
           attended_jc2: boolean;
+          /** Supabase Auth user this guest signs in as; set by the app, never typed by hand. */
+          auth_user_id: string | null;
+          /** Public handle behind the card QR. Unique. */
+          slug: string | null;
+          email: string | null;
+          updated_at: string | null;
+          /** YYYY-MM-DD */
+          birthdate: string | null;
+          gender: "male" | "female" | null;
+          /** ISO 3166-1 alpha-2, e.g. JO. */
+          country: string | null;
+          manychat_subscriber_id: string | null;
         };
-        Insert: Omit<Database["public"]["Tables"]["guest_profiles"]["Row"], "created_at" | "last_interaction_time"> & {
+        Insert: Omit<
+          Database["public"]["Tables"]["guest_profiles"]["Row"],
+          "created_at" | "last_interaction_time" | "auth_user_id" | "updated_at"
+        > & {
           created_at?: string | null;
           last_interaction_time?: string | null;
+          auth_user_id?: string | null;
+          updated_at?: string | null;
+          slug?: string | null;
+          email?: string | null;
+          birthdate?: string | null;
+          gender?: "male" | "female" | null;
+          country?: string | null;
+          manychat_subscriber_id?: string | null;
           guest_name?: string | null;
           stated_interests?: string[] | null;
           arrival_status?: string | null;

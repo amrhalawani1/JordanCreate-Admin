@@ -7,6 +7,7 @@ import { DataTable } from "@/components/shared/DataTable";
 import { EntityDrawer } from "@/components/shared/EntityDrawer";
 import { EntityForm } from "@/components/shared/EntityForm";
 import { SocialLinksEditor } from "@/components/shared/fields/SocialLinksEditor";
+import { GuestAccountPanel } from "./GuestAccountPanel";
 import { buildGuestConfig } from "@/lib/entity-configs/guest-profiles";
 import { GuestProfileSchema, type GuestProfileFormValues } from "@/lib/validation/guest-profiles";
 import { createGuestProfile, updateGuestProfile, deleteGuestProfile } from "@/actions/guest-profiles";
@@ -18,6 +19,11 @@ import type { GuestProfile, GuestSocialLink, SocialLinkDraft } from "@/types/ent
 const EMPTY_VALUES = {
   guest_id: "",
   guest_name: "",
+  email: "",
+  phone_number: "",
+  birthdate: "",
+  gender: "",
+  country: "",
   stated_interests: "",
   arrival_status: "not_arrived",
   vip_flag: false,
@@ -25,7 +31,8 @@ const EMPTY_VALUES = {
   bio: "",
   photo_url: "",
   location: "",
-  phone_number: "",
+  slug: "",
+  manychat_subscriber_id: "",
   attended_jc1: false,
   attended_jc2: false,
 };
@@ -43,12 +50,7 @@ export function GuestsClient({
   const [linkDrafts, setLinkDrafts] = useState<SocialLinkDraft[]>([]);
   const [draftGuestId, setDraftGuestId] = useState("");
 
-  const config = useMemo(() => {
-    const arrivalStatuses = Array.from(
-      new Set(initialData.map((r) => r.arrival_status).filter((v): v is string => Boolean(v))),
-    ).sort();
-    return buildGuestConfig(arrivalStatuses);
-  }, [initialData]);
+  const config = useMemo(() => buildGuestConfig(), []);
 
   function linksFor(guestId: string) {
     return toSocialLinkDrafts(socialLinks.filter((link) => link.guest_id === guestId));
@@ -72,6 +74,11 @@ export function GuestsClient({
       ? {
           guest_id: editingRow.guest_id,
           guest_name: editingRow.guest_name ?? "",
+          email: editingRow.email ?? "",
+          phone_number: editingRow.phone_number ?? "",
+          birthdate: editingRow.birthdate ?? "",
+          gender: editingRow.gender ?? "",
+          country: editingRow.country ?? "",
           stated_interests: serializeChipList(editingRow.stated_interests ?? []),
           arrival_status: editingRow.arrival_status ?? "",
           vip_flag: Boolean(editingRow.vip_flag),
@@ -79,7 +86,8 @@ export function GuestsClient({
           bio: editingRow.bio ?? "",
           photo_url: editingRow.photo_url ?? "",
           location: editingRow.location ?? "",
-          phone_number: editingRow.phone_number ?? "",
+          slug: editingRow.slug ?? "",
+          manychat_subscriber_id: editingRow.manychat_subscriber_id ?? "",
           attended_jc1: editingRow.attended_jc1,
           attended_jc2: editingRow.attended_jc2,
         }
@@ -133,7 +141,10 @@ export function GuestsClient({
         >
           {({ isEditing }) =>
             editingRow ? (
-              <SocialLinksEditor value={linkDrafts} onChange={setLinkDrafts} disabled={!isEditing} />
+              <div className="space-y-5">
+                <SocialLinksEditor value={linkDrafts} onChange={setLinkDrafts} disabled={!isEditing} />
+                <GuestAccountPanel guest={editingRow} />
+              </div>
             ) : (
               <p className="text-sm text-muted-foreground">Save the guest first to add social links.</p>
             )

@@ -18,6 +18,7 @@ import {
   Shield,
   History,
   BellRing,
+  Smartphone,
 } from "lucide-react";
 
 export type NavItem = {
@@ -65,6 +66,7 @@ export const NAV_GROUPS = [
       { href: "/faq", label: "FAQ", icon: CircleHelp },
       { href: "/experience", label: "Experience", icon: Wand2 },
       { href: "/other-editions", label: "Other Editions", icon: Layers },
+      { href: "/mobile-app-management", label: "Mobile App Management", icon: Smartphone },
     ],
   },
   {

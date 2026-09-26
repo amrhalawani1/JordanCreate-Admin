@@ -250,6 +250,29 @@ export interface Database {
         };
         Update: Partial<Omit<Database["public"]["Tables"]["entertainment"]["Row"], "id">>;
       };
+      hot_topics: {
+        Relationships: [];
+        Row: {
+          id: number;
+          /** Small orange label above the headline, e.g. "DJ" or "Magic Show". */
+          eyebrow: string;
+          headline: string;
+          supporting: string | null;
+          action_label: string;
+          /** In-app route id (entertainment-4, session-abc, agenda). Never an external URL. */
+          destination: string | null;
+          image_url: string | null;
+          sort_order: number;
+          status: "draft" | "published";
+          updated_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["hot_topics"]["Row"], "id" | "updated_at"> & {
+          id?: number;
+          sort_order?: number;
+          status?: "draft" | "published";
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["hot_topics"]["Row"], "id">>;
+      };
       venue_zones: {
         Relationships: [];
         Row: {

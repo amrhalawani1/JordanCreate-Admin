@@ -12,6 +12,7 @@ export const CHANGE_TABLE_LABELS: Record<string, string> = {
   brand_voice: "Brand Voice",
   faq_entries: "FAQ",
   experience: "Experience",
+  hot_topics: "Hot Topics",
   jordan_create_one: "Jordan Create 1",
   jordan_create_three: "Jordan Create 3",
   admins: "Admins",

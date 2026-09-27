@@ -25,6 +25,9 @@ export type GuestProfile = Tables["guest_profiles"]["Row"];
 export type GuestProfileInsert = Tables["guest_profiles"]["Insert"];
 export type GuestProfileUpdate = Tables["guest_profiles"]["Update"];
 
+export type GuestReport = Tables["guest_reports"]["Row"];
+export type GuestReportUpdate = Tables["guest_reports"]["Update"];
+
 export type GuestSocialLink = Tables["guest_social_links"]["Row"];
 export type GuestSocialLinkInsert = Tables["guest_social_links"]["Insert"];
 export type GuestSocialLinkUpdate = Tables["guest_social_links"]["Update"];

@@ -471,6 +471,44 @@ export interface Database {
         };
         Update: Partial<Omit<Database["public"]["Tables"]["change_logs"]["Row"], "id">>;
       };
+      guest_reports: {
+        Relationships: [];
+        Row: {
+          id: string;
+          created_at: string;
+          reporter_guest_id: string | null;
+          reporter_email: string | null;
+          reported_guest_id: string | null;
+          reported_slug: string | null;
+          reported_name: string | null;
+          reason: string;
+          details: string | null;
+          status: string;
+          resolution_note: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          reporter_notified_at: string | null;
+          team_notified_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          reporter_guest_id?: string | null;
+          reporter_email?: string | null;
+          reported_guest_id?: string | null;
+          reported_slug?: string | null;
+          reported_name?: string | null;
+          reason: string;
+          details?: string | null;
+          status?: string;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          reporter_notified_at?: string | null;
+          team_notified_at?: string | null;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["guest_reports"]["Row"], "id">>;
+      };
       tickets: {
         Relationships: [];
         Row: {

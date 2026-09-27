@@ -66,6 +66,7 @@ export async function updateGuestReport(id: string, values: unknown): Promise<Ac
       before,
       after,
     });
+    revalidatePath("/reported-incidents");
     revalidatePath("/guests");
     return { success: true };
   } catch (err) {

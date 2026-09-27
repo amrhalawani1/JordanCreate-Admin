@@ -18,7 +18,9 @@ export function canAccessPath(level: AdminLevel, pathname: string): boolean {
       pathname === "/guests" ||
       pathname.startsWith("/guests/") ||
       pathname === "/tickets-management" ||
-      pathname.startsWith("/tickets-management/")
+      pathname.startsWith("/tickets-management/") ||
+      pathname === "/reported-incidents" ||
+      pathname.startsWith("/reported-incidents/")
     );
   }
 

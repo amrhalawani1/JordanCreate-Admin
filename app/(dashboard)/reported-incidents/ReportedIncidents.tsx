@@ -36,16 +36,16 @@ function waitingLabel(report: GuestReport): string {
 }
 
 /**
- * Profile reports from the guest app ("Report this profile" on a scanned card).
- * Each report also emails the team and the reporter; this is where the team
- * records what it did.
+ * Profile reports from the guest app (⋯ menu → "Report this profile" on a
+ * guest's card). Each report also emails the team and the reporter; this is
+ * where the team records what it did.
  */
 export function ReportedIncidents({ result }: { result: GuestReportsResult }) {
   const [view, setView] = useState<View>("open");
 
   if (result.status === "missing") {
     return (
-      <Section openCount={0}>
+      <Section>
         <p className="text-sm text-muted-foreground">
           Reports are not switched on yet. Run <code className="text-foreground">supabase/guest-reports.sql</code> from the
           app repo in the Supabase SQL editor, then reload this page.
@@ -55,7 +55,7 @@ export function ReportedIncidents({ result }: { result: GuestReportsResult }) {
   }
   if (result.status === "error") {
     return (
-      <Section openCount={0}>
+      <Section>
         <p className="text-sm text-destructive">Couldn’t load reports: {result.error}</p>
       </Section>
     );
@@ -66,7 +66,7 @@ export function ReportedIncidents({ result }: { result: GuestReportsResult }) {
   const shown = view === "open" ? open : closed;
 
   return (
-    <Section openCount={open.length}>
+    <Section>
       <div className="mb-4 flex gap-2" role="tablist" aria-label="Report status">
         {(["open", "closed"] as const).map((tab) => (
           <Button
@@ -97,22 +97,14 @@ export function ReportedIncidents({ result }: { result: GuestReportsResult }) {
   );
 }
 
-function Section({ openCount, children }: { openCount: number; children: React.ReactNode }) {
+function Section({ children }: { children: React.ReactNode }) {
   return (
-    <section aria-labelledby="reported-incidents" className="mb-8 rounded-xl border border-border bg-card p-4 sm:p-5">
-      <div className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <h2 id="reported-incidents" className="flex items-center gap-2 text-base font-semibold">
-            <Flag className="size-4 text-destructive" aria-hidden />
-            Reported incidents
-            {openCount > 0 ? <Badge variant="destructive">{openCount} open</Badge> : null}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Profiles guests reported from the app. Review each one, act on it (edit or delete the guest below), then
-            close it with a note.
-          </p>
-        </div>
-      </div>
+    <section aria-label="Reported incidents" className="rounded-xl border border-border bg-card p-4 sm:p-5">
+      <p className="mb-4 flex items-start gap-2 text-sm text-muted-foreground">
+        <Flag className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
+        Review each report, act on it (edit or delete the guest on the Guests page), email the guest who reported it
+        (they were told the team will follow up), then close it with a note saying what you did.
+      </p>
       {children}
     </section>
   );
@@ -169,7 +161,19 @@ function ReportRow({ report }: { report: GuestReport }) {
       <p className="mt-3 text-sm whitespace-pre-wrap">{report.details?.trim() || <span className="text-muted-foreground">No details given.</span>}</p>
 
       <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        <span>Reported by {report.reporter_email ?? "a guest who has since deleted their account"}</span>
+        <span>
+          Reported by{" "}
+          {report.reporter_email ? (
+            <a
+              href={`mailto:${report.reporter_email}?subject=${encodeURIComponent("Your report in the Jordan Create app")}`}
+              className="text-primary underline-offset-4 hover:underline"
+            >
+              {report.reporter_email}
+            </a>
+          ) : (
+            "a guest who has since deleted their account"
+          )}
+        </span>
         <span className="inline-flex items-center gap-1">
           {report.reporter_notified_at ? <MailCheck className="size-3.5" aria-hidden /> : <MailX className="size-3.5" aria-hidden />}
           {report.reporter_notified_at ? "Confirmation emailed" : "No confirmation email sent"}

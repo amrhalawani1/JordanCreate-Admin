@@ -18,6 +18,38 @@ async function countSuperAdmins(exceptId?: string): Promise<number> {
   return (data ?? []).filter((row) => row.id !== exceptId).length;
 }
 
+/** GoTrue's "this email already has a login" error (a guest who signed into the app, usually). */
+function isEmailTakenError(error: { message?: string; code?: string } | null): boolean {
+  if (!error) return false;
+  return error.code === "email_exists" || /already been registered|already registered/i.test(error.message ?? "");
+}
+
+/** Finds an existing auth user by email. The admin API has no email filter, so page through. */
+async function findAuthUserByEmail(supabase: ReturnType<typeof createAdminClient>, email: string) {
+  const target = email.trim().toLowerCase();
+  const perPage = 1000;
+  for (let page = 1; page <= 50; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+    if (error) throw error;
+    const match = data.users.find((user) => (user.email ?? "").toLowerCase() === target);
+    if (match) return match;
+    if (data.users.length < perPage) return null;
+  }
+  return null;
+}
+
+/** True when this auth user also owns a guest profile in the mobile app. */
+async function hasGuestProfile(supabase: ReturnType<typeof createAdminClient>, userId: string): Promise<boolean> {
+  // auth_user_id is not in the generated types yet (same gap the tickets action casts around).
+  const { data, error } = await supabase
+    .from("guest_profiles")
+    .select("guest_id")
+    .eq("auth_user_id" as never, userId as never)
+    .limit(1);
+  if (error) throw error;
+  return (data ?? []).length > 0;
+}
+
 export async function getAdmins(): Promise<Admin[]> {
   const gate = await requireSuperAdmin();
   if (!gate.ok) throw new Error(gate.error);
@@ -54,6 +86,10 @@ export async function createAdmin(values: unknown): Promise<ActionResult> {
     user_metadata: { first_name, last_name, role },
   });
 
+  if (isEmailTakenError(authError)) {
+    return promoteExistingUser(supabase, gate.admin, parsed.data);
+  }
+
   if (authError || !created.user) {
     return { success: false, error: authError?.message ?? "Could not create the login." };
   }
@@ -82,6 +118,68 @@ export async function createAdmin(values: unknown): Promise<ActionResult> {
     await supabase.auth.admin.deleteUser(created.user.id);
     return { success: false, error: getReadableError(err) };
   }
+}
+
+/**
+ * The email already has a login (typically a guest who signed into the app).
+ * Give that same account an admin profile instead of failing: the admins row
+ * goes in first, then the auth user gets the password and admin metadata, so
+ * nothing irreversible happens to the login unless the row was written.
+ */
+async function promoteExistingUser(
+  supabase: ReturnType<typeof createAdminClient>,
+  actor: Parameters<typeof logChange>[0]["actor"],
+  values: { first_name: string; last_name: string; role: string; admin_level: AdminInsert["admin_level"]; email: string; password: string },
+): Promise<ActionResult> {
+  const { first_name, last_name, role, admin_level, email, password } = values;
+
+  let existing;
+  try {
+    existing = await findAuthUserByEmail(supabase, email);
+  } catch (err) {
+    return { success: false, error: getReadableError(err) };
+  }
+  if (!existing) {
+    return { success: false, error: "That email already has a login, but it could not be found. Try again." };
+  }
+
+  const { data: already, error: alreadyError } = await supabase
+    .from("admins")
+    .select("id")
+    .eq("id", existing.id)
+    .maybeSingle();
+  if (alreadyError) return { success: false, error: getReadableError(alreadyError) };
+  if (already) return { success: false, error: "This person is already an admin." };
+
+  const row: AdminInsert = { id: existing.id, first_name, last_name, role, admin_level, email: existing.email ?? email };
+
+  try {
+    await insertRow<Admin, AdminInsert>(supabase, "admins", row);
+  } catch (err) {
+    return { success: false, error: getReadableError(err) };
+  }
+
+  const { error: authError } = await supabase.auth.admin.updateUserById(existing.id, {
+    password,
+    email_confirm: true,
+    app_metadata: { ...existing.app_metadata, admin_level, admin_promoted_from_existing: true },
+    user_metadata: { ...existing.user_metadata, first_name, last_name, role },
+  });
+  if (authError) {
+    await deleteRow(supabase, "admins", { column: "id", value: existing.id }).catch(() => undefined);
+    return { success: false, error: authError.message };
+  }
+
+  await logChange({
+    actor,
+    action: "create",
+    table: "admins",
+    recordId: existing.id,
+    summary: `Added admin ${first_name} ${last_name} (existing app account)`,
+    after: row,
+  });
+  revalidatePath("/admin-settings");
+  return { success: true };
 }
 
 export async function updateAdmin(id: string, values: unknown): Promise<ActionResult> {
@@ -187,9 +285,24 @@ export async function deleteAdmin(id: string): Promise<ActionResult> {
   }
 
   try {
-    const { error: authError } = await supabase.auth.admin.deleteUser(id);
-    if (authError) {
-      return { success: false, error: authError.message };
+    // An admin who is also an app guest keeps their login: only the admin
+    // profile and admin metadata are removed.
+    const { data: authUser } = await supabase.auth.admin.getUserById(id);
+    const promoted = authUser?.user?.app_metadata?.admin_promoted_from_existing === true;
+    const keepLogin = promoted || (await hasGuestProfile(supabase, id));
+
+    if (keepLogin) {
+      const { error: authError } = await supabase.auth.admin.updateUserById(id, {
+        app_metadata: { admin_level: null, admin_promoted_from_existing: null },
+      });
+      if (authError) {
+        return { success: false, error: authError.message };
+      }
+    } else {
+      const { error: authError } = await supabase.auth.admin.deleteUser(id);
+      if (authError) {
+        return { success: false, error: authError.message };
+      }
     }
     await deleteRow(supabase, "admins", { column: "id", value: id });
     await logChange({

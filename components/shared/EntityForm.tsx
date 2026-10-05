@@ -82,7 +82,15 @@ export function EntityForm<Row, Values extends FieldValues>({
   const submit = handleSubmit(async (values) => {
     if (!canEdit) return;
     setFormError(null);
-    const result = await onSubmit(values);
+    let result: EntityFormResult;
+    try {
+      result = await onSubmit(values);
+    } catch {
+      // The call itself failed (offline, or this page is older than the latest
+      // deployment so its server action no longer exists). Never fail silently.
+      setFormError("Could not reach the server. Refresh the page and try again.");
+      return;
+    }
     if (result.success) {
       if (startInShowMode) setIsEditing(false);
       onSuccess();

@@ -16,6 +16,7 @@ import { ChipListField } from "@/components/shared/fields/ChipListField";
 import { MultiSelectField } from "@/components/shared/fields/MultiSelectField";
 import { SingleSelectField } from "@/components/shared/fields/SingleSelectField";
 import { ImageUploadField } from "@/components/shared/fields/ImageUploadField";
+import { CreatableSelectField } from "@/components/shared/fields/CreatableSelectField";
 import { sanitizeMediaSlug, cn } from "@/lib/utils";
 import { useAdminAccess } from "@/components/layout/AdminAccessProvider";
 import { useInEntityDrawer } from "@/components/shared/EntityDrawer";
@@ -277,13 +278,25 @@ export function EntityForm<Row, Values extends FieldValues>({
                 />
               )}
 
-              {(field.type === "text" || field.type === "suggest-text") && (
+              {field.type === "text" && (
                 <Input
                   id={name}
                   disabled={isDisabled}
                   placeholder={field.placeholder}
-                  list={field.type === "suggest-text" ? `${name}-suggestions` : undefined}
                   {...register(name as never)}
+                />
+              )}
+
+              {field.type === "suggest-text" && (
+                <CreatableSelectField
+                  id={name}
+                  disabled={isDisabled}
+                  placeholder={field.placeholder}
+                  value={String(watch(name as never) ?? "")}
+                  options={field.referenceOptions ?? []}
+                  onChange={(value) =>
+                    setValue(name as never, value as never, { shouldValidate: true, shouldDirty: true })
+                  }
                 />
               )}
               {field.type === "chip-list" && (
@@ -338,14 +351,6 @@ export function EntityForm<Row, Values extends FieldValues>({
                     setValue(name as never, (value ?? "") as never, { shouldValidate: true })
                   }
                 />
-              )}
-
-              {field.type === "suggest-text" && field.referenceOptions && (
-                <datalist id={`${name}-suggestions`}>
-                  {field.referenceOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value} />
-                  ))}
-                </datalist>
               )}
 
               {field.helpText && (

@@ -7,8 +7,20 @@ import { archiveFilter } from "@/lib/archive";
 import { PhotoThumb } from "@/components/shared/fields/PhotoThumb";
 import { ArchiveStatusBadge } from "@/components/shared/ArchiveStatusBadge";
 
-export function buildSpeakerConfig(categories: string[], tags: string[] = []): EntityConfig<Speaker> {
+/**
+ * Standard follower bands, in the same spelling the database already uses
+ * ("50K-250K"): the website sorts the lineup by the leading number of this
+ * string, so keep new values in this shape where possible.
+ */
+export const FOLLOWER_RANGE_OPTIONS = ["Under 10K", "10K-50K", "50K-250K", "250K-1M", "1M-5M", "5M+"] as const;
+
+export function buildSpeakerConfig(
+  categories: string[],
+  tags: string[] = [],
+  followerRanges: readonly string[] = FOLLOWER_RANGE_OPTIONS,
+): EntityConfig<Speaker> {
   const categoryOptions = categories.map((v) => ({ value: v, label: v }));
+  const followerRangeOptions = followerRanges.map((v) => ({ value: v, label: v }));
   const tagOptions = tags.map((v) => ({ value: v, label: v }));
 
   const filters: FilterConfig<Speaker>[] = [
@@ -59,7 +71,14 @@ export function buildSpeakerConfig(categories: string[], tags: string[] = []): E
         imageSlugFrom: "handle",
       },
       { name: "tagline", label: "Tagline", type: "text", required: true },
-      { name: "followers_range", label: "Followers Range", type: "text", required: true, placeholder: "e.g. 1M-5M" },
+      {
+        name: "followers_range",
+        label: "Followers Range",
+        type: "suggest-text",
+        required: true,
+        referenceOptions: followerRangeOptions,
+        placeholder: "Select a range",
+      },
       { name: "availability", label: "Availability", type: "text", required: true, placeholder: "e.g. all_day" },
       {
         name: "bio_status",

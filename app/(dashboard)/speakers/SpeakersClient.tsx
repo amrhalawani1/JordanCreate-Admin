@@ -8,7 +8,7 @@ import { EntityDrawer } from "@/components/shared/EntityDrawer";
 import { EntityForm } from "@/components/shared/EntityForm";
 import { SocialLinksEditor } from "@/components/shared/fields/SocialLinksEditor";
 import { speakerPreviewUrl } from "@/lib/previews/speaker-preview-url";
-import { buildSpeakerConfig } from "@/lib/entity-configs/speakers";
+import { buildSpeakerConfig, FOLLOWER_RANGE_OPTIONS } from "@/lib/entity-configs/speakers";
 import { SpeakerSchema, type SpeakerFormValues } from "@/lib/validation/speakers";
 import { parseSocialLinkDrafts } from "@/lib/validation/social-links";
 import { createSpeaker, updateSpeaker, deleteSpeaker, setSpeakerArchived } from "@/actions/speakers";
@@ -56,7 +56,15 @@ export function SpeakersClient({
     const tags = Array.from(
       new Set([...initialData.flatMap((r) => r.tags ?? []), ...tagSuggestions].map((t) => t.trim()).filter(Boolean)),
     ).sort();
-    return buildSpeakerConfig(categories, tags);
+    // Standard bands first, then any other value already saved on a speaker
+    // (so an existing row's range stays selectable).
+    const followerRanges = Array.from(
+      new Set([
+        ...FOLLOWER_RANGE_OPTIONS,
+        ...initialData.map((r) => r.followers_range?.trim()).filter((v): v is string => Boolean(v)),
+      ]),
+    );
+    return buildSpeakerConfig(categories, tags, followerRanges);
   }, [initialData, tagSuggestions]);
 
   function linksFor(handle: string) {

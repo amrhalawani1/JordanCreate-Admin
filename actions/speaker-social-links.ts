@@ -1,5 +1,6 @@
 "use server";
 
+import { liveTable } from "@/lib/live-tables";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll } from "@/lib/supabase-crud";
@@ -29,14 +30,14 @@ export async function replaceSpeakerSocialLinks(
   try {
     const supabase = createAdminClient();
     const { data: before, error: beforeError } = await supabase
-      .from("speaker_social_links")
+      .from(liveTable("speaker_social_links"))
       .select("*")
       .eq("speaker_handle", speakerHandle)
       .order("sort_order");
     if (beforeError) throw beforeError;
 
     const { error: deleteError } = await supabase
-      .from("speaker_social_links")
+      .from(liveTable("speaker_social_links"))
       .delete()
       .eq("speaker_handle", speakerHandle);
     if (deleteError) throw deleteError;
@@ -51,7 +52,7 @@ export async function replaceSpeakerSocialLinks(
 
     let after: SpeakerSocialLink[] = [];
     if (rows.length > 0) {
-      const { data, error } = await supabase.from("speaker_social_links").insert(rows).select("*");
+      const { data, error } = await supabase.from(liveTable("speaker_social_links")).insert(rows).select("*");
       if (error) throw error;
       after = (data ?? []) as SpeakerSocialLink[];
     }

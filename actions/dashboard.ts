@@ -1,5 +1,6 @@
 "use server";
 
+import { liveTable } from "@/lib/live-tables";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertStaff } from "@/lib/auth/guard";
 import type { EventInfo, JordanCreateOne, JordanCreateThree } from "@/types/entities";
@@ -41,18 +42,18 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
     ticketsAwaitingRes,
     ticketsCountRes,
   ] = await Promise.all([
-    supabase.from("event_info").select("*").maybeSingle(),
-    supabase.from("agenda_sessions").select("*", { count: "exact", head: true }),
-    supabase.from("speakers").select("*", { count: "exact", head: true }),
+    supabase.from(liveTable("event_info")).select("*").maybeSingle(),
+    supabase.from(liveTable("agenda_sessions")).select("*", { count: "exact", head: true }),
+    supabase.from(liveTable("speakers")).select("*", { count: "exact", head: true }),
     supabase.from("venue_zones").select("*", { count: "exact", head: true }),
     supabase.from("interest_tags").select("*", { count: "exact", head: true }),
     supabase.from("brand_voice").select("*").maybeSingle(),
-    supabase.from("faq_entries").select("*", { count: "exact", head: true }),
+    supabase.from(liveTable("faq_entries")).select("*", { count: "exact", head: true }),
     supabase.from("experience").select("*", { count: "exact", head: true }),
     supabase.from("hot_topics").select("*", { count: "exact", head: true }).eq("status", "published"),
     supabase.from("jordan_create_one").select("*").maybeSingle(),
     supabase.from("jordan_create_three").select("*").maybeSingle(),
-    supabase.from("speakers").select("*", { count: "exact", head: true }).eq("bio_status", "missing"),
+    supabase.from(liveTable("speakers")).select("*", { count: "exact", head: true }).eq("bio_status", "missing"),
     supabase
       .from("tickets")
       .select("id", { count: "exact", head: true })

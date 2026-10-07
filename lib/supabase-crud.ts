@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { liveTable } from "@/lib/live-tables";
 
 type TableName = keyof Database["public"]["Tables"];
 
@@ -14,7 +15,7 @@ export async function fetchAll<Row>(
   table: TableName,
   orderBy?: { column: string; ascending?: boolean },
 ): Promise<Row[]> {
-  let query = supabase.from(table).select("*");
+  let query = supabase.from(liveTable(table)).select("*");
   if (orderBy) {
     query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true });
   }
@@ -29,7 +30,7 @@ export async function fetchByPk<Row>(
   pk: { column: string; value: string | number },
 ): Promise<Row | null> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from(table) as any)
+  const { data, error } = await (supabase.from(liveTable(table)) as any)
     .select("*")
     .eq(pk.column, pk.value)
     .maybeSingle();
@@ -62,7 +63,7 @@ export async function updateRow<Row, Update>(
   // runtime variable rather than a literal, so this call is intentionally
   // untyped here — callers get real safety from the per-table zod schema.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from(table) as any)
+  const { data, error } = await (supabase.from(liveTable(table)) as any)
     .update(values)
     .eq(pk.column, pk.value)
     .select("*")
@@ -76,6 +77,6 @@ export async function deleteRow(
   table: TableName,
   pk: { column: string; value: string | number },
 ): Promise<void> {
-  const { error } = await supabase.from(table).delete().eq(pk.column, pk.value);
+  const { error } = await supabase.from(liveTable(table)).delete().eq(pk.column, pk.value);
   if (error) throw error;
 }

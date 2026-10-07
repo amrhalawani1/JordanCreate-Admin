@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidateWebsite } from "@/lib/website-revalidate";
 import { liveTable } from "@/lib/live-tables";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -67,6 +68,7 @@ export async function replaceSpeakerSocialLinks(
       after: { links: after },
     });
     revalidatePath("/speakers");
+    revalidateWebsite("speakers");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };

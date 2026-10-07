@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidateWebsite } from "@/lib/website-revalidate";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -36,6 +37,7 @@ export async function createSpeaker(values: unknown): Promise<ActionResult> {
       after: created,
     });
     revalidatePath("/speakers");
+    revalidateWebsite("speakers");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };
@@ -69,6 +71,7 @@ export async function updateSpeaker(handle: string, values: unknown): Promise<Ac
       after,
     });
     revalidatePath("/speakers");
+    revalidateWebsite("speakers");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };
@@ -91,6 +94,7 @@ export async function deleteSpeaker(handle: string): Promise<ActionResult> {
       before,
     });
     revalidatePath("/speakers");
+    revalidateWebsite("speakers");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };
@@ -119,6 +123,7 @@ export async function setSpeakerArchived(handle: string, archived: boolean): Pro
       after,
     });
     revalidatePath("/speakers");
+    revalidateWebsite("speakers");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };

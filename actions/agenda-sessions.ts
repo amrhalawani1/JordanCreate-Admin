@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidateWebsite } from "@/lib/website-revalidate";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -56,6 +57,7 @@ export async function createAgendaSession(values: unknown): Promise<ActionResult
       after: created,
     });
     revalidatePath("/agenda");
+    revalidateWebsite("agenda");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };
@@ -92,6 +94,7 @@ export async function updateAgendaSession(sessionId: string, values: unknown): P
       after,
     });
     revalidatePath("/agenda");
+    revalidateWebsite("agenda");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };
@@ -117,6 +120,7 @@ export async function deleteAgendaSession(sessionId: string): Promise<ActionResu
       before,
     });
     revalidatePath("/agenda");
+    revalidateWebsite("agenda");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };
@@ -153,6 +157,7 @@ export async function setAgendaSessionArchived(
       after,
     });
     revalidatePath("/agenda");
+    revalidateWebsite("agenda");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };
@@ -182,6 +187,7 @@ export async function reorderAgendaSessions(orderedIds: string[]): Promise<Actio
       after: { order: orderedIds },
     });
     revalidatePath("/agenda");
+    revalidateWebsite("agenda");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };

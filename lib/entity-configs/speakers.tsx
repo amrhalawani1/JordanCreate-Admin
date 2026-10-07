@@ -88,7 +88,6 @@ export function buildSpeakerConfig(
         enumValues: SPEAKER_BIO_STATUS_VALUES,
       },
       { name: "known_for", label: "Known For", type: "textarea", required: true },
-      { name: "description", label: "Description", type: "textarea" },
       {
         name: "tags",
         label: "Tags",

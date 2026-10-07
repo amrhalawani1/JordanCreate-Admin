@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { requiredText, requiredUrl, nullableChipList, nullableText } from "./shared";
+import { requiredText, requiredUrl, nullableChipList } from "./shared";
 import { SPEAKER_BIO_STATUS_VALUES } from "@/types/entities";
 
 export const SpeakerSchema = z.object({
@@ -8,7 +8,6 @@ export const SpeakerSchema = z.object({
   category: requiredText("Category is required."),
   followers_range: requiredText("Followers range is required."),
   known_for: requiredText("Known for is required."),
-  description: nullableText(),
   availability: requiredText("Availability is required."),
   bio_status: z.enum(SPEAKER_BIO_STATUS_VALUES),
   photo_url: requiredUrl("Photo is required."),

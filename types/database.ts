@@ -101,8 +101,6 @@ export interface Database {
           category: string | null;
           followers_range: string | null;
           known_for: string | null;
-          /** Longer free-text description; optional. Added 8 Oct 2026. */
-          description: string | null;
           availability: string | null;
           bio_status: "confirmed" | "missing" | "unconfirmed";
           photo_url: string | null;

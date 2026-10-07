@@ -43,3 +43,14 @@ Never edit the bare-named tables by hand.
 Frozen since 7 Oct 2026 (App Store submission); structure moved to views + redirect the same day after a stale tab wrote into the snapshot. Adding a new app-content
 table means extending `app_content_tables()` in the database and
 `APP_CONTENT_TABLES` in `lib/live-tables.ts`.
+
+## Schema changes while frozen
+
+Adding a column to a `<t>_live` table during a freeze is safe (first done
+8 Oct 2026: `speakers_live.description`). The frozen snapshot and the bare-name
+view keep their old column list until `app_unfreeze()` repoints the view at
+`_live`. The redirect trigger (`app_view_redirect_write`, migration
+`app_view_redirect_write_tolerates_extra_live_columns`) returns only the view's
+own columns, so writes from stale admin tabs still land in `_live` even when the
+two column lists differ. Removing or renaming a column while frozen is NOT safe
+without also updating the snapshot; wait for unfreeze.

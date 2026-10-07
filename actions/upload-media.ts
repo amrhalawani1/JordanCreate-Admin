@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireGuestEditor, requireStaff } from "@/lib/auth/guard";
 import { sanitizeMediaSlug } from "@/lib/utils";
@@ -51,13 +52,18 @@ export async function uploadMedia(formData: FormData): Promise<UploadMediaResult
     return { success: false, error: "Use a PNG, JPG, WebP, or GIF image." };
   }
 
-  const path = `${folderRaw}/${slug}.${ext}`;
-
   try {
     const supabase = createAdminClient();
     const buffer = Buffer.from(await file.arrayBuffer());
+    // Content-addressed name: a replaced photo gets a new URL, so browsers,
+    // Vercel's image optimizer and the storage CDN cannot keep serving the
+    // old picture (they cache the URL for up to an hour). Old files are left
+    // in place because the frozen app snapshot may still point at them.
+    const digest = createHash("sha1").update(buffer).digest("hex").slice(0, 8);
+    const path = `${folderRaw}/${slug}-${digest}.${ext}`;
     const { error } = await supabase.storage.from("public-media").upload(path, buffer, {
       contentType: file.type,
+      cacheControl: "31536000",
       upsert: true,
     });
     if (error) {

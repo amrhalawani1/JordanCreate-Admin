@@ -4,6 +4,7 @@ import { useForm, type FieldValues, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ZodType } from "zod";
 import { useMemo, useState, type ReactNode } from "react";
+import { ExternalLink } from "lucide-react";
 import type { FieldConfig, FieldType } from "@/lib/entity-configs/types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,10 +51,10 @@ interface EntityFormProps<Row, Values extends FieldValues> {
   children?: ReactNode | ((ctx: { isEditing: boolean }) => ReactNode);
   onCancel?: () => void;
   /**
-   * Live preview of the record as the public will see it, fed the form's
-   * current (unsaved) values. Shown above the fields while editing.
+   * Builds a URL that renders the record as the public will see it, from the
+   * form's current (unsaved) values. Shown as a button that opens a new tab.
    */
-  preview?: (values: Values) => ReactNode;
+  previewLink?: (values: Values) => string;
   previewLabel?: string;
   /** Show "What will change" (old → new per edited field) before Save. Default: on for existing records. */
   showChangeSummary?: boolean;
@@ -70,8 +71,8 @@ export function EntityForm<Row, Values extends FieldValues>({
   startInShowMode = false,
   children,
   onCancel,
-  preview,
-  previewLabel = "Preview",
+  previewLink,
+  previewLabel = "Preview on jordancreate.com",
   showChangeSummary,
 }: EntityFormProps<Row, Values>) {
   const { canEdit } = useAdminAccess();
@@ -91,9 +92,8 @@ export function EntityForm<Row, Values extends FieldValues>({
     defaultValues: defaultValues as never,
   });
   const liveValues = watch();
-  const [previewOpen, setPreviewOpen] = useState(true);
   const summaryEnabled = showChangeSummary ?? startInShowMode;
-  const previewValues = useMemo(() => liveValues, [liveValues]);
+  const previewHref = previewLink ? previewLink(liveValues) : null;
   const changes = useMemo(
     () =>
       summaryEnabled && editing
@@ -122,14 +122,32 @@ export function EntityForm<Row, Values extends FieldValues>({
     }
   });
 
+  const previewButton = previewHref ? (
+    <a
+      href={previewHref}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border border-border px-3 text-sm font-medium text-foreground transition-colors hover:border-orange/60 hover:text-orange sm:w-auto"
+    >
+      {previewLabel}
+      <ExternalLink className="size-3.5" aria-hidden />
+      <span className="sr-only">(opens in a new tab)</span>
+    </a>
+  ) : null;
+
   const actions =
     canEdit ? (
       startInShowMode && !isEditing ? (
-        <Button type="button" className="w-full sm:w-auto" onClick={() => setIsEditing(true)}>
-          Edit
-        </Button>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>{previewButton}</div>
+          <Button type="button" className="w-full sm:w-auto" onClick={() => setIsEditing(true)}>
+            Edit
+          </Button>
+        </div>
       ) : (
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>{previewButton}</div>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
           {startInShowMode && (
             <Button
               type="button"
@@ -148,32 +166,13 @@ export function EntityForm<Row, Values extends FieldValues>({
           <Button type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
             {isSubmitting ? "Saving…" : submitLabel}
           </Button>
+          </div>
         </div>
       )
-    ) : null;
+    ) : previewButton;
 
   return (
     <form onSubmit={submit} className="flex flex-col">
-      {preview ? (
-        <section className="mb-6" aria-label={previewLabel}>
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-              {previewLabel}
-              {editing ? <span className="ml-2 normal-case tracking-normal text-faint">updates as you type</span> : null}
-            </p>
-            <button
-              type="button"
-              onClick={() => setPreviewOpen((v) => !v)}
-              className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-              aria-expanded={previewOpen}
-            >
-              {previewOpen ? "Hide" : "Show"}
-            </button>
-          </div>
-          {previewOpen ? preview(previewValues) : null}
-        </section>
-      ) : null}
-
       <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
         {fields.map((field) => {
           const name = field.name as string;

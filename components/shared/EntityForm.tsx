@@ -17,6 +17,7 @@ import { MultiSelectField } from "@/components/shared/fields/MultiSelectField";
 import { SingleSelectField } from "@/components/shared/fields/SingleSelectField";
 import { ImageUploadField } from "@/components/shared/fields/ImageUploadField";
 import { CreatableSelectField } from "@/components/shared/fields/CreatableSelectField";
+import { TagPickerField } from "@/components/shared/fields/TagPickerField";
 import { sanitizeMediaSlug, cn } from "@/lib/utils";
 import { useAdminAccess } from "@/components/layout/AdminAccessProvider";
 import { useInEntityDrawer } from "@/components/shared/EntityDrawer";
@@ -299,7 +300,19 @@ export function EntityForm<Row, Values extends FieldValues>({
                   }
                 />
               )}
-              {field.type === "chip-list" && (
+              {field.type === "chip-list" && field.referenceOptions && (
+                <TagPickerField
+                  id={name}
+                  disabled={isDisabled}
+                  placeholder={field.placeholder}
+                  value={String(watch(name as never) ?? "")}
+                  options={field.referenceOptions}
+                  onChange={(value) =>
+                    setValue(name as never, value as never, { shouldValidate: true, shouldDirty: true })
+                  }
+                />
+              )}
+              {field.type === "chip-list" && !field.referenceOptions && (
                 <ChipListField
                   id={name}
                   disabled={isDisabled}

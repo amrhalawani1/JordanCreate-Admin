@@ -7,8 +7,9 @@ import { archiveFilter } from "@/lib/archive";
 import { PhotoThumb } from "@/components/shared/fields/PhotoThumb";
 import { ArchiveStatusBadge } from "@/components/shared/ArchiveStatusBadge";
 
-export function buildSpeakerConfig(categories: string[]): EntityConfig<Speaker> {
+export function buildSpeakerConfig(categories: string[], tags: string[] = []): EntityConfig<Speaker> {
   const categoryOptions = categories.map((v) => ({ value: v, label: v }));
+  const tagOptions = tags.map((v) => ({ value: v, label: v }));
 
   const filters: FilterConfig<Speaker>[] = [
     { key: "category", label: "Category", options: categories },
@@ -72,7 +73,9 @@ export function buildSpeakerConfig(categories: string[]): EntityConfig<Speaker> 
         name: "tags",
         label: "Tags",
         type: "chip-list",
-        helpText: "Topic tags. Type a value and press Enter or comma.",
+        referenceOptions: tagOptions,
+        placeholder: "Add a tag…",
+        helpText: "Topic tags. Pick from the list or type a new one.",
       },
     ],
     hasUpdatedAt: true,

@@ -38,9 +38,11 @@ const EMPTY_SOCIAL_ROW: SocialLinkDraft = {
 export function SpeakersClient({
   initialData,
   socialLinks,
+  tagSuggestions = [],
 }: {
   initialData: Speaker[];
   socialLinks: SpeakerSocialLink[];
+  tagSuggestions?: string[];
 }) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -51,8 +53,11 @@ export function SpeakersClient({
     const categories = Array.from(
       new Set(initialData.map((r) => r.category).filter((v): v is string => Boolean(v))),
     ).sort();
-    return buildSpeakerConfig(categories);
-  }, [initialData]);
+    const tags = Array.from(
+      new Set([...initialData.flatMap((r) => r.tags ?? []), ...tagSuggestions].map((t) => t.trim()).filter(Boolean)),
+    ).sort();
+    return buildSpeakerConfig(categories, tags);
+  }, [initialData, tagSuggestions]);
 
   function linksFor(handle: string) {
     return toSocialLinkDrafts(socialLinks.filter((link) => link.speaker_handle === handle));

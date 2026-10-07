@@ -126,7 +126,12 @@ export function SpeakersClient({
           disabledFields={editingRow ? ["handle"] : []}
           submitLabel={editingRow ? "Save changes" : "Add speaker"}
           previewLabel="How it will look on jordancreate.com"
-          preview={(values) => <SpeakerPreview values={values} />}
+          preview={(values) => (
+            <SpeakerPreview
+              values={values}
+              instagram={linkDrafts.find((l) => /instagram/i.test(l.platform ?? ""))?.url ?? undefined}
+            />
+          )}
           onCancel={() => {
             if (!editingRow) return;
             const existing = linksFor(editingRow.handle);

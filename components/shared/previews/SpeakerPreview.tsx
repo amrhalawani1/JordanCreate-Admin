@@ -1,12 +1,7 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { websiteDisplay } from "@/lib/previews/website-font";
-import {
-  websiteFollowersLabel,
-  websiteHasOwnBio,
-  websiteSpeakerName,
-} from "@/lib/previews/website-speaker-names";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ExternalLink } from "lucide-react";
 
 export interface SpeakerPreviewValues {
   handle?: string;
@@ -14,121 +9,88 @@ export interface SpeakerPreviewValues {
   followers_range?: string | null;
   tagline?: string | null;
   known_for?: string | null;
-  category?: string | null;
 }
 
-// jordancreate.com tokens (src/app/globals.css on the website).
-const SITE = {
-  canvas: "#141210",
-  surface: "#1c1916",
-  text: "#f5efe6",
-  gray: "#8a8278",
-  orange: "#ea8f2d",
-  gradient: "linear-gradient(111deg, #eebc2b 0%, #faac44 1.1538%, #fe7a1f 100%)",
-};
+/** The public website, which hosts the preview page. Override locally with NEXT_PUBLIC_WEBSITE_ORIGIN=http://localhost:3001. */
+const WEBSITE_ORIGIN = (process.env.NEXT_PUBLIC_WEBSITE_ORIGIN ?? "https://www.jordancreate.com").replace(/\/$/, "");
+
+function useDebounced<T>(value: T, ms: number): T {
+  const [v, setV] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return v;
+}
 
 /**
- * How this speaker will look on jordancreate.com, drawn from the form's
- * current (unsaved) values. Left: the card from /speakers and the home
- * lineup. Right: the top of the speaker's detail page. Mirrors the website's
- * PortraitCard — keep the two in step when the site's card changes.
+ * The real jordancreate.com rendering of this speaker, from the form's
+ * current (unsaved) values: the website's /preview/speaker page draws the
+ * speakers-page card and the speaker page with its own components, embedded
+ * here. Updates ~400 ms after you stop typing; nothing is saved.
  */
-export function SpeakerPreview({ values }: { values: SpeakerPreviewValues }) {
-  const handle = values.handle?.trim() ?? "";
-  const name = handle ? websiteSpeakerName(handle) : "Speaker name";
-  const followers = websiteFollowersLabel(values.followers_range);
-  const photo = values.photo_url?.trim() || null;
-  const keepsSiteBio = handle ? websiteHasOwnBio(handle) : false;
-  const bio = (values.known_for?.trim() || values.tagline?.trim() || "").trim();
+export function SpeakerPreview({ values, instagram }: { values: SpeakerPreviewValues; instagram?: string }) {
+  const url = useMemo(() => {
+    const q = new URLSearchParams();
+    if (values.handle?.trim()) q.set("handle", values.handle.trim());
+    if (values.photo_url?.trim()) q.set("photo", values.photo_url.trim());
+    if (values.followers_range?.trim()) q.set("followers", values.followers_range.trim());
+    if (values.tagline?.trim()) q.set("tagline", values.tagline.trim());
+    if (values.known_for?.trim()) q.set("known_for", values.known_for.trim());
+    if (instagram?.trim()) q.set("instagram", instagram.trim());
+    return `${WEBSITE_ORIGIN}/preview/speaker?${q.toString()}`;
+  }, [values.handle, values.photo_url, values.followers_range, values.tagline, values.known_for, instagram]);
+
+  const src = useDebounced(url, 400);
+  const [height, setHeight] = useState(640);
+  // The frame is keyed by src, so "loaded" simply means the current src has fired onLoad.
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
+  const loaded = loadedSrc === src;
+  const frameRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      if (e.origin !== WEBSITE_ORIGIN) return;
+      if (e.source !== frameRef.current?.contentWindow) return;
+      const data = e.data as { type?: string; height?: number } | null;
+      if (data?.type === "jc-preview-height" && typeof data.height === "number" && data.height > 0) {
+        setHeight(Math.min(Math.max(Math.ceil(data.height), 320), 2400));
+      }
+    }
+    window.addEventListener("message", onMessage);
+    return () => window.removeEventListener("message", onMessage);
+  }, []);
 
   return (
-    <div
-      className={cn(websiteDisplay.variable, "rounded-[var(--jc-radius-card)] border border-border p-4 sm:p-5")}
-      style={{ background: SITE.canvas, color: SITE.text }}
-    >
-      <div className="grid gap-5 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-6">
-        {/* Card as on /speakers and the home lineup */}
-        <div>
-          <p className="mb-2 text-[10px] uppercase tracking-[0.18em]" style={{ color: SITE.gray }}>
-            Speakers page card
-          </p>
-          <div className="rounded-[4px] border border-white/10 p-1" style={{ background: SITE.surface }}>
-            <div
-              className="relative aspect-[3/4] w-full overflow-hidden rounded-[4px] border border-white/10"
-              style={{
-                WebkitMaskImage: "linear-gradient(352deg, rgba(0,0,0,0) 11%, #000 65%)",
-                maskImage: "linear-gradient(352deg, rgba(0,0,0,0) 11%, #000 65%)",
-                background: SITE.canvas,
-              }}
-            >
-              {photo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={photo}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover object-top grayscale"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center text-[11px]" style={{ color: SITE.gray }}>
-                  No photo yet
-                </div>
-              )}
-            </div>
-            <div className="-mt-5 flex flex-col gap-1 p-3">
-              <p
-                className="font-[family-name:var(--font-website-display)] text-[18px] italic leading-[1.2] tracking-[-0.4px]"
-                style={{ color: SITE.text }}
-              >
-                {name}
-              </p>
-              {followers ? (
-                <p className="text-[13px] leading-[1.4]" style={{ color: SITE.gray }}>
-                  {followers}
-                </p>
-              ) : null}
-            </div>
+    <div className="overflow-hidden rounded-[var(--jc-radius-card)] border border-border bg-[#141210]">
+      <div className="relative">
+        {!loaded ? (
+          <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground" aria-hidden>
+            Loading preview from jordancreate.com…
           </div>
-        </div>
-
-        {/* Top of the detail page */}
-        <div className="min-w-0">
-          <p className="mb-2 text-[10px] uppercase tracking-[0.18em]" style={{ color: SITE.gray }}>
-            Speaker page
-          </p>
-          <div className="rounded-[4px] border border-white/10 p-4" style={{ background: SITE.surface }}>
-            <p className="text-[11px] uppercase tracking-[0.12em]" style={{ color: SITE.gray }}>
-              Volume 3 speaker
-            </p>
-            <p
-              className="mt-2 font-[family-name:var(--font-website-display)] text-[28px] italic leading-[1.15] sm:text-[32px]"
-              style={{ color: SITE.text }}
-            >
-              {name}
-            </p>
-            {followers ? (
-              <span
-                className="mt-3 inline-block rounded-full px-3 py-1 text-[13px] font-medium"
-                style={{ background: SITE.gradient, color: "#0f0f0f" }}
-              >
-                {followers}
-              </span>
-            ) : null}
-            <p className="mt-3 text-[14px] leading-[1.5]" style={{ color: "rgba(245,239,230,0.8)" }}>
-              {keepsSiteBio
-                ? "This speaker keeps the website's existing bio. The text below (Known for / Tagline) is what the app and new listings use."
-                : bio || "The bio comes from \"Known for\" (or the tagline when that is empty)."}
-            </p>
-            {keepsSiteBio && bio ? (
-              <p className="mt-2 text-[13px] leading-[1.5]" style={{ color: SITE.gray }}>
-                {bio}
-              </p>
-            ) : null}
-          </div>
-          <p className="mt-3 text-[11px] leading-[1.5]" style={{ color: SITE.gray }}>
-            Live on jordancreate.com within about a minute of saving. The website keeps its own name
-            {keepsSiteBio ? " and bio " : " "}for returning speakers; new speakers are named from the handle.
-          </p>
-        </div>
+        ) : null}
+        <iframe
+          ref={frameRef}
+          key={src}
+          src={src}
+          title="How this speaker will look on jordancreate.com"
+          onLoad={() => setLoadedSrc(src)}
+          style={{ height }}
+          className="block w-full border-0 bg-[#141210] transition-[height] duration-200"
+          sandbox="allow-scripts allow-same-origin"
+          loading="lazy"
+        />
+      </div>
+      <div className="flex items-center justify-between gap-3 border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+        <span>Rendered by the live website from these unsaved values. Nothing is saved until you press Save.</span>
+        <a
+          href={src}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex shrink-0 items-center gap-1 hover:text-foreground"
+        >
+          Open <ExternalLink className="size-3" aria-hidden />
+        </a>
       </div>
     </div>
   );

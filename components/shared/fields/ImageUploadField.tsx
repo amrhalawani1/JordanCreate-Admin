@@ -18,6 +18,60 @@ interface ImageUploadFieldProps {
   onChange: (url: string | null) => void;
 }
 
+
+const MAX_EDGE = 1600;
+const TARGET_BYTES = 1_500_000;
+
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error("timeout")), ms);
+    p.then((v) => { clearTimeout(t); resolve(v); }, (e) => { clearTimeout(t); reject(e); });
+  });
+}
+
+/**
+ * Downscale to ≤1600 px on the long edge and re-encode (WebP, falling back to
+ * JPEG). GIFs and already-small images pass through untouched.
+ */
+async function shrinkImage(file: File): Promise<File> {
+  if (file.type === "image/gif") return file;
+  if (file.size <= TARGET_BYTES && file.type !== "image/heic") {
+    // Still check dimensions: a 1 MB 6000 px PNG is worth shrinking.
+    const dims = await imageDimensions(file).catch(() => null);
+    if (!dims || Math.max(dims.width, dims.height) <= MAX_EDGE) return file;
+  }
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) return file;
+  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return file;
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const base = file.name.replace(/\.[^.]+$/, "");
+  const webp = await canvasToBlob(canvas, "image/webp", 0.86);
+  if (webp && webp.size > 0 && webp.type === "image/webp") return new File([webp], `${base}.webp`, { type: "image/webp" });
+  const jpeg = await canvasToBlob(canvas, "image/jpeg", 0.86);
+  if (jpeg && jpeg.size > 0) return new File([jpeg], `${base}.jpg`, { type: "image/jpeg" });
+  return file;
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
+  return new Promise((resolve) => canvas.toBlob(resolve, type, quality));
+}
+
+function imageDimensions(file: File): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve({ width: img.naturalWidth, height: img.naturalHeight }); };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("decode")); };
+    img.src = url;
+  });
+}
+
 export function ImageUploadField({
   id,
   value,
@@ -41,18 +95,30 @@ export function ImageUploadField({
 
     setError(null);
     setUploading(true);
-    const formData = new FormData();
-    formData.set("folder", folder);
-    formData.set("slug", slug);
-    formData.set("file", file);
-    const result = await uploadMedia(formData);
-    setUploading(false);
-
-    if (!result.success) {
-      setError(result.error);
-      return;
+    try {
+      // Shrink in the browser first: phone photos are 3–10 MB, which is slow
+      // and over the server action body limit; the site shows portraits at
+      // ≤ 700 px wide anyway.
+      const prepared = await shrinkImage(file);
+      const formData = new FormData();
+      formData.set("folder", folder);
+      formData.set("slug", slug);
+      formData.set("file", prepared);
+      const result = await withTimeout(uploadMedia(formData), 60_000);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      onChange(result.publicUrl);
+    } catch (err) {
+      setError(
+        err instanceof Error && err.message === "timeout"
+          ? "The upload took too long. Check your connection and try again."
+          : "The upload failed. Try a smaller image (under 5 MB) or a different format.",
+      );
+    } finally {
+      setUploading(false);
     }
-    onChange(result.publicUrl);
   }
 
   return (

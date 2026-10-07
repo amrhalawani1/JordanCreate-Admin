@@ -12,6 +12,14 @@ const nextConfig = {
     root: projectRoot,
   },
   devIndicators: false,
+  experimental: {
+    serverActions: {
+      // Photo uploads go through a server action (actions/upload-media.ts,
+      // 5 MB max). The default 1 MB limit made larger photos fail with no
+      // response, so the picker sat on "Uploading…" forever.
+      bodySizeLimit: "6mb",
+    },
+  },
   async headers() {
     return [
       {

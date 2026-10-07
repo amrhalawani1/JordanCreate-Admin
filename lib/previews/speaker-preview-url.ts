@@ -7,6 +7,7 @@ export interface SpeakerPreviewValues {
   followers_range?: string | null;
   tagline?: string | null;
   known_for?: string | null;
+  description?: string | null;
 }
 
 /**
@@ -25,6 +26,7 @@ export function speakerPreviewUrl(values: SpeakerPreviewValues, instagram?: stri
   set("followers", values.followers_range);
   set("tagline", values.tagline);
   set("known_for", values.known_for);
+  set("description", values.description);
   set("instagram", instagram);
   return `${WEBSITE_ORIGIN}/preview/speaker?${q.toString()}`;
 }

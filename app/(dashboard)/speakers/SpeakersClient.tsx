@@ -7,6 +7,7 @@ import { DataTable } from "@/components/shared/DataTable";
 import { EntityDrawer } from "@/components/shared/EntityDrawer";
 import { EntityForm } from "@/components/shared/EntityForm";
 import { SocialLinksEditor } from "@/components/shared/fields/SocialLinksEditor";
+import { SpeakerPreview } from "@/components/shared/previews/SpeakerPreview";
 import { buildSpeakerConfig } from "@/lib/entity-configs/speakers";
 import { SpeakerSchema, type SpeakerFormValues } from "@/lib/validation/speakers";
 import { parseSocialLinkDrafts } from "@/lib/validation/social-links";
@@ -124,6 +125,8 @@ export function SpeakersClient({
           startInShowMode={!!editingRow}
           disabledFields={editingRow ? ["handle"] : []}
           submitLabel={editingRow ? "Save changes" : "Add speaker"}
+          previewLabel="How it will look on jordancreate.com"
+          preview={(values) => <SpeakerPreview values={values} />}
           onCancel={() => {
             if (!editingRow) return;
             const existing = linksFor(editingRow.handle);

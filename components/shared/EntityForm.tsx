@@ -3,7 +3,7 @@
 import { useForm, type FieldValues, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ZodType } from "zod";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { FieldConfig, FieldType } from "@/lib/entity-configs/types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +18,7 @@ import { ImageUploadField } from "@/components/shared/fields/ImageUploadField";
 import { sanitizeMediaSlug, cn } from "@/lib/utils";
 import { useAdminAccess } from "@/components/layout/AdminAccessProvider";
 import { useInEntityDrawer } from "@/components/shared/EntityDrawer";
+import { ChangeSummary, diffFields } from "@/components/shared/ChangeSummary";
 
 export interface EntityFormResult {
   success: boolean;
@@ -48,6 +49,14 @@ interface EntityFormProps<Row, Values extends FieldValues> {
   startInShowMode?: boolean;
   children?: ReactNode | ((ctx: { isEditing: boolean }) => ReactNode);
   onCancel?: () => void;
+  /**
+   * Live preview of the record as the public will see it, fed the form's
+   * current (unsaved) values. Shown above the fields while editing.
+   */
+  preview?: (values: Values) => ReactNode;
+  previewLabel?: string;
+  /** Show "What will change" (old → new per edited field) before Save. Default: on for existing records. */
+  showChangeSummary?: boolean;
 }
 
 export function EntityForm<Row, Values extends FieldValues>({
@@ -61,6 +70,9 @@ export function EntityForm<Row, Values extends FieldValues>({
   startInShowMode = false,
   children,
   onCancel,
+  preview,
+  previewLabel = "Preview",
+  showChangeSummary,
 }: EntityFormProps<Row, Values>) {
   const { canEdit } = useAdminAccess();
   const stickyActions = useInEntityDrawer();
@@ -78,6 +90,17 @@ export function EntityForm<Row, Values extends FieldValues>({
     resolver: zodResolver(schema) as Resolver<Values>,
     defaultValues: defaultValues as never,
   });
+  const liveValues = watch();
+  const [previewOpen, setPreviewOpen] = useState(true);
+  const summaryEnabled = showChangeSummary ?? startInShowMode;
+  const previewValues = useMemo(() => liveValues, [liveValues]);
+  const changes = useMemo(
+    () =>
+      summaryEnabled && editing
+        ? diffFields(fields, defaultValues as Record<string, unknown>, liveValues as Record<string, unknown>)
+        : [],
+    [summaryEnabled, editing, fields, defaultValues, liveValues],
+  );
 
   const submit = handleSubmit(async (values) => {
     if (!canEdit) return;
@@ -131,6 +154,26 @@ export function EntityForm<Row, Values extends FieldValues>({
 
   return (
     <form onSubmit={submit} className="flex flex-col">
+      {preview ? (
+        <section className="mb-6" aria-label={previewLabel}>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              {previewLabel}
+              {editing ? <span className="ml-2 normal-case tracking-normal text-faint">updates as you type</span> : null}
+            </p>
+            <button
+              type="button"
+              onClick={() => setPreviewOpen((v) => !v)}
+              className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              aria-expanded={previewOpen}
+            >
+              {previewOpen ? "Hide" : "Show"}
+            </button>
+          </div>
+          {previewOpen ? preview(previewValues) : null}
+        </section>
+      ) : null}
+
       <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
         {fields.map((field) => {
           const name = field.name as string;
@@ -324,6 +367,8 @@ export function EntityForm<Row, Values extends FieldValues>({
           </div>
         ) : null}
       </div>
+
+      <ChangeSummary changes={changes} />
 
       {formError && (
         <p

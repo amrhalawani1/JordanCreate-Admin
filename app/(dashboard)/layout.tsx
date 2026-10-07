@@ -7,6 +7,8 @@ import { TopBar } from "@/components/layout/TopBar";
 import { MissingAdminProfile } from "@/components/layout/MissingAdminProfile";
 import { AdminAccessProvider } from "@/components/layout/AdminAccessProvider";
 import { ADMIN_LEVEL_LABELS } from "@/types/entities";
+import { DeploymentWatcher } from "@/components/layout/DeploymentWatcher";
+import { currentDeploymentId } from "@/lib/deployment-id";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabaseClient();
@@ -25,6 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-dvh bg-background">
+      <DeploymentWatcher builtWith={currentDeploymentId()} />
       <Sidebar adminLevel={viewLevel} />
       <div className="flex min-w-0 flex-1 flex-col">
         <a

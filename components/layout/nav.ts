@@ -20,6 +20,7 @@ import {
   BellRing,
   Smartphone,
   Flag,
+  Globe,
 } from "lucide-react";
 
 export type NavItem = {
@@ -68,6 +69,7 @@ export const NAV_GROUPS = [
       { href: "/experience", label: "Experience", icon: Wand2 },
       { href: "/other-editions", label: "Other Editions", icon: Layers },
       { href: "/mobile-app-management", label: "Mobile App Management", icon: Smartphone },
+      { href: "/website-management", label: "Website Management", icon: Globe },
     ],
   },
   {

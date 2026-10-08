@@ -557,6 +557,17 @@ export interface Database {
         };
         Update: Partial<Omit<Database["public"]["Tables"]["tickets"]["Row"], "id">>;
       };
+      website_settings: {
+        Relationships: [];
+        Row: {
+          /** e.g. "homepage_speaker_order" */
+          key: string;
+          value: Json;
+          updated_at: string;
+        };
+        Insert: { key: string; value: Json; updated_at?: string };
+        Update: { value?: Json; updated_at?: string };
+      };
     };
     Views: {
       tickets_queue: {

@@ -3,16 +3,22 @@ import type { Speaker } from "@/types/entities";
 /** How many speakers jordancreate.com shows on the home page before "All speakers". */
 export const HOMEPAGE_SPEAKER_LIMIT = 15;
 
-/** Same ranking the website uses when no order is saved: biggest audience first. */
+/**
+ * Sort key for a follower value as the admin stores it: an exact figure
+ * ("9.2M", "152K", "1,877") or one of the old bands ("50K-250K", "5M+", "Under 10K").
+ * Returns an approximate follower count; unknown text sorts last.
+ */
 export function followersRank(range: string | null | undefined): number {
-  const r = (range ?? "").trim().toLowerCase();
-  if (r.startsWith("5m")) return 6;
-  if (r.startsWith("1m")) return 5;
-  if (r.startsWith("250k")) return 4;
-  if (r.startsWith("50k")) return 3;
-  if (r.startsWith("10k")) return 2;
+  const r = (range ?? "").trim().toLowerCase().replace(/,/g, "");
+  if (!r) return 0;
   if (r.startsWith("under")) return 1;
-  return 0;
+  const m = r.match(/^(\d+(?:\.\d+)?)\s*([km])?/);
+  if (!m) return 0;
+  const n = parseFloat(m[1] ?? "0");
+  const mult = m[2] === "m" ? 1_000_000 : m[2] === "k" ? 1_000 : 1;
+  const value = n * mult;
+  // Bands ("250K-1M", "5M+") rank at their lower bound, like before.
+  return Number.isFinite(value) ? value : 0;
 }
 
 /**

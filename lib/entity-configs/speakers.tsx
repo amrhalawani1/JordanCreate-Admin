@@ -7,20 +7,8 @@ import { archiveFilter } from "@/lib/archive";
 import { PhotoThumb } from "@/components/shared/fields/PhotoThumb";
 import { ArchiveStatusBadge } from "@/components/shared/ArchiveStatusBadge";
 
-/**
- * Standard follower bands, in the same spelling the database already uses
- * ("50K-250K"): the website sorts the lineup by the leading number of this
- * string, so keep new values in this shape where possible.
- */
-export const FOLLOWER_RANGE_OPTIONS = ["Under 10K", "10K-50K", "50K-250K", "250K-1M", "1M-5M", "5M+"] as const;
-
-export function buildSpeakerConfig(
-  categories: string[],
-  tags: string[] = [],
-  followerRanges: readonly string[] = FOLLOWER_RANGE_OPTIONS,
-): EntityConfig<Speaker> {
+export function buildSpeakerConfig(categories: string[], tags: string[] = []): EntityConfig<Speaker> {
   const categoryOptions = categories.map((v) => ({ value: v, label: v }));
-  const followerRangeOptions = followerRanges.map((v) => ({ value: v, label: v }));
   const tagOptions = tags.map((v) => ({ value: v, label: v }));
 
   const filters: FilterConfig<Speaker>[] = [
@@ -74,10 +62,11 @@ export function buildSpeakerConfig(
       {
         name: "followers_range",
         label: "Followers Range",
-        type: "suggest-text",
+        type: "text",
         required: true,
-        referenceOptions: followerRangeOptions,
-        placeholder: "Select a range",
+        // Exact total across platforms, as the website shows it ("9.2M Total
+        // Followers") and sorts by: a number with K or M.
+        placeholder: "e.g. 9.2M or 152K",
       },
       { name: "availability", label: "Availability", type: "text", required: true, placeholder: "e.g. all_day" },
       {

@@ -90,6 +90,13 @@ export function buildSampleSnapshot(range: ResolvedRange): AnalyticsSnapshot {
       { key: "PS", label: "Palestine", value: n(25), countryCode: "PS" },
       { key: "GB", label: "United Kingdom", value: n(15), countryCode: "GB" },
     ],
+    operatingSystems: [
+      { key: "iOS", label: "iOS", value: n(560), hint: "iPhone and iPad" },
+      { key: "Android", label: "Android", value: n(250), hint: "Android phones and tablets" },
+      { key: "Windows", label: "Windows", value: n(110) },
+      { key: "macOS", label: "macOS", value: n(70), hint: "Mac computers" },
+      { key: "Linux", label: "Linux", value: n(10) },
+    ],
     devices: [
       { key: "mobile", label: "Mobile", value: n(810) },
       { key: "desktop", label: "Desktop", value: n(170) },

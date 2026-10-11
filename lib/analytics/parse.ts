@@ -103,6 +103,7 @@ const PATH_LABELS: Record<string, string> = {
   "/terms": "Terms of use",
   "/support": "App support",
   "/delete-account": "Delete account",
+  "/volume-2": "Volume 2 recap",
 };
 
 export function normalizePath(path: string): string {
@@ -110,12 +111,20 @@ export function normalizePath(path: string): string {
   return clean.length > 1 ? clean.replace(/\/+$/, "") : clean;
 }
 
-/** A readable page name: the page's own title minus the site suffix, else a name from its path. */
+/** A screen title as GA reports it, minus the site suffix; the brand-first home title reads "Home". */
+export function screenLabel(title: string): string {
+  const t = title.trim();
+  if (!t || t.toLowerCase() === "(not set)") return "";
+  if (/^jordan create\b/i.test(t)) return "Home";
+  return t.replace(SITE_TITLE_SUFFIX, "").trim();
+}
+
+/** A readable page name: a known route's name first, then the page's own title, then its path. */
 export function pageLabel(path: string, title: string): string {
-  const trimmed = title.replace(SITE_TITLE_SUFFIX, "").trim();
-  if (trimmed && trimmed.toLowerCase() !== "(not set)" && trimmed.toLowerCase() !== "jordan create") return trimmed;
   const known = PATH_LABELS[path];
   if (known) return known;
+  const fromTitle = screenLabel(title);
+  if (fromTitle) return fromTitle;
   const last = path.split("/").filter(Boolean).pop();
   if (!last) return "Home";
   return decodeURIComponent(last)
@@ -160,6 +169,7 @@ const CHANNEL_HINTS: Record<string, string> = {
   Referral: "Links on other websites",
   Email: "Links in emails and newsletters",
   "Organic Video": "YouTube and other video sites",
+  "AI Assistant": "ChatGPT, Gemini, Perplexity and other AI assistants",
   "Paid Video": "Paid video ads",
   "Organic Shopping": "Shopping listings",
   Display: "Display and banner ads",
@@ -213,8 +223,13 @@ export function sourceLabel(source: string): string {
 export function sourceHint(source: string): string | undefined {
   const s = source.toLowerCase();
   if (s === "(direct)") return "No referring site";
+  if (s === "ig") return "Instagram (shared or bio link)";
   if (s.includes("instagram")) return s.startsWith("l.") || s.startsWith("lm.") ? "Instagram link (in-app)" : "Instagram";
-  if (s.includes("facebook")) return "Facebook";
+  if (s.includes("chatgpt") || s.includes("openai")) return "ChatGPT";
+  if (s.includes("perplexity")) return "Perplexity";
+  if (s.includes("gemini")) return "Gemini";
+  if (s.includes("copilot") || s === "bing") return s === "bing" ? "Bing Search" : "Microsoft Copilot";
+  if (s === "fb" || s.includes("facebook")) return "Facebook";
   if (s === "google") return "Google Search";
   if (s.includes("tiktok")) return "TikTok";
   if (s.includes("linkedin")) return "LinkedIn";
@@ -326,5 +341,35 @@ export function parseOutbound(report: GaReport | undefined): OutboundGroup[] {
   const other = groups.get("other")!;
   other.hint = other.domains.slice(0, 3).join(", ") || "Any other outbound link";
 
-  return [...groups.values()].filter((g) => g.key === "tickets" || g.clicks > 0 || g.previous > 0);
+  const shown = [...groups.values()].filter((g) => g.key === "tickets" || g.clicks > 0 || g.previous > 0);
+  const rank = (g: OutboundGroup) => (g.key === "tickets" ? 0 : g.key === "other" ? 2 : 1);
+  return shown.sort((a, b) => rank(a) - rank(b) || b.clicks - a.clicks || b.previous - a.previous);
+}
+
+const OS_LABELS: Record<string, { label: string; hint?: string }> = {
+  ios: { label: "iOS", hint: "iPhone and iPad" },
+  android: { label: "Android", hint: "Android phones and tablets" },
+  windows: { label: "Windows" },
+  macintosh: { label: "macOS", hint: "Mac computers" },
+  "mac os x": { label: "macOS", hint: "Mac computers" },
+  linux: { label: "Linux" },
+  "chrome os": { label: "ChromeOS" },
+  ipados: { label: "iOS", hint: "iPhone and iPad" },
+};
+
+/** Rows are (operatingSystem) with activeUsers. iOS and Android lead; the long tail folds into Other. */
+export function parseOperatingSystems(report: GaReport | undefined, keep = 4): NamedCount[] {
+  const totals = new Map<string, NamedCount>();
+  for (const row of readRows(report)) {
+    const raw = (row.dims.operatingSystem ?? "").trim();
+    const known = OS_LABELS[raw.toLowerCase()];
+    const label = known?.label ?? (raw && raw !== "(not set)" ? raw : "Unknown");
+    const entry = totals.get(label) ?? { key: label, label, value: 0, hint: known?.hint };
+    entry.value += row.metrics.activeUsers ?? 0;
+    totals.set(label, entry);
+  }
+  const items = [...totals.values()]
+    .filter((item) => item.value > 0)
+    .sort((a, b) => b.value - a.value || a.label.localeCompare(b.label));
+  return foldTail(items, keep, "Other systems combined");
 }

@@ -10,11 +10,13 @@ import {
   parseCountries,
   parseDaily,
   parseDevices,
+  parseOperatingSystems,
   parseOutbound,
   parseSources,
   parseTopPages,
   parseTotals,
   readRows,
+  screenLabel,
 } from "./parse";
 import type { ResolvedRange } from "./ranges";
 import type { AnalyticsSnapshot, RealtimeSnapshot } from "./types";
@@ -97,9 +99,16 @@ async function loadSnapshot(config: AnalyticsConfig, range: ResolvedRange): Prom
       limit: 25,
     },
     { dateRanges: current(range), dimensions: dimensions("deviceCategory"), metrics: metrics("activeUsers") },
+    {
+      dateRanges: current(range),
+      dimensions: dimensions("operatingSystem"),
+      metrics: metrics("activeUsers"),
+      orderBys: byMetricDesc("activeUsers"),
+      limit: 25,
+    },
   ];
 
-  const [[totalsReport, dailyReport, pagesReport, channelsReport, outboundReport], [sourcesReport, countriesReport, devicesReport]] =
+  const [[totalsReport, dailyReport, pagesReport, channelsReport, outboundReport], [sourcesReport, countriesReport, devicesReport, osReport]] =
     await Promise.all([batchRunReports(config, first), batchRunReports(config, second)]);
 
   const totals = parseTotals(totalsReport, [...TOTAL_METRICS]);
@@ -125,6 +134,7 @@ async function loadSnapshot(config: AnalyticsConfig, range: ResolvedRange): Prom
     sources: parseSources(sourcesReport),
     countries: parseCountries(countriesReport),
     devices: parseDevices(devicesReport),
+    operatingSystems: parseOperatingSystems(osReport),
     outbound,
     fetchedAt: new Date().toISOString(),
   };
@@ -147,7 +157,7 @@ export function getRealtime(config: AnalyticsConfig): Promise<RealtimeSnapshot> 
     });
     const total = Number(report.totals?.[0]?.metricValues?.[0]?.value ?? 0);
     const pages = readRows(report).map((row) => ({
-      title: (row.dims.unifiedScreenName || "(untitled)").replace(/\s*[|·\-–—]\s*Jordan Create\b.*$/i, "") || "Home",
+      title: screenLabel(row.dims.unifiedScreenName ?? "") || "Untitled page",
       users: row.metrics.activeUsers ?? 0,
     }));
     return {

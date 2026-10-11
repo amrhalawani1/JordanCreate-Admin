@@ -64,6 +64,8 @@ export type AnalyticsSnapshot = {
   sources: NamedCount[];
   countries: NamedCount[];
   devices: NamedCount[];
+  /** iOS, Android, Windows, macOS… */
+  operatingSystems: NamedCount[];
   outbound: OutboundGroup[];
   /** ISO timestamp of when Google Analytics was queried. */
   fetchedAt: string;

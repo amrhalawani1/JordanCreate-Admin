@@ -160,7 +160,7 @@ export function AnalyticsDashboard({
         </AnalyticsSection>
 
         {/* 4 · Audience */}
-        <AnalyticsSection eyebrow="Audience" title="Who is visiting" description="Where visitors are and what they browse on.">
+        <AnalyticsSection eyebrow="Audience" title="Who is visiting" description="Where visitors are, and the devices and systems they browse on.">
           <div className="grid gap-3 lg:grid-cols-2">
             <AnalyticsCard title="Countries" description="Visitors by country">
               <BarList
@@ -174,6 +174,15 @@ export function AnalyticsDashboard({
             <div className="grid content-start gap-3">
               <AnalyticsCard title="Devices" description="Visitors by device type">
                 <DeviceSplit devices={s.devices} />
+              </AnalyticsCard>
+              <AnalyticsCard title="Operating system" description="Visitors by phone or computer system">
+                <BarList
+                  items={s.operatingSystems}
+                  labelHeader="Operating system"
+                  valueHeader="Visitors"
+                  periodLabel={periodLabel}
+                  showShare
+                />
               </AnalyticsCard>
               <AnalyticsCard title="First-time or returning" description="Whether visitors had been on the site before this period">
                 <LoyaltySplit visitors={kpis.visitors.current} newVisitors={kpis.newVisitors.current} />

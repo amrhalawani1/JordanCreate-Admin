@@ -5,13 +5,16 @@ import { computeDelta, formatCount, formatDeltaRatio, formatDuration, formatPerc
 import { readAnalyticsConfig } from "./config";
 import { classifyFederationError, classifyGoogleError } from "./errors";
 import {
+  sourceHint,
   outboundGroupFor,
   pageLabel,
   parseChannels,
   parseCountries,
   parseDaily,
   parseDevices,
+  parseOperatingSystems,
   parseOutbound,
+  screenLabel,
   parseTopPages,
   parseTotals,
   type GaReport,
@@ -212,4 +215,43 @@ test("Google errors become actionable messages", () => {
   assert.equal(classifyGoogleError(400, { error: "invalid_grant", error_description: "Invalid JWT" }, email).kind, "auth");
   assert.equal(classifyGoogleError(429, { error: { status: "RESOURCE_EXHAUSTED" } }, email).kind, "quota");
   assert.equal(classifyGoogleError(404, { error: { status: "NOT_FOUND" } }, email).kind, "property");
+});
+
+test("the brand-first home title reads Home, and known routes keep their names", () => {
+  assert.equal(screenLabel("Jordan Create Volume 3 | 6 Nov 2026, Panorama, Dead Sea"), "Home");
+  assert.equal(screenLabel("Speakers | Jordan Create"), "Speakers");
+  assert.equal(pageLabel("/", "Jordan Create Volume 3 | 6 Nov 2026, Panorama, Dead Sea"), "Home");
+  assert.equal(pageLabel("/volume-2", "Volume 2 | Jordan Create"), "Volume 2 recap");
+});
+
+test("AI assistants and short Instagram sources get explanations", () => {
+  const channels = parseChannels(
+    twoRanges(["sessionDefaultChannelGroup"], ["sessions"], [[["AI Assistant", "current"], [3]]]),
+  );
+  assert.match(channels[0].hint ?? "", /ChatGPT/);
+  assert.equal(sourceHint("ig"), "Instagram (shared or bio link)");
+  assert.equal(sourceHint("chatgpt.com"), "ChatGPT");
+});
+
+test("outbound keeps the ticket store first, then busiest, other sites last", () => {
+  const groups = parseOutbound(
+    twoRanges(["linkDomain"], ["eventCount"], [
+      [["example.org", "current"], [9]],
+      [["tally.so", "current"], [1]],
+      [["instagram.com", "current"], [2]],
+    ]),
+  );
+  assert.deepEqual(groups.map((g) => g.key), ["tickets", "instagram", "forms", "other"]);
+});
+
+test("operating systems get friendly names and fold the long tail", () => {
+  const os = parseOperatingSystems({
+    dimensionHeaders: [{ name: "operatingSystem" }],
+    metricHeaders: [{ name: "activeUsers" }],
+    rows: [
+      ["iOS", 12], ["Android", 6], ["Macintosh", 3], ["Windows", 2], ["Linux", 1], ["Chrome OS", 1], ["(not set)", 1],
+    ].map(([name, n]) => ({ dimensionValues: [{ value: String(name) }], metricValues: [{ value: String(n) }] })),
+  });
+  assert.deepEqual(os.map((o) => [o.label, o.value]), [["iOS", 12], ["Android", 6], ["macOS", 3], ["Windows", 2], ["Other", 3]]);
+  assert.equal(os[0].hint, "iPhone and iPad");
 });

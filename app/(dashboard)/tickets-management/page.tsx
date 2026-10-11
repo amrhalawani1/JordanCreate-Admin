@@ -1,11 +1,13 @@
 import { getTickets } from "@/actions/tickets";
+import { getTzkrtiStatus } from "@/actions/tzkrti";
+import { TzkrtiConnectionCard } from "@/components/tickets/TzkrtiConnectionCard";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TicketsSetup } from "@/components/tickets/TicketsSetup";
 import { TicketsClient } from "./TicketsClient";
 
 export default async function TicketsManagementPage() {
-  const { rows, error, needsSetup, needsFunctions } = await getTickets();
+  const [{ rows, error, needsSetup, needsFunctions }, tzkrti] = await Promise.all([getTickets(), getTzkrtiStatus()]);
   const awaiting = rows.filter(
     (row) => row.status === "active" && !row.approved && row.rejected_at == null,
   ).length;
@@ -20,6 +22,7 @@ export default async function TicketsManagementPage() {
             : `${awaiting} tickets waiting for a gate credential. Until you approve, guests see a ticket-being-prepared screen.`
         }
       />
+      <TzkrtiConnectionCard status={tzkrti} />
       {needsSetup ? (
         <TicketsSetup />
       ) : error ? (

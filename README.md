@@ -24,6 +24,7 @@ The in-app label is **Admin & Registry V1**.
 | Request a Feature | Live — Super Admin only |
 | Guests | Live — Guest Managers can access this page and Tickets |
 | Tickets Management | Live — Guest Managers may approve and reject; only Super Admin and Admin may revoke access or delete |
+| Tzkrti ticket webhook (`/api/tzkrti/webhook`) | Receiver, logging, replay and ticket rules built; mapping Tzkrti's message format waits for their sample |
 
 **Still out of scope, on purpose:** `conversation_messages` holds live chat
 logs. Nothing in this codebase queries, imports, or references them.
@@ -140,6 +141,35 @@ Fallback: create the Auth user in **Supabase Studio → Authentication →
 Users → Add user**, with **Auto Confirm User** checked, then insert a
 matching `admins` row. An Auth user with no `admins` row sees the missing-
 profile screen, not the panel.
+
+## Tzkrti ticket webhook
+
+Tickets are approved in **Tzkrti's own dashboard**. Tzkrti then emails the guest
+and calls `POST https://admin.jordancreate.com/api/tzkrti/webhook`. Each ticket
+carries its attendee's own name and email, which is how the guest app finds it.
+
+How a delivery is handled (`app/api/tzkrti/webhook/route.ts`):
+
+1. **Verify.** `TZKRTI_WEBHOOK_SECRET` checks the signature (HMAC-SHA256 of the raw
+   body by default; `TZKRTI_SIGNATURE_MODE=token` if Tzkrti sends the secret
+   itself). Bad signatures get 401 and are recorded without their body.
+2. **Store first.** Every verified delivery goes into `tzkrti_webhook_events`
+   (deduplicated by Tzkrti's delivery id, or the body hash) before anything else.
+3. **Map.** `lib/tzkrti/mapper.ts` turns Tzkrti's message into normalized ticket
+   events. **This is the only format-specific code and is not written yet**; until
+   it is, deliveries are kept as "Waiting for format" and replayed later from the
+   Tickets page (Reprocess).
+4. **Apply** (`lib/tzkrti/plan.ts`): one row per ticket by `ticket_ref`, stored
+   **already approved**; hand-added (`manual`) tickets are never overwritten;
+   older messages never overwrite newer ones; refunds/cancellations set
+   `status = void`; the pass shows Tzkrti's code when sent, otherwise a generated
+   one kept stable. Each change is written to the Change Log as "Tzkrti".
+5. **Answer.** 200 when stored; 500 on a database error so Tzkrti retries.
+
+Database: run `lib/sql/tickets-setup.ts` (shown on the Tickets page), then
+`lib/sql/tzkrti-webhook-setup.sql` (adds order/buyer columns, makes `phone`
+optional, creates `tzkrti_webhook_events`). The Tickets page shows a
+**Tzkrti connection** card with the address to give Tzkrti and delivery counts.
 
 ## Swapping in generated types
 

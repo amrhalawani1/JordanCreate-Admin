@@ -76,3 +76,32 @@ export async function logChange(input: {
     // Logging must never block a save.
   }
 }
+
+/** For changes made by an integration rather than a signed-in admin (e.g. the Tzkrti webhook). */
+export async function logSystemChange(input: {
+  actorName: string;
+  actorEmail: string;
+  action: ChangeAction;
+  table: string;
+  recordId?: string | number | null;
+  summary: string;
+  before?: unknown;
+  after?: unknown;
+}): Promise<void> {
+  try {
+    const row: ChangeLogInsert = {
+      actor_id: null,
+      actor_name: input.actorName,
+      actor_email: input.actorEmail,
+      action: input.action,
+      table_name: input.table,
+      record_id: input.recordId == null ? null : String(input.recordId),
+      summary: input.summary,
+      changes: diffChanges(input.action, asRecord(input.before), asRecord(input.after)) as Json,
+    };
+    const supabase = createAdminClient();
+    await supabase.from("change_logs").insert(row);
+  } catch {
+    // Logging must never block a ticket from being saved.
+  }
+}

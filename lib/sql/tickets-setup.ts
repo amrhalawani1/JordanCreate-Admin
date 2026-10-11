@@ -466,47 +466,9 @@ revoke all on function public.restore_ticket(uuid, uuid) from public;
 revoke all on function public.void_ticket(uuid, uuid) from public;
 revoke all on function public.delete_ticket(uuid, uuid) from public;
 
-create or replace function public.guest_own_tickets()
-returns table (
-  id uuid,
-  holder_name text,
-  email text,
-  phone text,
-  ticket_type text,
-  qr_token text,
-  status text
-)
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_phone text;
-begin
-  v_phone := nullif(btrim(coalesce(auth.jwt() ->> 'phone', '')), '');
-  if v_phone is null then
-    return;
-  end if;
+-- guest_own_tickets() is owned by the guest app (Jordan-Create-App/supabase/ensure-own-guest-profile.sql):
+-- it matches tickets by the signed-in guest's verified email. Do not redefine it here.
 
-  return query
-  select
-    t.id,
-    t.holder_name,
-    t.email,
-    t.phone,
-    t.ticket_type,
-    t.qr_token,
-    t.status
-  from public.tickets t
-  where t.phone is not null
-    and right(regexp_replace(t.phone, '[^0-9]', '', 'g'), 9)
-      = right(regexp_replace(v_phone, '[^0-9]', '', 'g'), 9);
-end;
-$$;
-
-revoke all on function public.guest_own_tickets() from public;
-grant execute on function public.guest_own_tickets() to authenticated;
-grant execute on function public.guest_own_tickets() to service_role;
 
 grant execute on function public._tickets_write_log(uuid, text, text, text, text, text, jsonb) to service_role;
 grant execute on function public.approve_tickets(uuid, uuid[], jsonb) to service_role;

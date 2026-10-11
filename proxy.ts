@@ -5,6 +5,10 @@ import { lookupAdminLevel } from "@/lib/auth/lookup-admin-level";
 import { effectiveLevel, VIEW_AS_COOKIE } from "@/lib/auth/view-as";
 
 export default async function proxy(request: NextRequest) {
+  // Tzkrti's webhook signs its own requests; it never has an admin session.
+  if (request.nextUrl.pathname.startsWith("/api/tzkrti/")) {
+    return NextResponse.next();
+  }
   const { supabaseResponse, user } = await updateSession(request);
 
   const { pathname } = request.nextUrl;

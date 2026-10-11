@@ -532,6 +532,12 @@ export interface Database {
           rejection_note: string | null;
           source: string | null;
           created_at: string;
+          /** Tzkrti order id; several tickets share one in group orders. */
+          order_ref: string | null;
+          customer_email: string | null;
+          customer_phone: string | null;
+          /** When Tzkrti last changed this ticket; older webhook messages are ignored. */
+          external_updated_at: string | null;
         };
         Insert: {
           id?: string;
@@ -554,8 +560,46 @@ export interface Database {
           rejection_note?: string | null;
           source?: string | null;
           created_at?: string;
+          order_ref?: string | null;
+          customer_email?: string | null;
+          customer_phone?: string | null;
+          external_updated_at?: string | null;
         };
         Update: Partial<Omit<Database["public"]["Tables"]["tickets"]["Row"], "id">>;
+      };
+      tzkrti_webhook_events: {
+        Relationships: [];
+        Row: {
+          id: string;
+          received_at: string;
+          dedupe_key: string;
+          delivery_id: string | null;
+          event_type: string | null;
+          signature_valid: boolean;
+          status: "received" | "processed" | "unmapped" | "ignored" | "rejected" | "failed";
+          error: string | null;
+          payload: Json | null;
+          body_sha256: string;
+          ticket_refs: string[];
+          processed_at: string | null;
+          attempts: number;
+        };
+        Insert: {
+          id?: string;
+          received_at?: string;
+          dedupe_key: string;
+          delivery_id?: string | null;
+          event_type?: string | null;
+          signature_valid: boolean;
+          status?: Database["public"]["Tables"]["tzkrti_webhook_events"]["Row"]["status"];
+          error?: string | null;
+          payload?: Json | null;
+          body_sha256: string;
+          ticket_refs?: string[];
+          processed_at?: string | null;
+          attempts?: number;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["tzkrti_webhook_events"]["Row"], "id">>;
       };
       website_settings: {
         Relationships: [];

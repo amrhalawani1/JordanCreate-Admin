@@ -5,6 +5,7 @@ const SOCIAL_HOSTS: Partial<Record<SocialPlatform, string>> = {
   TikTok: "tiktok.com/@",
   Facebook: "facebook.com",
   Snapchat: "snapchat.com/add",
+  YouTube: "youtube.com/@",
   LinkedIn: "linkedin.com/in",
   Behance: "behance.net",
 };

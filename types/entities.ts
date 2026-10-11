@@ -106,6 +106,7 @@ export const SOCIAL_PLATFORM_VALUES = [
   "TikTok",
   "Facebook",
   "Snapchat",
+  "YouTube",
   "Other",
 ] as const;
 export type SocialPlatform = (typeof SOCIAL_PLATFORM_VALUES)[number];

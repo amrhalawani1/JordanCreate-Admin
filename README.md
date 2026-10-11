@@ -18,6 +18,7 @@ The in-app label is **Admin & Registry V1**.
 | --- | --- |
 | Event Info (including extra title + description items), Agenda, Speakers, Venue, Partners, Interest Tags, Brand Voice, FAQ, Experience, Other Editions | Live |
 | Dashboard overview + HTML export of each data page | Live |
+| Website Analytics — jordancreate.com traffic from Google Analytics 4 (visitors, ticket clicks, sources, pages, audience, live visitors) | Live on the deployed admin once the three analytics variables are set (keyless); staff only, read-only |
 | Mobile App Management — Hot Topics (the app's Home carousel; `hot_topics` table) | Live |
 | Admin Management (create/edit/remove people who can sign in) | Live — Super Admin only |
 | Request a Feature | Live — Super Admin only |
@@ -110,6 +111,24 @@ to `/login` until you sign in.
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase dashboard → Project Settings → API → Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Same page → anon/publishable key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Same page → service role/secret key (keep this one out of git, chat, and screenshots — it bypasses everything) |
+| `GA4_PROPERTY_ID` | Optional. Google Analytics → Admin → Property details → Property ID (a number, not the `G-…` measurement ID). Powers Website Analytics |
+| `GA_SERVICE_ACCOUNT_EMAIL` | Optional. The read-only service account (Viewer on the GA4 property), e.g. `ga-reader@jordan-create-admin.iam.gserviceaccount.com` |
+| `GCP_WORKLOAD_IDENTITY_PROVIDER` | Optional. `projects/<number>/locations/global/workloadIdentityPools/vercel/providers/vercel` — the Google Cloud provider that trusts this Vercel project's OIDC identity |
+
+Website Analytics is **keyless**: on Vercel, the deployment's OIDC token is
+exchanged with Google (Workload Identity Federation) for a one-hour token as
+the service account, so no key file exists. The provider trusts issuer
+`https://oidc.vercel.com/<team>` and audience `https://vercel.com/<team>`, and
+only the principal for `owner:<team>:project:jordan-create:environment:production`
+holds **Workload Identity User** on the service account. Live figures therefore
+load only on the production deployment; locally the page offers the sample
+preview. A `GA_SERVICE_ACCOUNT_KEY` (JSON key) is still accepted where an
+organization allows key files.
+
+Without the analytics variables, Website Analytics shows a setup
+guide and a clearly labelled sample-data preview (`/analytics?preview=sample`).
+Reports are cached for 10 minutes and live visitors for 1 minute, per server
+instance, to stay inside Google's hourly quota.
 
 ### Creating an admin login
 
@@ -162,8 +181,9 @@ Paste from local `.env.local`. Attach them to **Production**, not Preview:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `GA4_PROPERTY_ID`, `GA_SERVICE_ACCOUNT_EMAIL` and `GCP_WORKLOAD_IDENTITY_PROVIDER` (optional, for Website Analytics; none are secrets)
 
-Do **not** prefix the service role with `NEXT_PUBLIC_`. Deploy.
+Do **not** prefix the service role or the Google key with `NEXT_PUBLIC_`. Deploy.
 
 ### 3. Supabase Auth URLs
 

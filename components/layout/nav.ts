@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
+  ChartLine,
   CalendarDays,
   ListOrdered,
   Mic2,
@@ -39,7 +40,10 @@ export const NAV_GROUPS = [
   {
     id: "overview",
     label: "Overview",
-    items: [{ href: "/", label: "Dashboard", icon: LayoutDashboard }],
+    items: [
+      { href: "/", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/analytics", label: "Website Analytics", icon: ChartLine },
+    ],
   },
   {
     id: "program",

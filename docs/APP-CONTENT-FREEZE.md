@@ -42,7 +42,7 @@ Never edit the bare-named tables by hand.
 
 **Current state: unfrozen.** The app reads `_live` again; every edit in this panel reaches the app on its next load.
 
-Frozen 7 Oct 2026 (App Store submission); structure moved to views + redirect the same day after a stale tab wrote into the snapshot. Unfrozen 12 Oct 2026 after iOS 1.0.0 was approved and released; the `_frozen` snapshot tables were left in place but nothing reads them. Freeze again only for a future store review, and remember `app_freeze()` snapshots whatever is live at that moment.
+Frozen 7 Oct 2026 (App Store submission); structure moved to views + redirect the same day after a stale tab wrote into the snapshot. Unfrozen 12 Oct 2026 after iOS 1.0.0 was approved and released; `app_unfreeze()` dropped the `_frozen` snapshot tables, so the 7 Oct copy no longer exists. Freeze again only for a future store review, and remember `app_freeze()` snapshots whatever is live at that moment.
 
 Adding a new app-content
 table means extending `app_content_tables()` in the database and

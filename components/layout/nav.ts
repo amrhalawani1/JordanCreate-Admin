@@ -22,6 +22,7 @@ import {
   Smartphone,
   Flag,
   Globe,
+  Newspaper,
 } from "lucide-react";
 
 export type NavItem = {
@@ -74,6 +75,7 @@ export const NAV_GROUPS = [
       { href: "/other-editions", label: "Other Editions", icon: Layers },
       { href: "/mobile-app-management", label: "Mobile App Management", icon: Smartphone },
       { href: "/website-management", label: "Website Management", icon: Globe },
+      { href: "/community-articles", label: "Community Articles", icon: Newspaper },
     ],
   },
   {

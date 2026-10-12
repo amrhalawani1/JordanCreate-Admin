@@ -40,6 +40,10 @@ export type Entertainment = Tables["entertainment"]["Row"];
 export type EntertainmentInsert = Tables["entertainment"]["Insert"];
 export type EntertainmentUpdate = Tables["entertainment"]["Update"];
 
+export type CommunityArticle = Tables["community_articles"]["Row"];
+export type CommunityArticleInsert = Tables["community_articles"]["Insert"];
+export type CommunityArticleUpdate = Tables["community_articles"]["Update"];
+
 export type HotTopic = Tables["hot_topics"]["Row"];
 export type HotTopicInsert = Tables["hot_topics"]["Insert"];
 export type HotTopicUpdate = Tables["hot_topics"]["Update"];
@@ -91,6 +95,12 @@ export type GuestGender = (typeof GUEST_GENDER_VALUES)[number];
 
 export const GUEST_ARRIVAL_STATUS_VALUES = ["not_arrived", "arrived"] as const;
 export type GuestArrivalStatus = (typeof GUEST_ARRIVAL_STATUS_VALUES)[number];
+
+export const ARTICLE_STATUS_VALUES = ["draft", "published"] as const;
+export type ArticleStatus = (typeof ARTICLE_STATUS_VALUES)[number];
+
+export const ARTICLE_AUTHOR_TYPE_VALUES = ["Organization", "Person"] as const;
+export type ArticleAuthorType = (typeof ARTICLE_AUTHOR_TYPE_VALUES)[number];
 
 export const HOT_TOPIC_STATUS_VALUES = ["draft", "published"] as const;
 export type HotTopicStatus = (typeof HOT_TOPIC_STATUS_VALUES)[number];

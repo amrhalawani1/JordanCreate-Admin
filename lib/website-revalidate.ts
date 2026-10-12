@@ -2,12 +2,12 @@ import "server-only";
 import { WEBSITE_ORIGIN } from "@/lib/previews/speaker-preview-url";
 
 /**
- * Tell jordancreate.com that programme content changed so it drops its
+ * Tell jordancreate.com that programme or community content changed so it drops its
  * caches now rather than within its 60 s windows. Fire-and-forget: a failure
  * here must never fail the admin's save. Set WEBSITE_REVALIDATE_SECRET on
  * both projects to lock the endpoint down (optional).
  */
-export function revalidateWebsite(scope: "speakers" | "agenda"): void {
+export function revalidateWebsite(scope: "speakers" | "agenda" | "community"): void {
   const secret = process.env.WEBSITE_REVALIDATE_SECRET?.trim();
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (secret) headers["x-revalidate-secret"] = secret;

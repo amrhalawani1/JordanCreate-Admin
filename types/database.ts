@@ -18,6 +18,13 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+/** One block of a community article body (same shape as the website's ArticleBlock). */
+export type ArticleBlockRow =
+  | { type: "p"; text: string }
+  | { type: "h2"; text: string }
+  | { type: "list"; items: string[] }
+  | { type: "quote"; text: string; cite?: string };
+
 export interface Database {
   public: {
     Tables: {
@@ -249,6 +256,43 @@ export interface Database {
           status?: "draft" | "confirmed";
         };
         Update: Partial<Omit<Database["public"]["Tables"]["entertainment"]["Row"], "id">>;
+      };
+      community_articles: {
+        Relationships: [];
+        Row: {
+          id: string;
+          /** URL part: jordancreate.com/community/<slug>. Lowercase words joined by dashes. */
+          slug: string;
+          title: string;
+          /** Subtitle under the title; also the page's meta description. */
+          dek: string;
+          /** One topic label, e.g. "Business" or "Craft". */
+          tag: string;
+          author_name: string;
+          author_type: "Organization" | "Person";
+          /** YYYY-MM-DD. The website hides published rows until this date. */
+          published_at: string;
+          /** Optional editorial "Updated" date (YYYY-MM-DD), not the row timestamp. */
+          content_updated_at: string | null;
+          cover_url: string;
+          cover_alt: string;
+          key_takeaways: string[];
+          /** Website ArticleBlock[]: p / h2 / list / quote. */
+          body: ArticleBlockRow[];
+          faq: { question: string; answer: string }[];
+          keywords: string[];
+          cta_label: string | null;
+          cta_href: string | null;
+          featured: boolean;
+          status: "draft" | "published";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<
+          Database["public"]["Tables"]["community_articles"]["Row"],
+          "id" | "created_at" | "updated_at"
+        > & { id?: string };
+        Update: Partial<Omit<Database["public"]["Tables"]["community_articles"]["Row"], "id" | "created_at">>;
       };
       hot_topics: {
         Relationships: [];

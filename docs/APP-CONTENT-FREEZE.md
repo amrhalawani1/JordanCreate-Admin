@@ -40,7 +40,11 @@ Both are safe to call twice. While frozen, every edit in this panel reaches
 the website within a minute and reaches the app only after `app_unfreeze()`.
 Never edit the bare-named tables by hand.
 
-Frozen since 7 Oct 2026 (App Store submission); structure moved to views + redirect the same day after a stale tab wrote into the snapshot. Adding a new app-content
+**Current state: unfrozen.** The app reads `_live` again; every edit in this panel reaches the app on its next load.
+
+Frozen 7 Oct 2026 (App Store submission); structure moved to views + redirect the same day after a stale tab wrote into the snapshot. Unfrozen 12 Oct 2026 after iOS 1.0.0 was approved and released; the `_frozen` snapshot tables were left in place but nothing reads them. Freeze again only for a future store review, and remember `app_freeze()` snapshots whatever is live at that moment.
+
+Adding a new app-content
 table means extending `app_content_tables()` in the database and
 `APP_CONTENT_TABLES` in `lib/live-tables.ts`.
 

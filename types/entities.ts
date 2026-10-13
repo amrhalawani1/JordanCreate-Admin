@@ -73,19 +73,14 @@ export type JordanCreateOneUpdate = Tables["jordan_create_one"]["Update"];
 export type JordanCreateThree = Tables["jordan_create_three"]["Row"];
 export type JordanCreateThreeUpdate = Tables["jordan_create_three"]["Update"];
 
-// The two Postgres CHECK-constrained enum columns. UI dropdowns and zod
-// schemas both derive from these so an invalid value can never be submitted.
+// Postgres CHECK-constrained enum columns. UI dropdowns and zod schemas both
+// derive from these so an invalid value can never be submitted.
 export const AGENDA_STATUS_VALUES = ["draft", "confirmed"] as const;
 export type AgendaStatus = (typeof AGENDA_STATUS_VALUES)[number];
 
-export const ENTERTAINMENT_ACT_TYPE_VALUES = [
-  "DJ",
-  "Magic Show",
-  "Live Performance",
-  "Band",
-  "Other",
-] as const;
-export type EntertainmentActType = (typeof ENTERTAINMENT_ACT_TYPE_VALUES)[number];
+/** Entertainment Type is free text; these are only the suggestions offered in the form. */
+export const ENTERTAINMENT_ACT_TYPE_SUGGESTIONS = ["DJ", "Magic Show", "Live Performance", "Band"] as const;
+export const ENTERTAINMENT_ACT_TYPE_MAX = 40;
 
 export const ENTERTAINMENT_STATUS_VALUES = ["draft", "confirmed"] as const;
 export type EntertainmentStatus = (typeof ENTERTAINMENT_STATUS_VALUES)[number];

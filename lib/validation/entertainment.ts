@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { requiredText, nullableText, optionalUrl } from "./shared";
-import { ENTERTAINMENT_ACT_TYPE_VALUES, ENTERTAINMENT_STATUS_VALUES } from "@/types/entities";
+import { ENTERTAINMENT_ACT_TYPE_MAX, ENTERTAINMENT_STATUS_VALUES } from "@/types/entities";
 
 function nullableTime() {
   return z
@@ -9,7 +9,9 @@ function nullableTime() {
 }
 
 export const EntertainmentSchema = z.object({
-  act_type: z.enum(ENTERTAINMENT_ACT_TYPE_VALUES),
+  act_type: requiredText("Type is required.").max(ENTERTAINMENT_ACT_TYPE_MAX, {
+    message: `Keep the type to ${ENTERTAINMENT_ACT_TYPE_MAX} characters or fewer.`,
+  }),
   title: requiredText("Title is required."),
   performer_name: nullableText(),
   description: nullableText(),

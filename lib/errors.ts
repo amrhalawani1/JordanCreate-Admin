@@ -18,7 +18,7 @@ export function getReadableError(error: unknown): string {
           return "Tier must be Headline, Supporting, or Community.";
         }
         if (text.includes("entertainment_act_type_check")) {
-          return "Type must be DJ, Magic Show, Live Performance, Band, or Other.";
+          return `Type must be 1 to 40 characters.`;
         }
         return "That value isn't allowed for this field. Please pick one of the listed options.";
       }

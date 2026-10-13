@@ -234,7 +234,7 @@ export interface Database {
         Relationships: [];
         Row: {
           id: number;
-          act_type: "DJ" | "Magic Show" | "Live Performance" | "Band" | "Other";
+          act_type: string;
           title: string;
           performer_name: string | null;
           description: string | null;

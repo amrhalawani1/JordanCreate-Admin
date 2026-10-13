@@ -2,7 +2,7 @@
 
 import type { EntityConfig, FilterConfig } from "./types";
 import type { Entertainment } from "@/types/entities";
-import { ENTERTAINMENT_STATUS_VALUES } from "@/types/entities";
+import { ENTERTAINMENT_ACT_TYPE_SUGGESTIONS, ENTERTAINMENT_STATUS_VALUES } from "@/types/entities";
 import { PhotoThumb } from "@/components/shared/fields/PhotoThumb";
 import { Badge } from "@/components/ui/badge";
 import { InterestTagBadges } from "@/components/shared/InterestTagBadges";
@@ -52,9 +52,11 @@ export function buildEntertainmentConfig(
         label: "Type",
         type: "suggest-text",
         required: true,
-        placeholder: "e.g. DJ",
-        helpText: "Must be DJ, Magic Show, Live Performance, Band, or Other.",
-        referenceOptions: actTypes.map((value) => ({ value, label: value })),
+        placeholder: "e.g. DJ, Illusionist",
+        helpText: "Pick one or type your own. The app groups acts by this.",
+        referenceOptions: Array.from(new Set([...ENTERTAINMENT_ACT_TYPE_SUGGESTIONS, ...actTypes]))
+          .sort((a, b) => a.localeCompare(b))
+          .map((value) => ({ value, label: value })),
       },
       { name: "performer_name", label: "Performer Name", type: "text" },
       { name: "description", label: "Description", type: "textarea" },

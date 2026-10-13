@@ -7,7 +7,7 @@ import { WEBSITE_ORIGIN } from "@/lib/previews/speaker-preview-url";
  * here must never fail the admin's save. Set WEBSITE_REVALIDATE_SECRET on
  * both projects to lock the endpoint down (optional).
  */
-export function revalidateWebsite(scope: "speakers" | "agenda" | "community"): void {
+export function revalidateWebsite(scope: "speakers" | "agenda" | "community" | "entertainment"): void {
   const secret = process.env.WEBSITE_REVALIDATE_SECRET?.trim();
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (secret) headers["x-revalidate-secret"] = secret;

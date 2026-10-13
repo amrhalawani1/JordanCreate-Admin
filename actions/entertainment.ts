@@ -8,6 +8,7 @@ import { EntertainmentSchema } from "@/lib/validation/entertainment";
 import type { Entertainment, EntertainmentInsert, EntertainmentUpdate } from "@/types/entities";
 import { assertStaff, requireStaff } from "@/lib/auth/guard";
 import { logChange } from "@/lib/audit";
+import { revalidateWebsite } from "@/lib/website-revalidate";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
@@ -40,6 +41,7 @@ export async function createEntertainment(values: unknown): Promise<ActionResult
       after: created,
     });
     revalidatePath("/entertainment");
+    revalidateWebsite("entertainment");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };
@@ -72,6 +74,7 @@ export async function updateEntertainment(id: number, values: unknown): Promise<
       after,
     });
     revalidatePath("/entertainment");
+    revalidateWebsite("entertainment");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };
@@ -94,6 +97,7 @@ export async function deleteEntertainment(id: number): Promise<ActionResult> {
       before,
     });
     revalidatePath("/entertainment");
+    revalidateWebsite("entertainment");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };
@@ -123,6 +127,7 @@ export async function reorderEntertainment(orderedIds: number[]): Promise<Action
       after: { order: orderedIds },
     });
     revalidatePath("/entertainment");
+    revalidateWebsite("entertainment");
     return { success: true };
   } catch (err) {
     return { success: false, error: getReadableError(err) };

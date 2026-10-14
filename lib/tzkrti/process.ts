@@ -74,7 +74,7 @@ async function applyTicket(supabase: Supabase, event: TzkrtiTicketEvent, now: st
       action: "create",
       table: "tickets",
       recordId: (data as { id: string }).id,
-      summary: `Tzkrti approved ticket ${ticketRef} for ${row.holder_name ?? row.email}`,
+      summary: `Tzkrti approved ticket ${ticketRef} for ${[row.first_name, row.last_name].filter(Boolean).join(" ") || row.email}`,
       after: row,
     });
     return { ticketRef, outcome: "inserted" };

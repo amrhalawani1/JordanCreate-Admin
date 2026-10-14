@@ -16,7 +16,7 @@ export type TicketWrite = {
   ticket_ref: string;
   order_ref: string | null;
   ticket_type: string | null;
-  holder_name: string;
+  /** holder_name is a generated column (first_name + last_name); never written. */
   first_name: string;
   last_name: string;
   email: string;
@@ -105,7 +105,6 @@ export function planTicketWrite(
     ticket_ref: ticketRef,
     order_ref: clean(event.orderRef),
     ticket_type: clean(event.ticketType),
-    holder_name: holderName,
     first_name: first,
     last_name: last,
     email,

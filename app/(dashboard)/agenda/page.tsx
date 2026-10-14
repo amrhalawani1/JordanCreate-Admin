@@ -26,6 +26,7 @@ export default async function AgendaPage() {
       <AgendaSessionsClient
         initialData={sessions}
         speakers={options.speakers}
+        socialLinks={options.socialLinks}
         tags={options.tags}
         eventDate={eventInfo?.event_date ?? ""}
       />

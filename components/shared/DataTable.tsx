@@ -325,7 +325,7 @@ export function DataTable<Row extends Record<string, unknown>>({
                           {col.header}
                         </dt>
                         <dd className="mt-0.5 truncate text-sm text-muted-foreground">
-                          {cellValue(row, col.key)}
+                          {col.cardRender ? col.cardRender(row) : cellValue(row, col.key)}
                         </dd>
                       </div>
                     ))}

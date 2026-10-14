@@ -45,6 +45,8 @@ export interface ColumnConfig<Row> {
   key: keyof Row & string;
   header: string;
   render?: (row: Row) => ReactNode;
+  /** Phone cards are one big button; give a non-interactive version when render has buttons or links. */
+  cardRender?: (row: Row) => ReactNode;
   className?: string;
 }
 

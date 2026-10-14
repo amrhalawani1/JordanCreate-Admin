@@ -15,17 +15,19 @@ import {
   reorderAgendaSessions,
   setAgendaSessionArchived,
 } from "@/actions/agenda-sessions";
-import type { AgendaSession, Speaker, InterestTag } from "@/types/entities";
+import type { AgendaSession, Speaker, SpeakerSocialLink, InterestTag } from "@/types/entities";
+import type { SpeakerDetail } from "@/components/agenda/SessionSpeakers";
 
 interface AgendaSessionsClientProps {
   initialData: AgendaSession[];
   speakers: Speaker[];
+  socialLinks: SpeakerSocialLink[];
   tags: InterestTag[];
   /** Event Info date (YYYY-MM-DD) — the starting value for a new session's date. */
   eventDate: string;
 }
 
-export function AgendaSessionsClient({ initialData, speakers, tags, eventDate }: AgendaSessionsClientProps) {
+export function AgendaSessionsClient({ initialData, speakers, socialLinks, tags, eventDate }: AgendaSessionsClientProps) {
   const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<AgendaSession | null>(null);
@@ -35,11 +37,16 @@ export function AgendaSessionsClient({ initialData, speakers, tags, eventDate }:
     [speakers],
   );
   const tagOptions = useMemo(() => tags.map((t) => ({ value: t.tag_id, label: t.tag_label })), [tags]);
+  const speakerDetails = useMemo(() => {
+    const byHandle = new Map<string, SpeakerDetail>(speakers.map((s) => [s.handle, { ...s, socials: [] }]));
+    for (const link of socialLinks) byHandle.get(link.speaker_handle)?.socials.push(link);
+    return byHandle;
+  }, [speakers, socialLinks]);
 
   const config = useMemo(() => {
     const sessionTypes = Array.from(new Set(initialData.map((r) => r.session_type))).sort();
-    return buildAgendaSessionConfig(speakerOptions, tagOptions, sessionTypes);
-  }, [initialData, speakerOptions, tagOptions]);
+    return buildAgendaSessionConfig(speakerOptions, tagOptions, sessionTypes, speakerDetails);
+  }, [initialData, speakerOptions, tagOptions, speakerDetails]);
 
   function openAdd() {
     setEditingRow(null);

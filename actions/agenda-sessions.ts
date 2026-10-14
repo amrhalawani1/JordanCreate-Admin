@@ -11,6 +11,7 @@ import type {
   AgendaSessionInsert,
   AgendaSessionUpdate,
   Speaker,
+  SpeakerSocialLink,
   InterestTag,
 } from "@/types/entities";
 import { assertStaff, requireStaff } from "@/lib/auth/guard";
@@ -24,14 +25,19 @@ export async function getAgendaSessions(): Promise<AgendaSession[]> {
   return fetchAll<AgendaSession>(supabase, "agenda_sessions", { column: "sort_order" });
 }
 
-export async function getAgendaFormOptions(): Promise<{ speakers: Speaker[]; tags: InterestTag[] }> {
+export async function getAgendaFormOptions(): Promise<{
+  speakers: Speaker[];
+  tags: InterestTag[];
+  socialLinks: SpeakerSocialLink[];
+}> {
   await assertStaff();
   const supabase = createAdminClient();
-  const [speakers, tags] = await Promise.all([
+  const [speakers, tags, socialLinks] = await Promise.all([
     fetchAll<Speaker>(supabase, "speakers", { column: "handle" }),
     fetchAll<InterestTag>(supabase, "interest_tags", { column: "tag_id" }),
+    fetchAll<SpeakerSocialLink>(supabase, "speaker_social_links", { column: "sort_order" }),
   ]);
-  return { speakers, tags };
+  return { speakers, tags, socialLinks };
 }
 
 export async function createAgendaSession(values: unknown): Promise<ActionResult> {

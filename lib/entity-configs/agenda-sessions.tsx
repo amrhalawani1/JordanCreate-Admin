@@ -6,6 +6,7 @@ import { AGENDA_STATUS_VALUES } from "@/types/entities";
 import { archiveFilter } from "@/lib/archive";
 import { ArchiveStatusBadge } from "@/components/shared/ArchiveStatusBadge";
 import { InterestTagBadges } from "@/components/shared/InterestTagBadges";
+import { SessionSpeakers, type SpeakerDetail } from "@/components/agenda/SessionSpeakers";
 
 interface Option {
   value: string;
@@ -16,6 +17,7 @@ export function buildAgendaSessionConfig(
   speakerOptions: Option[],
   tagOptions: Option[],
   sessionTypes: string[],
+  speakerDetails: Map<string, SpeakerDetail>,
 ): EntityConfig<AgendaSession> {
   const filters: FilterConfig<AgendaSession>[] = [
     { key: "session_type", label: "Type", options: sessionTypes },
@@ -27,13 +29,23 @@ export function buildAgendaSessionConfig(
     table: "agenda_sessions",
     pkColumn: "session_id",
     entityLabel: "Session",
-    searchKeys: ["title", "session_id"],
+    searchKeys: ["title", "session_id", "speaker_handles", "moderator_handle"],
     filters,
     columns: [
       { key: "session_id", header: "ID" },
       { key: "session_date", header: "Date" },
       { key: "start_time", header: "Start" },
       { key: "title", header: "Title" },
+      {
+        key: "speaker_handles",
+        header: "Speakers",
+        render: (row) => (
+          <SessionSpeakers handles={row.speaker_handles} moderator={row.moderator_handle} details={speakerDetails} />
+        ),
+        cardRender: (row) =>
+          [...(row.speaker_handles ?? []), ...(row.moderator_handle ? [`${row.moderator_handle} (moderator)`] : [])].join(", ") ||
+          "—",
+      },
       { key: "session_type", header: "Type" },
       {
         key: "interest_tag_ids",

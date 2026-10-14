@@ -48,6 +48,8 @@ export interface Database {
           wifi_password: string | null;
           prayer_space_info: string;
           emergency_contact: string;
+          /** Venue map picture for the app's Venue screen; null shows the app's built-in map. */
+          venue_map_url: string | null;
           updated_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["event_info"]["Row"]>;

@@ -15,12 +15,16 @@ interface ImageUploadFieldProps {
   slug: string;
   disabled?: boolean;
   required?: boolean;
+  /** Long-edge limit for the browser-side shrink. Plans and maps need more than portraits. */
+  maxEdge?: number;
   onChange: (url: string | null) => void;
 }
 
 
 const MAX_EDGE = 1600;
 const TARGET_BYTES = 1_500_000;
+/** Server limit is 5 MB (actions/upload-media.ts); detailed images may use most of it. */
+const LARGE_TARGET_BYTES = 4_000_000;
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -30,19 +34,20 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
 }
 
 /**
- * Downscale to ≤1600 px on the long edge and re-encode (WebP, falling back to
- * JPEG). GIFs and already-small images pass through untouched.
+ * Downscale to ≤maxEdge px on the long edge and re-encode (WebP, falling back
+ * to JPEG). GIFs and already-small images pass through untouched.
  */
-async function shrinkImage(file: File): Promise<File> {
+async function shrinkImage(file: File, maxEdge = MAX_EDGE): Promise<File> {
   if (file.type === "image/gif") return file;
-  if (file.size <= TARGET_BYTES && file.type !== "image/heic") {
+  const targetBytes = maxEdge > MAX_EDGE ? LARGE_TARGET_BYTES : TARGET_BYTES;
+  if (file.size <= targetBytes && file.type !== "image/heic") {
     // Still check dimensions: a 1 MB 6000 px PNG is worth shrinking.
     const dims = await imageDimensions(file).catch(() => null);
-    if (!dims || Math.max(dims.width, dims.height) <= MAX_EDGE) return file;
+    if (!dims || Math.max(dims.width, dims.height) <= maxEdge) return file;
   }
   const bitmap = await createImageBitmap(file).catch(() => null);
   if (!bitmap) return file;
-  const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(bitmap.width * scale);
   canvas.height = Math.round(bitmap.height * scale);
@@ -79,6 +84,7 @@ export function ImageUploadField({
   slug,
   disabled = false,
   required = false,
+  maxEdge,
   onChange,
 }: ImageUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -99,7 +105,7 @@ export function ImageUploadField({
       // Shrink in the browser first: phone photos are 3–10 MB, which is slow
       // and over the server action body limit; the site shows portraits at
       // ≤ 700 px wide anyway.
-      const prepared = await shrinkImage(file);
+      const prepared = await shrinkImage(file, maxEdge);
       const formData = new FormData();
       formData.set("folder", folder);
       formData.set("slug", slug);

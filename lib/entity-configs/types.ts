@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type MediaFolder = "speakers" | "guests" | "partners" | "entertainment" | "hot-topics" | "community";
+export type MediaFolder = "speakers" | "guests" | "partners" | "entertainment" | "hot-topics" | "community" | "venue";
 
 export type FieldType =
   | "text"

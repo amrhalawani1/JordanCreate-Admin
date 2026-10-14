@@ -50,3 +50,37 @@ export async function updateEventInfo(values: unknown): Promise<ActionResult> {
     return { success: false, error: getReadableError(err) };
   }
 }
+
+/** Sets (or clears, with null) the venue map picture the app shows on its Venue screen. */
+export async function setVenueMap(url: string | null): Promise<ActionResult> {
+  const gate = await requireStaff();
+  if (!gate.ok) return gate;
+  const value = url?.trim() || null;
+  if (value && !/^https:\/\/\S+$/i.test(value)) {
+    return { success: false, error: "The map must be an uploaded image." };
+  }
+
+  try {
+    const supabase = createAdminClient();
+    const before = await fetchByPk<EventInfo>(supabase, "event_info", { column: "id", value: 1 });
+    const after = await updateRow<EventInfo, EventInfoUpdate>(
+      supabase,
+      "event_info",
+      { column: "id", value: 1 },
+      { venue_map_url: value, updated_at: new Date().toISOString() },
+    );
+    await logChange({
+      actor: gate.admin,
+      action: "update",
+      table: "event_info",
+      recordId: 1,
+      summary: value ? "Updated the venue map" : "Removed the venue map (the app shows its built-in map)",
+      before: { venue_map_url: before?.venue_map_url ?? null },
+      after: { venue_map_url: after.venue_map_url },
+    });
+    revalidatePath("/venue");
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: getReadableError(err) };
+  }
+}

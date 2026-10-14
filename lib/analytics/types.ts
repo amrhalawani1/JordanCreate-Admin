@@ -4,9 +4,9 @@ import type { ResolvedRange } from "./ranges";
 export type Compared = { current: number; previous: number };
 
 export type DailyPoint = {
-  /** YYYY-MM-DD in the selected period. */
+  /** YYYY-MM-DD (day ranges) or GA's YYYYMMDDHH (hour ranges) in the selected period. */
   date: string;
-  /** The matching day in the previous period. */
+  /** The matching day or hour in the previous period. */
   previousDate: string;
   visitors: number;
   views: number;

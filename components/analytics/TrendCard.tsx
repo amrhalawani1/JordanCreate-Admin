@@ -11,7 +11,7 @@ import {
 } from "react";
 import { Table2, ChartLine } from "lucide-react";
 import { formatCount, formatExact, niceCeiling } from "@/lib/analytics/format";
-import { formatLongDate, formatShortDate } from "@/lib/analytics/ranges";
+import { formatPointLong, formatPointShort, formatPreviousPoint, type RangeUnit } from "@/lib/analytics/ranges";
 import type { Compared, DailyPoint } from "@/lib/analytics/types";
 import { cn } from "@/lib/utils";
 import { CHART } from "./chart-colors";
@@ -19,22 +19,24 @@ import { DeltaBadge } from "./DeltaBadge";
 
 type Metric = "visitors" | "views";
 
-const METRICS: { key: Metric; label: string; perDay: string }[] = [
-  { key: "visitors", label: "Visitors", perDay: "Visitors per day" },
-  { key: "views", label: "Page views", perDay: "Page views per day" },
+const METRICS: { key: Metric; label: string }[] = [
+  { key: "visitors", label: "Visitors" },
+  { key: "views", label: "Page views" },
 ];
 
 /**
  * The hero of the page: total visitors for the period, and the day-by-day
- * line against the previous period (emphasis form: this period in orange, the
+ * (or hour-by-hour) line against the previous period (emphasis form: this period in orange, the
  * previous one in gray, one shared axis).
  */
 export function TrendCard({
+  unit,
   daily,
   visitors,
   periodLabel,
   className,
 }: {
+  unit: RangeUnit;
   daily: DailyPoint[];
   visitors: Compared;
   periodLabel: string;
@@ -112,16 +114,16 @@ export function TrendCard({
 
       <div className="mt-5 flex items-center justify-between gap-3">
         <h3 className="text-sm font-semibold tracking-tight">
-          {active.perDay}
+          {active.label} per {unit}
         </h3>
         <Legend />
       </div>
 
       <div className="mt-3">
         {asTable ? (
-          <TrendTable daily={daily} metric={metric} label={active.label} />
+          <TrendTable unit={unit} daily={daily} metric={metric} label={active.label} />
         ) : (
-          <TrendChart daily={daily} metric={metric} label={active.label} />
+          <TrendChart unit={unit} daily={daily} metric={metric} label={active.label} />
         )}
       </div>
     </section>
@@ -167,10 +169,12 @@ function pick(point: DailyPoint, metric: Metric) {
 }
 
 function TrendChart({
+  unit,
   daily,
   metric,
   label,
 }: {
+  unit: RangeUnit;
   daily: DailyPoint[];
   metric: Metric;
   label: string;
@@ -282,7 +286,7 @@ function TrendChart({
           tabIndex={0}
           role="group"
           aria-roledescription="line chart"
-          aria-label={`${label} per day, this period against the previous period`}
+          aria-label={`${label} per ${unit}, this period against the previous period`}
           aria-describedby={descId}
           onPointerMove={(e) => setIndex(indexFromPointer(e))}
           onPointerDown={(e) => setIndex(indexFromPointer(e))}
@@ -326,7 +330,7 @@ function TrendChart({
               fontSize={11}
               fill={CHART.axisText}
             >
-              {formatShortDate(daily[i].date)}
+              {formatPointShort(daily[i].date, unit)}
             </text>
           ))}
 
@@ -423,7 +427,7 @@ function TrendChart({
           }}
         >
           <p className="text-xs font-medium text-foreground">
-            {formatLongDate(activePoint.date)}
+            {formatPointLong(activePoint.date, unit)}
           </p>
           <dl className="mt-2 space-y-1.5 text-xs">
             <div className="flex items-center gap-2">
@@ -447,7 +451,7 @@ function TrendChart({
                 {formatExact(activeValues.previous)}
               </dd>
               <dt className="text-muted-foreground">
-                {formatShortDate(activePoint.previousDate)}
+                {formatPreviousPoint(activePoint.previousDate, unit)}
               </dt>
             </div>
           </dl>
@@ -456,18 +460,20 @@ function TrendChart({
 
       <p id={descId} className="sr-only" aria-live="polite">
         {activePoint && activeValues
-          ? `${formatLongDate(activePoint.date)}: ${formatExact(activeValues.current)} ${label.toLowerCase()}; ${formatShortDate(activePoint.previousDate)}: ${formatExact(activeValues.previous)}.`
-          : "Use the left and right arrow keys to read each day. The Table button shows every value."}
+          ? `${formatPointLong(activePoint.date, unit)}: ${formatExact(activeValues.current)} ${label.toLowerCase()}; ${formatPreviousPoint(activePoint.previousDate, unit)}: ${formatExact(activeValues.previous)}.`
+          : `Use the left and right arrow keys to read each ${unit}. The Table button shows every value.`}
       </p>
     </div>
   );
 }
 
 function TrendTable({
+  unit,
   daily,
   metric,
   label,
 }: {
+  unit: RangeUnit;
   daily: DailyPoint[];
   metric: Metric;
   label: string;
@@ -476,12 +482,12 @@ function TrendTable({
     <div className="max-h-[238px] overflow-auto rounded-lg border border-border">
       <table className="w-full text-sm">
         <caption className="sr-only">
-          {label} per day, this period and the previous period
+          {label} per {unit}, this period and the previous period
         </caption>
         <thead className="sticky top-0 bg-card text-xs text-muted-foreground">
           <tr className="border-b border-border">
             <th scope="col" className="px-3 py-2 text-left font-medium">
-              Day
+              {unit === "hour" ? "Hour" : "Day"}
             </th>
             <th scope="col" className="px-3 py-2 text-right font-medium">
               This period
@@ -503,7 +509,7 @@ function TrendTable({
                   scope="row"
                   className="px-3 py-1.5 text-left font-normal text-foreground"
                 >
-                  {formatLongDate(d.date)}
+                  {formatPointLong(d.date, unit)}
                 </th>
                 <td className="px-3 py-1.5 text-right font-medium text-foreground">
                   {formatExact(v.current)}
@@ -511,7 +517,7 @@ function TrendTable({
                 <td className="px-3 py-1.5 text-right text-muted-foreground">
                   {formatExact(v.previous)}{" "}
                   <span className="text-faint">
-                    · {formatShortDate(d.previousDate)}
+                    · {formatPreviousPoint(d.previousDate, unit)}
                   </span>
                 </td>
               </tr>

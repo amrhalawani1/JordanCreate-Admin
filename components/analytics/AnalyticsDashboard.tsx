@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FlaskConical } from "lucide-react";
 import { formatCount, formatDuration, formatExact, formatPercent } from "@/lib/analytics/format";
-import { formatRangeSpan } from "@/lib/analytics/ranges";
+import { formatPeriod } from "@/lib/analytics/ranges";
 import type { AnalyticsSnapshot, RealtimeSnapshot } from "@/lib/analytics/types";
 import { AnalyticsCard, AnalyticsSection } from "./AnalyticsCard";
 import { AnalyticsFrame } from "./AnalyticsFrame";
@@ -31,14 +31,15 @@ export function AnalyticsDashboard({
 }) {
   const range = snapshot.range;
   const s = snapshot;
-  const periodLabel = `previous ${range.label}`;
+  const periodLabel = range.previousLabel;
   const { kpis } = s;
 
   return (
       <AnalyticsFrame
         range={range.key}
-        spanLabel={formatRangeSpan(range.start, range.end)}
-        comparisonLabel={formatRangeSpan(range.previousStart, range.previousEnd)}
+        hourly={range.unit === "hour"}
+        spanLabel={formatPeriod(range, "current")}
+        comparisonLabel={formatPeriod(range, "previous")}
         fetchedAt={sample ? null : s.fetchedAt}
         sample={sample}
       >
@@ -57,7 +58,7 @@ export function AnalyticsDashboard({
 
         {/* 1 · The headline: how many people, are they heading for tickets, who's here now */}
         <div className="grid gap-3 lg:grid-cols-3">
-          <TrendCard className="lg:col-span-2" daily={s.daily} visitors={kpis.visitors} periodLabel={periodLabel} />
+          <TrendCard className="lg:col-span-2" unit={range.unit} daily={s.daily} visitors={kpis.visitors} periodLabel={periodLabel} />
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
             <TicketCard clicks={kpis.ticketClicks} visitors={kpis.visitors.current} periodLabel={periodLabel} />
             <RealtimeCard initial={realtime} live={!sample} />

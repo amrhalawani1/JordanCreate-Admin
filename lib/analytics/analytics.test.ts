@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { addDays, parseRangeKey, resolveRange, todayIn } from "./ranges";
+import { addDays, addHours, currentHourIn, formatPeriod, parseRangeKey, resolveRange, todayIn } from "./ranges";
 import { computeDelta, formatCount, formatDeltaRatio, formatDuration, formatPercent, niceCeiling } from "./format";
 import { readAnalyticsConfig } from "./config";
 import { classifyFederationError, classifyGoogleError } from "./errors";
@@ -10,6 +10,7 @@ import {
   pageLabel,
   parseChannels,
   parseCountries,
+  mergeCompared,
   parseDaily,
   parseDevices,
   parseOperatingSystems,
@@ -30,8 +31,51 @@ test("ranges use the Amman calendar day and line the previous period up behind t
     { start: "2026-10-06", end: "2026-10-12", previousStart: "2026-09-29", previousEnd: "2026-10-05" },
   );
   assert.equal(addDays("2026-02-28", 1), "2026-03-01");
-  assert.equal(parseRangeKey("90d"), "90d");
-  assert.equal(parseRangeKey("bogus"), "28d");
+  assert.equal(parseRangeKey("21d"), "21d");
+  assert.equal(parseRangeKey("90d"), "30d");
+  assert.equal(parseRangeKey("bogus"), "30d");
+  const month = resolveRange("30d", NOW);
+  assert.equal(month.points.length, 30);
+  assert.equal(month.previousEnd, addDays(month.start, -1));
+  assert.equal(month.previousPoints[0], addDays(month.start, -30));
+});
+
+test("hour ranges roll back from the current Amman hour and span the dates they touch", () => {
+  assert.equal(currentHourIn("Asia/Amman", NOW), "2026101200");
+  assert.equal(addHours("2026101200", -1), "2026101123");
+  const r = resolveRange("24h", NOW);
+  assert.equal(r.unit, "hour");
+  assert.equal(r.points.length, 24);
+  assert.equal(r.points[0], "2026101101");
+  assert.equal(r.points[23], "2026101200");
+  assert.equal(r.previousPoints[0], "2026101001");
+  assert.equal(r.previousPoints[23], "2026101100");
+  assert.deepEqual(
+    { start: r.start, end: r.end, previousStart: r.previousStart, previousEnd: r.previousEnd },
+    { start: "2026-10-11", end: "2026-10-12", previousStart: "2026-10-10", previousEnd: "2026-10-11" },
+  );
+  assert.equal(formatPeriod(r, "current"), "11 Oct, 01:00 – now");
+  assert.equal(formatPeriod(r, "previous"), "10 Oct, 01:00 – 11 Oct, 01:00");
+  assert.equal(resolveRange("48h", NOW).points.length, 48);
+});
+
+test("hour series reads dateHour from two merged single-range reports", () => {
+  const range = resolveRange("24h", NOW);
+  const one = (rows: [string, number, number][]): GaReport => ({
+    dimensionHeaders: [{ name: "dateHour" }],
+    metricHeaders: [{ name: "activeUsers" }, { name: "screenPageViews" }],
+    rows: rows.map(([hour, users, views]) => ({
+      dimensionValues: [{ value: hour }],
+      metricValues: [{ value: String(users) }, { value: String(views) }],
+    })),
+  });
+  const merged = mergeCompared(one([["2026101200", 7, 11], ["2026101101", 2, 3]]), one([["2026101100", 4, 6], ["2026100901", 99, 99]]));
+  const daily = parseDaily(merged, range);
+  assert.equal(daily.length, 24);
+  assert.deepEqual([daily[23].visitors, daily[23].views, daily[23].previousVisitors], [7, 11, 4]);
+  assert.equal(daily[0].visitors, 2);
+  assert.equal(daily.reduce((sum, d) => sum + d.previousVisitors, 0), 4);
+  assert.deepEqual(parseTotals(mergeCompared(undefined, undefined), ["activeUsers"]).activeUsers, { current: 0, previous: 0 });
 });
 
 test("formatting", () => {
@@ -49,7 +93,10 @@ test("formatting", () => {
   assert.equal(formatDeltaRatio(-0.5), "−50%");
   assert.equal(niceCeiling(0), 4);
   assert.equal(niceCeiling(3), 4);
-  assert.equal(niceCeiling(137), 150);
+  assert.equal(niceCeiling(137), 160);
+  assert.equal(niceCeiling(30), 32);
+  assert.equal(niceCeiling(22), 24);
+  assert.equal(niceCeiling(9), 12);
   assert.equal(niceCeiling(860), 1000);
 });
 

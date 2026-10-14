@@ -59,12 +59,10 @@ export function niceCeiling(value: number): number {
   if (!Number.isFinite(value) || value <= 0) return 4;
   const exponent = Math.floor(Math.log10(value));
   const magnitude = 10 ** exponent;
-  for (const step of [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10]) {
-    const candidate = step * magnitude;
-    if (candidate >= value) {
-      // Keep quarter ticks whole when the scale is small.
-      return candidate < 4 ? 4 : candidate;
-    }
+  for (const step of [1, 1.2, 1.6, 2, 2.4, 3.2, 4, 5, 6, 8, 10]) {
+    const candidate = Math.max(4, Math.round(step * magnitude));
+    // The axis has quarter ticks; only scales that split into whole quarters read cleanly (8, 16, 24, 32).
+    if (candidate >= value && candidate % 4 === 0) return candidate;
   }
-  return 10 * magnitude;
+  return Math.ceil((10 * magnitude) / 4) * 4;
 }

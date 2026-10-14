@@ -2,7 +2,7 @@
  * Turns Google Analytics Data API (v1beta) report responses into the page's
  * snapshot. Pure functions: no network, no secrets, unit-tested.
  */
-import { addDays, type ResolvedRange } from "./ranges";
+import type { ResolvedRange } from "./ranges";
 import type { Compared, DailyPoint, NamedCount, OutboundGroup, OutboundKey, TopPage } from "./types";
 
 export type GaRow = {
@@ -61,24 +61,53 @@ export function parseTotals(report: GaReport | undefined, metricNames: string[])
 }
 
 /**
- * Daily series keyed by GA's nthDay (days since the start of each range), so
- * day 3 of this period lines up with day 3 of the previous one. Days GA does
- * not return are zero.
+ * Joins the two single-range reports an hour range needs (GA can only filter
+ * both ranges by the same hours, so each period is its own request) into the
+ * shape GA returns for two named ranges: a trailing "dateRange" dimension.
+ */
+export function mergeCompared(current: GaReport | undefined, previous: GaReport | undefined): GaReport {
+  const shape = current?.dimensionHeaders ? current : previous;
+  const tag = (report: GaReport | undefined, name: string): GaRow[] =>
+    (report?.rows ?? []).map((row) => ({
+      dimensionValues: [...(row.dimensionValues ?? []), { value: name }],
+      metricValues: row.metricValues,
+    }));
+  const rows = [...tag(current, CURRENT), ...tag(previous, PREVIOUS)];
+  return {
+    dimensionHeaders: [...(shape?.dimensionHeaders ?? []), { name: "dateRange" }],
+    metricHeaders: current?.metricHeaders ?? previous?.metricHeaders ?? [],
+    rows,
+    rowCount: rows.length,
+  };
+}
+
+/**
+ * The chart series, one point per day (keyed by GA's nthDay, days since the
+ * start of each range) or per hour (keyed by dateHour), so point 3 of this
+ * period lines up with point 3 of the previous one. Points GA does not return
+ * are zero.
  */
 export function parseDaily(report: GaReport | undefined, range: ResolvedRange): DailyPoint[] {
-  const points: DailyPoint[] = Array.from({ length: range.days }, (_, i) => ({
-    date: addDays(range.start, i),
-    previousDate: addDays(range.previousStart, i),
+  const points: DailyPoint[] = range.points.map((date, i) => ({
+    date,
+    previousDate: range.previousPoints[i],
     visitors: 0,
     views: 0,
     previousVisitors: 0,
     previousViews: 0,
   }));
+  const hourIndex = (hours: string[]) => new Map(hours.map((hour, i) => [hour, i]));
+  const currentHours = hourIndex(range.points);
+  const previousHours = hourIndex(range.previousPoints);
   for (const row of readRows(report)) {
-    const index = Number.parseInt(row.dims.nthDay ?? "", 10);
-    const point = points[index];
+    const previous = isPrevious(row);
+    const index =
+      range.unit === "hour"
+        ? (previous ? previousHours : currentHours).get(row.dims.dateHour ?? "")
+        : Number.parseInt(row.dims.nthDay ?? "", 10);
+    const point = index === undefined ? undefined : points[index];
     if (!point) continue;
-    if (isPrevious(row)) {
+    if (previous) {
       point.previousVisitors += row.metrics.activeUsers ?? 0;
       point.previousViews += row.metrics.screenPageViews ?? 0;
     } else {

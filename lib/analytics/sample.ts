@@ -3,7 +3,7 @@
  * Analytics is connected. Deterministic (seeded), shaped like an event site a
  * few weeks out: Instagram-led traffic, mostly mobile, mostly Jordan.
  */
-import { addDays, type ResolvedRange } from "./ranges";
+import type { ResolvedRange } from "./ranges";
 import type { AnalyticsSnapshot, DailyPoint, RealtimeSnapshot } from "./types";
 
 function seeded(seed: number) {
@@ -15,17 +15,24 @@ function seeded(seed: number) {
 }
 
 function dailySeries(range: ResolvedRange): DailyPoint[] {
-  const rand = seeded(range.days * 7919);
-  return Array.from({ length: range.days }, (_, i) => {
-    const t = range.days === 1 ? 1 : i / (range.days - 1);
-    const weekday = new Date(`${addDays(range.start, i)}T00:00:00Z`).getUTCDay();
-    const weekend = weekday === 5 || weekday === 6 ? 1.18 : 1;
-    const spike = i === Math.floor(range.days * 0.62) ? 2.1 : 1; // a speaker announcement
-    const visitors = Math.round((120 + 260 * t) * weekend * spike * (0.85 + rand() * 0.3));
-    const previousVisitors = Math.round((80 + 90 * t) * weekend * (0.85 + rand() * 0.3));
+  const n = range.points.length;
+  const hourly = range.unit === "hour";
+  const rand = seeded(n * (hourly ? 104729 : 7919));
+  return range.points.map((date, i) => {
+    const t = n === 1 ? 1 : i / (n - 1);
+    // Hours follow a day curve (quiet overnight, busy evenings); days a weekly one.
+    const shape = hourly
+      ? 0.15 + 0.85 * (0.5 + 0.5 * Math.sin(((Number(date.slice(8, 10)) - 12) / 24) * Math.PI * 2))
+      : new Date(`${date}T00:00:00Z`).getUTCDay() >= 5
+        ? 1.18
+        : 1;
+    const spike = i === Math.floor(n * 0.62) ? 2.1 : 1; // a speaker announcement
+    const scale = hourly ? 1 / 14 : 1;
+    const visitors = Math.round((120 + 260 * t) * scale * shape * spike * (0.85 + rand() * 0.3));
+    const previousVisitors = Math.round((80 + 90 * t) * scale * shape * (0.85 + rand() * 0.3));
     return {
-      date: addDays(range.start, i),
-      previousDate: addDays(range.previousStart, i),
+      date,
+      previousDate: range.previousPoints[i],
       visitors,
       views: Math.round(visitors * (2.4 + rand() * 0.6)),
       previousVisitors,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { readTzkrtiConfig } from "@/lib/tzkrti/config";
+import { deliveryIdFromPayload } from "@/lib/tzkrti/mapper";
 import { processStoredDelivery } from "@/lib/tzkrti/process";
 import { dedupeKey, sha256Hex, verifyTzkrtiRequest } from "@/lib/tzkrti/verify";
 import type { Json } from "@/types/database";
@@ -31,13 +32,13 @@ export async function POST(request: Request) {
 
   const supabase = createAdminClient();
   const bodySha256 = sha256Hex(rawBody);
-  const deliveryId = request.headers.get(config.deliveryHeader)?.trim() || null;
+  const headerDeliveryId = request.headers.get(config.deliveryHeader)?.trim() || null;
 
   if (!verifyTzkrtiRequest({ rawBody, headers: request.headers, url: request.url }, config)) {
     // Recorded without its body: an unsigned request is not trusted with storage.
     await supabase.from("tzkrti_webhook_events").insert({
       dedupe_key: `rejected:${crypto.randomUUID()}`,
-      delivery_id: deliveryId,
+      delivery_id: headerDeliveryId,
       signature_valid: false,
       status: "rejected",
       error: "Signature did not match TZKRTI_WEBHOOK_SECRET.",
@@ -53,7 +54,8 @@ export async function POST(request: Request) {
     return json({ error: "Body is not JSON." }, 400);
   }
 
-  const key = dedupeKey(request.headers, config, bodySha256);
+  const deliveryId = headerDeliveryId ?? deliveryIdFromPayload(payload);
+  const key = dedupeKey(request.headers, config, bodySha256, deliveryId);
   const { data: stored, error: storeError } = await supabase
     .from("tzkrti_webhook_events")
     .upsert(
@@ -74,7 +76,7 @@ export async function POST(request: Request) {
       .single();
     const prev = previous as { id: string; status: string } | null;
     if (!prev) return json({ error: "Could not store the delivery." }, 500);
-    if (prev.status === "processed" || prev.status === "ignored") return json({ ok: true, duplicate: true });
+    if (prev.status === "processed" || prev.status === "ignored") return json({ ok: true, duplicate: true, status: prev.status });
     eventId = prev.id;
   }
 
@@ -86,8 +88,10 @@ export async function POST(request: Request) {
   }
 
   // A database error asks Tzkrti to retry; everything else is final for them.
-  if (result.status === "failed") return json({ ok: false, error: "Some tickets could not be saved; please retry." }, 500);
-  return json({ ok: true, status: result.status });
+  if (result.status === "failed") {
+    return json({ ok: false, error: "Some tickets could not be saved; please retry.", outcomes: result.outcomes }, 500);
+  }
+  return json({ ok: true, status: result.status, outcomes: result.outcomes, note: result.error ?? undefined });
 }
 
 /** Lets Tzkrti (or us) check the address is live without sending a ticket. */

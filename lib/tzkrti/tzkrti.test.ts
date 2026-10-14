@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 import { readTzkrtiConfig } from "./config";
-import { mapTzkrtiPayload } from "./mapper";
+import { deliveryIdFromPayload, mapTzkrtiPayload, normalizeTicketType } from "./mapper";
 import { planTicketWrite, splitName, normalizeEmail, type ExistingTicket } from "./plan";
 import type { TzkrtiTicketEvent } from "./types";
 import { dedupeKey, sha256Hex, verifyTzkrtiRequest } from "./verify";
@@ -57,14 +57,79 @@ test("token mode accepts the secret in the header (with or without Bearer) or as
   assert.equal(check({}), false);
 });
 
-test("duplicates are recognised by Tzkrti's delivery id, or by the body when there is none", () => {
-  const hash = sha256Hex("{}");
-  assert.equal(dedupeKey(new Headers({ "x-tzkrti-delivery": "abc" }), hmacConfig, hash), "delivery:abc");
-  assert.equal(dedupeKey(new Headers(), hmacConfig, hash), `body:${hash}`);
+test("the shared secret is also accepted as a bearer token or plain in the signature header, in HMAC mode", () => {
+  const check = (headers: Record<string, string>) =>
+    verifyTzkrtiRequest({ rawBody: "{}", headers: new Headers(headers), url: URL_ }, hmacConfig);
+  assert.equal(check({ authorization: `Bearer ${SECRET}` }), true);
+  assert.equal(check({ "x-tzkrti-signature": SECRET }), true);
+  assert.equal(check({ authorization: "Bearer wrong" }), false);
+  assert.equal(check({}, ), false);
 });
 
-test("until Tzkrti's format is mapped, every message is kept as unmapped", () => {
+test("duplicates are recognised by Tzkrti's delivery id (header or body), or by the body when there is none", () => {
+  const hash = sha256Hex("{}");
+  assert.equal(dedupeKey(new Headers({ "x-tzkrti-delivery": "abc" }), hmacConfig, hash), "delivery:abc");
+  assert.equal(dedupeKey(new Headers(), hmacConfig, hash, "dlv_9"), "delivery:dlv_9");
+  assert.equal(dedupeKey(new Headers(), hmacConfig, hash), `body:${hash}`);
+  assert.equal(deliveryIdFromPayload({ delivery_id: "dlv_9", data: {} }), "dlv_9");
+  assert.equal(deliveryIdFromPayload({ data: { event_id: "e1" } }), "e1");
+  assert.equal(deliveryIdFromPayload([]), null);
+});
+
+const SAMPLE = {
+  event: "ticket.created",
+  delivery_id: "dlv_1001",
+  data: {
+    order: { id: "ORD-55", customer: { name: "Rana Haddad", email: "Rana@Example.com", phone: "0791234567" } },
+    tickets: [
+      {
+        ticket_ref: "JC3-0001", type: "VIP Pass", status: "paid", code: "QR-ABC-1", updated_at: "2026-10-14T12:00:00Z",
+        holder: { first_name: "Rana", last_name: "Haddad", email: "rana@example.com", phone: "+962791234567" },
+      },
+      { ticket_ref: "JC3-0002", type: "General Admission", status: "paid", holder: { name: "Omar Al Khatib", email: "omar@example.com" } },
+    ],
+  },
+};
+
+test("maps the documented envelope: nested holder, order buyer, type and time", () => {
+  const r = mapTzkrtiPayload(SAMPLE);
+  assert.equal(r.kind, "tickets");
+  if (r.kind !== "tickets") return;
+  assert.equal(r.eventType, "ticket.created");
+  assert.equal(r.tickets.length, 2);
+  const [a, b] = r.tickets;
+  assert.equal(a!.action, "issue");
+  assert.equal(a!.ticketRef, "JC3-0001");
+  assert.equal(a!.orderRef, "ORD-55");
+  assert.equal(a!.ticketType, "vip");
+  assert.equal(a!.qrCode, "QR-ABC-1");
+  assert.equal(a!.occurredAt, "2026-10-14T12:00:00.000Z");
+  assert.deepEqual(a!.holder, { name: "Rana Haddad", email: "rana@example.com", phone: "+962791234567" });
+  assert.deepEqual(a!.buyer, { name: "Rana Haddad", email: "Rana@Example.com", phone: "0791234567" });
+  assert.equal(b!.holder.name, "Omar Al Khatib");
+  assert.equal(b!.ticketType, "general");
+  assert.equal(b!.qrCode, null);
+});
+
+test("maps a flat single ticket, a bare array, and cancellation events", () => {
+  const flat = mapTzkrtiPayload({ id: 77, name: "Lina Odeh", email: "lina@example.com", mobile: "079 555 1234", ticket_type: "Early Bird" });
+  assert.equal(flat.kind === "tickets" && flat.tickets[0]!.ticketRef, "77");
+  assert.equal(flat.kind === "tickets" && flat.tickets[0]!.ticketType, "early-bird");
+  const arr = mapTzkrtiPayload([{ ref: "A1", email: "a@b.co", first_name: "A", last_name: "B" }, "junk"]);
+  assert.equal(arr.kind === "tickets" && arr.tickets.length, 1);
+  const cancelled = mapTzkrtiPayload({ event: "ticket.cancelled", ticket: { ticket_ref: "X1", email: "x@y.co", name: "X Y" } });
+  assert.equal(cancelled.kind === "tickets" && cancelled.tickets[0]!.action, "void");
+  const refunded = mapTzkrtiPayload({ ticket_ref: "X2", status: "Refunded", email: "x@y.co", name: "X Y" });
+  assert.equal(refunded.kind === "tickets" && refunded.tickets[0]!.action, "void");
+});
+
+test("pings are ignored and unrecognisable messages stay unmapped for replay", () => {
+  assert.equal(mapTzkrtiPayload({ event: "ping" }).kind, "ignored");
   assert.equal(mapTzkrtiPayload({ any: "thing" }).kind, "unmapped");
+  assert.equal(mapTzkrtiPayload({ tickets: [{ nothing: true }] }).kind, "unmapped");
+  assert.equal(mapTzkrtiPayload("text").kind, "unmapped");
+  assert.equal(normalizeTicketType("Student ticket"), "student");
+  assert.equal(normalizeTicketType("Backstage Crew"), "backstage-crew");
 });
 
 const NOW = "2026-10-12T10:00:00.000Z";

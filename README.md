@@ -24,7 +24,7 @@ The in-app label is **Admin & Registry V1**.
 | Request a Feature | Live — Super Admin only |
 | Guests | Live — Guest Managers can access this page and Tickets |
 | Tickets Management | Live — Guest Managers may approve and reject; only Super Admin and Admin may revoke access or delete |
-| Tzkrti ticket webhook (`/api/tzkrti/webhook`) | Receiver, logging, replay and ticket rules built; mapping Tzkrti's message format waits for their sample |
+| Tzkrti ticket webhook (`/api/tzkrti/webhook`) | Live. Receiver, logging, replay, ticket rules and the payload mapper (`docs/tzkrti-webhook-spec.md` is the contract sent to Tzkrti) |
 
 **Still out of scope, on purpose:** `conversation_messages` holds live chat
 logs. Nothing in this codebase queries, imports, or references them.
@@ -150,15 +150,17 @@ carries its attendee's own name and email, which is how the guest app finds it.
 
 How a delivery is handled (`app/api/tzkrti/webhook/route.ts`):
 
-1. **Verify.** `TZKRTI_WEBHOOK_SECRET` checks the signature (HMAC-SHA256 of the raw
-   body by default; `TZKRTI_SIGNATURE_MODE=token` if Tzkrti sends the secret
-   itself). Bad signatures get 401 and are recorded without their body.
+1. **Verify.** `TZKRTI_WEBHOOK_SECRET` is accepted as `Authorization: Bearer`,
+   as the secret itself in `X-Tzkrti-Signature`, or as an HMAC-SHA256 of the raw
+   body in that header (`TZKRTI_SIGNATURE_MODE=token` also allows `?token=`).
+   Bad signatures get 401 and are recorded without their body.
 2. **Store first.** Every verified delivery goes into `tzkrti_webhook_events`
    (deduplicated by Tzkrti's delivery id, or the body hash) before anything else.
 3. **Map.** `lib/tzkrti/mapper.ts` turns Tzkrti's message into normalized ticket
-   events. **This is the only format-specific code and is not written yet**; until
-   it is, deliveries are kept as "Waiting for format" and replayed later from the
-   Tickets page (Reprocess).
+   events. It reads the shape in `docs/tzkrti-webhook-spec.md` (the contract we
+   gave Tzkrti) plus common aliases; anything unrecognisable is kept as "Waiting
+   for format" and replayed later from the Tickets page (Reprocess). The only
+   format-specific code lives there.
 4. **Apply** (`lib/tzkrti/plan.ts`): one row per ticket by `ticket_ref`, stored
    **already approved**; hand-added (`manual`) tickets are never overwritten;
    older messages never overwrite newer ones; refunds/cancellations set

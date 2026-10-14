@@ -22,7 +22,7 @@ export default async function WebsiteManagementPage() {
     <div>
       <PageHeader
         eyebrow="Content"
-        title="Website Management"
+        title="Website"
         description={
           <>
             Control what visitors see on{" "}

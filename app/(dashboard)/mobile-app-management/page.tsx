@@ -22,7 +22,7 @@ export default async function MobileAppManagementPage() {
     <div>
       <PageHeader
         eyebrow="Content"
-        title="Mobile App Management"
+        title="Mobile App"
         description="Control what guests see on the Jordan Create app's Home screen. Hot Topics is the first section; more will land here."
       />
 

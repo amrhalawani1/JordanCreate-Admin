@@ -47,35 +47,16 @@ export const NAV_GROUPS = [
     ],
   },
   {
-    id: "program",
-    label: "Program",
+    // Everything that describes the event itself: when, what, who, where.
+    id: "event",
+    label: "Event",
     items: [
       { href: "/event-info", label: "Event Info", icon: CalendarDays },
       { href: "/agenda", label: "Agenda", icon: ListOrdered },
       { href: "/speakers", label: "Speakers", icon: Mic2 },
       { href: "/entertainment", label: "Entertainment", icon: Sparkles },
-    ],
-  },
-  {
-    id: "place",
-    label: "Place & Sponsors",
-    items: [
       { href: "/venue", label: "Venue", icon: MapPin },
       { href: "/partners", label: "Sponsors", icon: Handshake },
-    ],
-  },
-  {
-    id: "content",
-    label: "Content",
-    items: [
-      { href: "/interest-tags", label: "Interest Tags", icon: Tags },
-      { href: "/brand-voice", label: "Brand Voice", icon: Megaphone },
-      { href: "/faq", label: "FAQ", icon: CircleHelp },
-      { href: "/experience", label: "Experience", icon: Wand2 },
-      { href: "/other-editions", label: "Other Editions", icon: Layers },
-      { href: "/mobile-app-management", label: "Mobile App Management", icon: Smartphone },
-      { href: "/website-management", label: "Website Management", icon: Globe },
-      { href: "/community-articles", label: "Community Articles", icon: Newspaper },
     ],
   },
   {
@@ -83,18 +64,40 @@ export const NAV_GROUPS = [
     label: "Guests",
     items: [
       { href: "/guests", label: "Guests", icon: Users },
-      { href: "/reported-incidents", label: "Reported incidents", icon: Flag },
       { href: "/tickets-management", label: "Tickets", icon: Ticket },
       { href: "/broadcasts", label: "Notifications", icon: BellRing },
+      { href: "/reported-incidents", label: "Reported Incidents", icon: Flag },
     ],
   },
   {
-    id: "system",
-    label: "System",
+    // What guests see on each channel, beyond the event data above.
+    id: "content",
+    label: "Content",
     items: [
-      { href: "/request-a-feature", label: "Request a Feature", icon: Lightbulb },
+      { href: "/mobile-app-management", label: "Mobile App", icon: Smartphone },
+      { href: "/website-management", label: "Website", icon: Globe },
+      { href: "/community-articles", label: "Community Articles", icon: Newspaper },
+    ],
+  },
+  {
+    // Reference content the app and the WhatsApp bot answer from.
+    id: "knowledge",
+    label: "App & Bot Knowledge",
+    items: [
+      { href: "/faq", label: "FAQ", icon: CircleHelp },
+      { href: "/experience", label: "Experience", icon: Wand2 },
+      { href: "/interest-tags", label: "Interest Tags", icon: Tags },
+      { href: "/brand-voice", label: "Brand Voice", icon: Megaphone },
+      { href: "/other-editions", label: "Other Editions", icon: Layers },
+    ],
+  },
+  {
+    id: "team",
+    label: "Team",
+    items: [
       { href: "/admin-settings", label: "Admin Management", icon: Shield },
       { href: "/change-log", label: "Change Log", icon: History },
+      { href: "/request-a-feature", label: "Request a Feature", icon: Lightbulb },
     ],
   },
 ] as const satisfies readonly NavGroup[];

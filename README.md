@@ -19,7 +19,7 @@ The in-app label is **Admin & Registry V1**.
 | Event Info (including extra title + description items), Agenda, Speakers, Venue, Partners, Interest Tags, Brand Voice, FAQ, Experience, Other Editions | Live |
 | Dashboard overview + HTML export of each data page | Live |
 | Website Analytics — jordancreate.com traffic from Google Analytics 4 (visitors, ticket clicks, sources, pages, audience, live visitors) | Live on the deployed admin once the three analytics variables are set (keyless); staff only, read-only |
-| Mobile App Management — Hot Topics (the app's Home carousel; `hot_topics` table) | Live |
+| Mobile App — Hot Topics (the app's Home carousel; `hot_topics` table) | Live |
 | Admin Management (create/edit/remove people who can sign in) | Live — Super Admin only |
 | Request a Feature | Live — Super Admin only |
 | Guests | Live — Guest Managers can access this page and Tickets |

@@ -10,7 +10,7 @@ export default async function ReportedIncidentsPage() {
   return (
     <div>
       <PageHeader
-        title="Reported incidents"
+        title="Reported Incidents"
         description={
           open === 0
             ? "Profiles guests reported from the app. Nothing is waiting for review."

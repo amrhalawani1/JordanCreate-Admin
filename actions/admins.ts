@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -50,7 +52,7 @@ async function hasGuestProfile(supabase: ReturnType<typeof createAdminClient>, u
   return (data ?? []).length > 0;
 }
 
-export async function getAdmins(): Promise<Admin[]> {
+async function getAdminsImpl(): Promise<Admin[]> {
   const gate = await requireSuperAdmin();
   if (!gate.ok) throw new Error(gate.error);
   const supabase = createAdminClient();
@@ -58,7 +60,7 @@ export async function getAdmins(): Promise<Admin[]> {
 }
 
 /** True once the admin_level enum accepts admin_view_only. */
-export async function adminViewOnlyLevelReady(): Promise<boolean> {
+async function adminViewOnlyLevelReadyImpl(): Promise<boolean> {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return false;
   const supabase = createAdminClient();
@@ -66,7 +68,7 @@ export async function adminViewOnlyLevelReady(): Promise<boolean> {
   return !error;
 }
 
-export async function createAdmin(values: unknown): Promise<ActionResult> {
+async function createAdminImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate;
 
@@ -182,7 +184,7 @@ async function promoteExistingUser(
   return { success: true };
 }
 
-export async function updateAdmin(id: string, values: unknown): Promise<ActionResult> {
+async function updateAdminImpl(id: string, values: unknown): Promise<ActionResult> {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate;
 
@@ -258,7 +260,7 @@ export async function updateAdmin(id: string, values: unknown): Promise<ActionRe
   }
 }
 
-export async function deleteAdmin(id: string): Promise<ActionResult> {
+async function deleteAdminImpl(id: string): Promise<ActionResult> {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate;
 
@@ -319,3 +321,10 @@ export async function deleteAdmin(id: string): Promise<ActionResult> {
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getAdmins = withActivity("admins.getAdmins", getAdminsImpl);
+export const adminViewOnlyLevelReady = withActivity("admins.adminViewOnlyLevelReady", adminViewOnlyLevelReadyImpl);
+export const createAdmin = withActivity("admins.createAdmin", createAdminImpl);
+export const updateAdmin = withActivity("admins.updateAdmin", updateAdminImpl);
+export const deleteAdmin = withActivity("admins.deleteAdmin", deleteAdminImpl);

@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { createHash } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireGuestEditor, requireStaff } from "@/lib/auth/guard";
@@ -25,7 +27,7 @@ function isMediaFolder(value: string): value is MediaFolder {
   return (FOLDERS as readonly string[]).includes(value);
 }
 
-export async function uploadMedia(formData: FormData): Promise<UploadMediaResult> {
+async function uploadMediaImpl(formData: FormData): Promise<UploadMediaResult> {
   const folderRaw = String(formData.get("folder") ?? "");
   if (!isMediaFolder(folderRaw)) {
     return { success: false, error: "Choose a valid upload folder." };
@@ -79,3 +81,6 @@ export async function uploadMedia(formData: FormData): Promise<UploadMediaResult
     };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const uploadMedia = withActivity("upload-media.uploadMedia", uploadMediaImpl);

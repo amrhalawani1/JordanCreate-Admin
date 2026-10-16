@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertTicketReader, requireTicketEditor } from "@/lib/auth/guard";
@@ -26,7 +28,7 @@ export type TzkrtiStatus = {
 
 const EMPTY_COUNTS = Object.fromEntries(DELIVERY_STATUSES.map((s) => [s, 0])) as Record<DeliveryStatus, number>;
 
-export async function getTzkrtiStatus(): Promise<TzkrtiStatus> {
+async function getTzkrtiStatusImpl(): Promise<TzkrtiStatus> {
   await assertTicketReader();
   const configured = readTzkrtiConfig() !== null;
   const supabase = createAdminClient();
@@ -56,7 +58,7 @@ export async function getTzkrtiStatus(): Promise<TzkrtiStatus> {
 type ReprocessResult = { success: true; processed: number; stillWaiting: number } | { success: false; error: string };
 
 /** Replays deliveries that were stored but not applied (format not mapped yet, or a database error). */
-export async function reprocessTzkrtiDeliveries(): Promise<ReprocessResult> {
+async function reprocessTzkrtiDeliveriesImpl(): Promise<ReprocessResult> {
   const gate = await requireTicketEditor();
   if (!gate.ok) return { success: false, error: gate.error };
   const supabase = createAdminClient();
@@ -82,3 +84,7 @@ export async function reprocessTzkrtiDeliveries(): Promise<ReprocessResult> {
   revalidatePath("/tickets-management");
   return { success: true, processed, stillWaiting };
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getTzkrtiStatus = withActivity("tzkrti.getTzkrtiStatus", getTzkrtiStatusImpl);
+export const reprocessTzkrtiDeliveries = withActivity("tzkrti.reprocessTzkrtiDeliveries", reprocessTzkrtiDeliveriesImpl);

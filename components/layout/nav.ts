@@ -18,6 +18,7 @@ import {
   Lightbulb,
   Shield,
   History,
+  Activity,
   BellRing,
   Smartphone,
   Flag,
@@ -97,6 +98,7 @@ export const NAV_GROUPS = [
     items: [
       { href: "/admin-settings", label: "Admin Management", icon: Shield },
       { href: "/change-log", label: "Change Log", icon: History },
+      { href: "/activity", label: "Activity Log", icon: Activity },
       { href: "/request-a-feature", label: "Request a Feature", icon: Lightbulb },
     ],
   },

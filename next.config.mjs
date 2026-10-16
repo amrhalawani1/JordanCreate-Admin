@@ -12,6 +12,8 @@ const nextConfig = {
     root: projectRoot,
   },
   devIndicators: false,
+  // pino is required at runtime from node_modules; bundling it breaks its worker transport lookup.
+  serverExternalPackages: ["pino"],
   experimental: {
     serverActions: {
       // Photo uploads go through a server action (actions/upload-media.ts,

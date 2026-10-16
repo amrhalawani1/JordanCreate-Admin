@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -11,13 +13,13 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getFaqEntries(): Promise<FaqEntry[]> {
+async function getFaqEntriesImpl(): Promise<FaqEntry[]> {
   await assertStaff();
   const supabase = createAdminClient();
   return fetchAll<FaqEntry>(supabase, "faq_entries", { column: "sort_order" });
 }
 
-export async function createFaqEntry(values: unknown): Promise<ActionResult> {
+async function createFaqEntryImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = FaqEntrySchema.safeParse(values);
@@ -42,7 +44,7 @@ export async function createFaqEntry(values: unknown): Promise<ActionResult> {
   }
 }
 
-export async function updateFaqEntry(id: number, values: unknown): Promise<ActionResult> {
+async function updateFaqEntryImpl(id: number, values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = FaqEntrySchema.safeParse(values);
@@ -74,7 +76,7 @@ export async function updateFaqEntry(id: number, values: unknown): Promise<Actio
   }
 }
 
-export async function deleteFaqEntry(id: number): Promise<ActionResult> {
+async function deleteFaqEntryImpl(id: number): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -96,7 +98,7 @@ export async function deleteFaqEntry(id: number): Promise<ActionResult> {
   }
 }
 
-export async function reorderFaqEntries(orderedIds: number[]): Promise<ActionResult> {
+async function reorderFaqEntriesImpl(orderedIds: number[]): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -124,3 +126,10 @@ export async function reorderFaqEntries(orderedIds: number[]): Promise<ActionRes
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getFaqEntries = withActivity("faq-entries.getFaqEntries", getFaqEntriesImpl);
+export const createFaqEntry = withActivity("faq-entries.createFaqEntry", createFaqEntryImpl);
+export const updateFaqEntry = withActivity("faq-entries.updateFaqEntry", updateFaqEntryImpl);
+export const deleteFaqEntry = withActivity("faq-entries.deleteFaqEntry", deleteFaqEntryImpl);
+export const reorderFaqEntries = withActivity("faq-entries.reorderFaqEntries", reorderFaqEntriesImpl);

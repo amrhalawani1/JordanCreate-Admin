@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Admin } from "@/types/entities";
@@ -21,8 +23,9 @@ export async function getAdminById(id: string): Promise<CurrentAdmin | null> {
   return data;
 }
 
-export async function getCurrentAdmin(): Promise<CurrentAdmin | null> {
+/** Memoised per request: guards and the activity logger both ask, the database is hit once. */
+export const getCurrentAdmin = cache(async (): Promise<CurrentAdmin | null> => {
   const userId = await getSessionUserId();
   if (!userId) return null;
   return getAdminById(userId);
-}
+});

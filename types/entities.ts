@@ -148,6 +148,27 @@ export type FeatureRequestListItem = FeatureRequest & {
   requester_email: string;
 };
 
+export type ActivityLog = Tables["activity_logs"]["Row"];
+export type ActivityLogInsert = Tables["activity_logs"]["Insert"];
+
+export const ACTIVITY_KIND_LABELS = {
+  action: "Action",
+  route: "API call",
+  page: "Page view",
+  auth: "Sign-in",
+  error: "Server error",
+  client: "Browser error",
+} as const;
+
+export const ACTIVITY_STATUS_LABELS = {
+  success: "OK",
+  failed: "Failed",
+  denied: "Denied",
+  error: "Error",
+  redirect: "OK (redirect)",
+  not_found: "Not found",
+} as const;
+
 export type ChangeLog = Tables["change_logs"]["Row"];
 export type ChangeLogInsert = Tables["change_logs"]["Insert"];
 

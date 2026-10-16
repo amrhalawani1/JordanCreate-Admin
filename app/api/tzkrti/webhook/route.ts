@@ -5,6 +5,7 @@ import { deliveryIdFromPayload } from "@/lib/tzkrti/mapper";
 import { processStoredDelivery } from "@/lib/tzkrti/process";
 import { dedupeKey, sha256Hex, verifyTzkrtiRequest } from "@/lib/tzkrti/verify";
 import type { Json } from "@/types/database";
+import { withRouteActivity } from "@/lib/with-route-activity";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,7 +24,7 @@ const json = (body: Record<string, unknown>, status = 200) => NextResponse.json(
  *  400  not JSON          401  bad or missing signature
  *  413  too large         503  webhook not configured on this deployment
  */
-export async function POST(request: Request) {
+async function handlePost(request: Request) {
   const config = readTzkrtiConfig();
   if (!config) return json({ error: "Tzkrti webhook is not configured." }, 503);
 
@@ -95,6 +96,10 @@ export async function POST(request: Request) {
 }
 
 /** Lets Tzkrti (or us) check the address is live without sending a ticket. */
-export async function GET() {
+async function handleGet() {
   return json({ ok: true, service: "jordan-create-tzkrti-webhook", configured: readTzkrtiConfig() !== null });
 }
+
+// Every call, successful or not, is recorded in the activity log with its status and reason.
+export const POST = withRouteActivity("tzkrti.webhook", handlePost);
+export const GET = withRouteActivity("tzkrti.webhook", handleGet);

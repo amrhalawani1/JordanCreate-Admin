@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -11,13 +13,13 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getInterestTags(): Promise<InterestTag[]> {
+async function getInterestTagsImpl(): Promise<InterestTag[]> {
   await assertStaff();
   const supabase = createAdminClient();
   return fetchAll<InterestTag>(supabase, "interest_tags", { column: "tag_id" });
 }
 
-export async function createInterestTag(values: unknown): Promise<ActionResult> {
+async function createInterestTagImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = InterestTagSchema.safeParse(values);
@@ -46,7 +48,7 @@ export async function createInterestTag(values: unknown): Promise<ActionResult> 
   }
 }
 
-export async function updateInterestTag(tagId: string, values: unknown): Promise<ActionResult> {
+async function updateInterestTagImpl(tagId: string, values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = InterestTagSchema.safeParse(values);
@@ -82,7 +84,7 @@ export async function updateInterestTag(tagId: string, values: unknown): Promise
   }
 }
 
-export async function deleteInterestTag(tagId: string): Promise<ActionResult> {
+async function deleteInterestTagImpl(tagId: string): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -106,3 +108,9 @@ export async function deleteInterestTag(tagId: string): Promise<ActionResult> {
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getInterestTags = withActivity("interest-tags.getInterestTags", getInterestTagsImpl);
+export const createInterestTag = withActivity("interest-tags.createInterestTag", createInterestTagImpl);
+export const updateInterestTag = withActivity("interest-tags.updateInterestTag", updateInterestTagImpl);
+export const deleteInterestTag = withActivity("interest-tags.deleteInterestTag", deleteInterestTagImpl);

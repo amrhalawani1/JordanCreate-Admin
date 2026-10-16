@@ -8,6 +8,7 @@ import { MissingAdminProfile } from "@/components/layout/MissingAdminProfile";
 import { AdminAccessProvider } from "@/components/layout/AdminAccessProvider";
 import { ADMIN_LEVEL_LABELS } from "@/types/entities";
 import { DeploymentWatcher } from "@/components/layout/DeploymentWatcher";
+import { ClientErrorReporter } from "@/components/layout/ClientErrorReporter";
 import { currentDeploymentId } from "@/lib/deployment-id";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -28,6 +29,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="flex min-h-dvh bg-background">
       <DeploymentWatcher builtWith={currentDeploymentId()} />
+      <ClientErrorReporter />
       <Sidebar adminLevel={viewLevel} />
       <div className="flex min-w-0 flex-1 flex-col">
         <a

@@ -489,6 +489,36 @@ export interface Database {
         };
         Update: Partial<Omit<Database["public"]["Tables"]["feature_requests"]["Row"], "id">>;
       };
+      activity_logs: {
+        Relationships: [];
+        Row: {
+          id: string;
+          at: string;
+          kind: "action" | "route" | "page" | "auth" | "error" | "client";
+          name: string;
+          ok: boolean;
+          status: "success" | "failed" | "denied" | "error" | "redirect" | "not_found";
+          error: string | null;
+          duration_ms: number | null;
+          actor_id: string | null;
+          actor_email: string | null;
+          actor_level: string | null;
+          method: string | null;
+          path: string | null;
+          http_status: number | null;
+          ip: string | null;
+          user_agent: string | null;
+          request_id: string | null;
+          deployment: string | null;
+          meta: Json;
+        };
+        Insert: Omit<Database["public"]["Tables"]["activity_logs"]["Row"], "id" | "at" | "meta"> & {
+          id?: string;
+          at?: string;
+          meta?: Json;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["activity_logs"]["Row"], "id">>;
+      };
       change_logs: {
         Relationships: [];
         Row: {

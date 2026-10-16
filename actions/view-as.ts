@@ -1,12 +1,14 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getCurrentAdmin } from "@/lib/auth/current-admin";
 import { homePath, isAdminLevel } from "@/lib/auth/levels";
 import { VIEW_AS_COOKIE } from "@/lib/auth/view-as";
 
-export async function setViewAs(formData: FormData) {
+async function setViewAsImpl(formData: FormData) {
   const level = String(formData.get("level") ?? "");
   const admin = await getCurrentAdmin();
   if (!admin || admin.admin_level !== "super_admin") {
@@ -30,3 +32,6 @@ export async function setViewAs(formData: FormData) {
 
   redirect(homePath(level));
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const setViewAs = withActivity("view-as.setViewAs", setViewAsImpl);

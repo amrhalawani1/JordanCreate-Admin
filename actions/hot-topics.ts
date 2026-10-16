@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -13,13 +15,13 @@ type ActionResult = { success: true } | { success: false; error: string };
 
 const PAGE = "/mobile-app-management";
 
-export async function getHotTopics(): Promise<HotTopic[]> {
+async function getHotTopicsImpl(): Promise<HotTopic[]> {
   await assertStaff();
   const supabase = createAdminClient();
   return fetchAll<HotTopic>(supabase, "hot_topics", { column: "sort_order" });
 }
 
-export async function createHotTopic(values: unknown): Promise<ActionResult> {
+async function createHotTopicImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = HotTopicSchema.safeParse(values);
@@ -44,7 +46,7 @@ export async function createHotTopic(values: unknown): Promise<ActionResult> {
   }
 }
 
-export async function updateHotTopic(id: number, values: unknown): Promise<ActionResult> {
+async function updateHotTopicImpl(id: number, values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = HotTopicSchema.safeParse(values);
@@ -76,7 +78,7 @@ export async function updateHotTopic(id: number, values: unknown): Promise<Actio
   }
 }
 
-export async function deleteHotTopic(id: number): Promise<ActionResult> {
+async function deleteHotTopicImpl(id: number): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -98,7 +100,7 @@ export async function deleteHotTopic(id: number): Promise<ActionResult> {
   }
 }
 
-export async function reorderHotTopics(orderedIds: number[]): Promise<ActionResult> {
+async function reorderHotTopicsImpl(orderedIds: number[]): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -126,3 +128,10 @@ export async function reorderHotTopics(orderedIds: number[]): Promise<ActionResu
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getHotTopics = withActivity("hot-topics.getHotTopics", getHotTopicsImpl);
+export const createHotTopic = withActivity("hot-topics.createHotTopic", createHotTopicImpl);
+export const updateHotTopic = withActivity("hot-topics.updateHotTopic", updateHotTopicImpl);
+export const deleteHotTopic = withActivity("hot-topics.deleteHotTopic", deleteHotTopicImpl);
+export const reorderHotTopics = withActivity("hot-topics.reorderHotTopics", reorderHotTopicsImpl);

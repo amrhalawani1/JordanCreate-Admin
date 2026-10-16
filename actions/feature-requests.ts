@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { deleteRow, fetchByPk } from "@/lib/supabase-crud";
@@ -11,7 +13,7 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getFeatureRequests(): Promise<{
+async function getFeatureRequestsImpl(): Promise<{
   rows: FeatureRequestListItem[];
   error?: string;
 }> {
@@ -52,7 +54,7 @@ export async function getFeatureRequests(): Promise<{
   return { rows };
 }
 
-export async function createFeatureRequest(values: unknown): Promise<ActionResult> {
+async function createFeatureRequestImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate;
 
@@ -89,7 +91,7 @@ export async function createFeatureRequest(values: unknown): Promise<ActionResul
   }
 }
 
-export async function deleteFeatureRequest(id: string): Promise<ActionResult> {
+async function deleteFeatureRequestImpl(id: string): Promise<ActionResult> {
   const gate = await requireSuperAdmin();
   if (!gate.ok) return gate;
 
@@ -114,3 +116,8 @@ export async function deleteFeatureRequest(id: string): Promise<ActionResult> {
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getFeatureRequests = withActivity("feature-requests.getFeatureRequests", getFeatureRequestsImpl);
+export const createFeatureRequest = withActivity("feature-requests.createFeatureRequest", createFeatureRequestImpl);
+export const deleteFeatureRequest = withActivity("feature-requests.deleteFeatureRequest", deleteFeatureRequestImpl);

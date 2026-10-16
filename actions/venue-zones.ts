@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -11,13 +13,13 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getVenueZones(): Promise<VenueZone[]> {
+async function getVenueZonesImpl(): Promise<VenueZone[]> {
   await assertStaff();
   const supabase = createAdminClient();
   return fetchAll<VenueZone>(supabase, "venue_zones", { column: "zone_id" });
 }
 
-export async function createVenueZone(values: unknown): Promise<ActionResult> {
+async function createVenueZoneImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = VenueZoneSchema.safeParse(values);
@@ -43,7 +45,7 @@ export async function createVenueZone(values: unknown): Promise<ActionResult> {
   }
 }
 
-export async function updateVenueZone(zoneId: string, values: unknown): Promise<ActionResult> {
+async function updateVenueZoneImpl(zoneId: string, values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = VenueZoneSchema.safeParse(values);
@@ -80,7 +82,7 @@ export async function updateVenueZone(zoneId: string, values: unknown): Promise<
   }
 }
 
-export async function deleteVenueZone(zoneId: string): Promise<ActionResult> {
+async function deleteVenueZoneImpl(zoneId: string): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -104,3 +106,9 @@ export async function deleteVenueZone(zoneId: string): Promise<ActionResult> {
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getVenueZones = withActivity("venue-zones.getVenueZones", getVenueZonesImpl);
+export const createVenueZone = withActivity("venue-zones.createVenueZone", createVenueZoneImpl);
+export const updateVenueZone = withActivity("venue-zones.updateVenueZone", updateVenueZoneImpl);
+export const deleteVenueZone = withActivity("venue-zones.deleteVenueZone", deleteVenueZoneImpl);

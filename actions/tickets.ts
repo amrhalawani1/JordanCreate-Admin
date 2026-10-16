@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReadableError } from "@/lib/errors";
@@ -165,7 +167,7 @@ async function runVoidOrDeleteRpc(
   throw error;
 }
 
-export async function getTickets(): Promise<{
+async function getTicketsImpl(): Promise<{
   rows: TicketQueueRow[];
   error?: string;
   needsSetup?: boolean;
@@ -204,7 +206,7 @@ export async function getTickets(): Promise<{
   };
 }
 
-export async function approveTickets(
+async function approveTicketsImpl(
   ids: string[],
   tokenOverrides?: Record<string, string>,
 ): Promise<ApproveTicketsResult> {
@@ -249,7 +251,7 @@ export async function approveTickets(
   }
 }
 
-export async function rejectTicket(id: string, note: string): Promise<ActionResult> {
+async function rejectTicketImpl(id: string, note: string): Promise<ActionResult> {
   const gate = await requireTicketEditor();
   if (!gate.ok) return gate;
   const denied = ticketActionDenied(gate.admin.admin_level, "reject");
@@ -299,7 +301,7 @@ export async function rejectTicket(id: string, note: string): Promise<ActionResu
   }
 }
 
-export async function restoreTicket(id: string): Promise<ActionResult> {
+async function restoreTicketImpl(id: string): Promise<ActionResult> {
   const gate = await requireTicketEditor();
   if (!gate.ok) return gate;
   const denied = ticketActionDenied(gate.admin.admin_level, "restore");
@@ -335,7 +337,7 @@ export async function restoreTicket(id: string): Promise<ActionResult> {
   }
 }
 
-export async function voidTicket(id: string): Promise<ActionResult> {
+async function voidTicketImpl(id: string): Promise<ActionResult> {
   const gate = await requireTicketAdmin();
   if (!gate.ok) return gate;
   const denied = ticketActionDenied(gate.admin.admin_level, "void");
@@ -371,7 +373,7 @@ export async function voidTicket(id: string): Promise<ActionResult> {
   }
 }
 
-export async function deleteTicket(id: string): Promise<ActionResult> {
+async function deleteTicketImpl(id: string): Promise<ActionResult> {
   const gate = await requireTicketAdmin();
   if (!gate.ok) return gate;
   const denied = ticketActionDenied(gate.admin.admin_level, "delete");
@@ -399,7 +401,7 @@ export async function deleteTicket(id: string): Promise<ActionResult> {
   }
 }
 
-export async function createManualTicket(values: unknown): Promise<ActionResult> {
+async function createManualTicketImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireTicketEditor();
   if (!gate.ok) return gate;
   const denied = ticketActionDenied(gate.admin.admin_level, "create");
@@ -435,7 +437,7 @@ export async function createManualTicket(values: unknown): Promise<ActionResult>
     });
 
     if (gate_token) {
-      const approved = await approveTickets([data.id], { [data.id]: gate_token });
+      const approved = await approveTicketsImpl([data.id], { [data.id]: gate_token });
       if (!approved.success) {
         revalidatePath("/tickets-management");
         return {
@@ -459,7 +461,7 @@ export async function createManualTicket(values: unknown): Promise<ActionResult>
   }
 }
 
-export async function updateTicket(id: string, values: unknown): Promise<ActionResult> {
+async function updateTicketImpl(id: string, values: unknown): Promise<ActionResult> {
   const gate = await requireTicketEditor();
   if (!gate.ok) return gate;
   const denied = ticketActionDenied(gate.admin.admin_level, "update");
@@ -493,3 +495,13 @@ export async function updateTicket(id: string, values: unknown): Promise<ActionR
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getTickets = withActivity("tickets.getTickets", getTicketsImpl);
+export const approveTickets = withActivity("tickets.approveTickets", approveTicketsImpl);
+export const rejectTicket = withActivity("tickets.rejectTicket", rejectTicketImpl);
+export const restoreTicket = withActivity("tickets.restoreTicket", restoreTicketImpl);
+export const voidTicket = withActivity("tickets.voidTicket", voidTicketImpl);
+export const deleteTicket = withActivity("tickets.deleteTicket", deleteTicketImpl);
+export const createManualTicket = withActivity("tickets.createManualTicket", createManualTicketImpl);
+export const updateTicket = withActivity("tickets.updateTicket", updateTicketImpl);

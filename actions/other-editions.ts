@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, updateRow } from "@/lib/supabase-crud";
@@ -16,21 +18,21 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getJordanCreateOne(): Promise<JordanCreateOne | null> {
+async function getJordanCreateOneImpl(): Promise<JordanCreateOne | null> {
   await assertStaff();
   const supabase = createAdminClient();
   const rows = await fetchAll<JordanCreateOne>(supabase, "jordan_create_one");
   return rows[0] ?? null;
 }
 
-export async function getJordanCreateThree(): Promise<JordanCreateThree | null> {
+async function getJordanCreateThreeImpl(): Promise<JordanCreateThree | null> {
   await assertStaff();
   const supabase = createAdminClient();
   const rows = await fetchAll<JordanCreateThree>(supabase, "jordan_create_three");
   return rows[0] ?? null;
 }
 
-export async function updateJordanCreateOne(values: unknown): Promise<ActionResult> {
+async function updateJordanCreateOneImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = JordanEditionSchema.safeParse(values);
@@ -65,7 +67,7 @@ export async function updateJordanCreateOne(values: unknown): Promise<ActionResu
   }
 }
 
-export async function updateJordanCreateThree(values: unknown): Promise<ActionResult> {
+async function updateJordanCreateThreeImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = JordanEditionSchema.safeParse(values);
@@ -99,3 +101,9 @@ export async function updateJordanCreateThree(values: unknown): Promise<ActionRe
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getJordanCreateOne = withActivity("other-editions.getJordanCreateOne", getJordanCreateOneImpl);
+export const getJordanCreateThree = withActivity("other-editions.getJordanCreateThree", getJordanCreateThreeImpl);
+export const updateJordanCreateOne = withActivity("other-editions.updateJordanCreateOne", updateJordanCreateOneImpl);
+export const updateJordanCreateThree = withActivity("other-editions.updateJordanCreateThree", updateJordanCreateThreeImpl);

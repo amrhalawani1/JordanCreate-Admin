@@ -1,11 +1,13 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReadableError } from "@/lib/errors";
 import { requireSuperAdmin } from "@/lib/auth/guard";
 import type { ChangeLog } from "@/types/entities";
 
-export async function getChangeLogs(): Promise<{
+async function getChangeLogsImpl(): Promise<{
   rows: ChangeLog[];
   error?: string;
   needsSetup?: boolean;
@@ -30,3 +32,6 @@ export async function getChangeLogs(): Promise<{
 
   return { rows: (data ?? []) as ChangeLog[] };
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getChangeLogs = withActivity("change-logs.getChangeLogs", getChangeLogsImpl);

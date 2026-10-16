@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getReadableError } from "@/lib/errors";
@@ -21,7 +23,7 @@ function isMissingTable(error: { code?: string; message?: string } | null): bool
   return error.code === "42P01" || error.code === "PGRST205" || /does not exist|could not find the table/i.test(error.message ?? "");
 }
 
-export async function getGuestReports(): Promise<GuestReportsResult> {
+async function getGuestReportsImpl(): Promise<GuestReportsResult> {
   await assertGuestEditor();
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -34,7 +36,7 @@ export async function getGuestReports(): Promise<GuestReportsResult> {
   return { status: "ready", reports: sortReports((data ?? []) as GuestReport[]) };
 }
 
-export async function updateGuestReport(id: string, values: unknown): Promise<ActionResult> {
+async function updateGuestReportImpl(id: string, values: unknown): Promise<ActionResult> {
   const gate = await requireGuestEditor();
   if (!gate.ok) return gate;
   const parsed = ReportUpdateSchema.safeParse(values);
@@ -73,3 +75,7 @@ export async function updateGuestReport(id: string, values: unknown): Promise<Ac
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getGuestReports = withActivity("guest-reports.getGuestReports", getGuestReportsImpl);
+export const updateGuestReport = withActivity("guest-reports.updateGuestReport", updateGuestReportImpl);

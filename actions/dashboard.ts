@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { liveTable } from "@/lib/live-tables";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertStaff } from "@/lib/auth/guard";
@@ -22,7 +24,7 @@ function isTbdOrEmpty(value: string | null): boolean {
   return !value || value.trim() === "" || value.trim().toUpperCase() === "TBD";
 }
 
-export async function getDashboardSummary(): Promise<DashboardSummary> {
+async function getDashboardSummaryImpl(): Promise<DashboardSummary> {
   await assertStaff();
   const supabase = createAdminClient();
 
@@ -143,3 +145,6 @@ export async function getDashboardSummary(): Promise<DashboardSummary> {
 
   return { tables, flags };
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getDashboardSummary = withActivity("dashboard.getDashboardSummary", getDashboardSummaryImpl);

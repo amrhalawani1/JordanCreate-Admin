@@ -1,6 +1,6 @@
 import { ADMIN_LEVEL_VALUES, type AdminLevel } from "@/types/entities";
 
-const SUPER_ADMIN_ONLY_PREFIXES = ["/admin-settings", "/request-a-feature", "/change-log"];
+const SUPER_ADMIN_ONLY_PREFIXES = ["/admin-settings", "/request-a-feature", "/change-log", "/activity"];
 
 export function isAdminLevel(value: string | undefined | null): value is AdminLevel {
   return ADMIN_LEVEL_VALUES.includes(value as AdminLevel);

@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireStaff } from "@/lib/auth/guard";
@@ -13,7 +15,7 @@ const PAGE = "/website-management";
 const ORDER_KEY = "homepage_speaker_order";
 
 /** Admin handles in saved homepage order; empty when never saved. */
-export async function getHomepageSpeakerOrder(): Promise<string[]> {
+async function getHomepageSpeakerOrderImpl(): Promise<string[]> {
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("website_settings")
@@ -25,13 +27,13 @@ export async function getHomepageSpeakerOrder(): Promise<string[]> {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
 }
 
-export async function saveHomepageSpeakerOrder(handles: string[]): Promise<ActionResult> {
+async function saveHomepageSpeakerOrderImpl(handles: string[]): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const clean = Array.from(new Set(handles.map((h) => String(h).trim()).filter(Boolean))).slice(0, 300);
   try {
     const supabase = createAdminClient();
-    const before = await getHomepageSpeakerOrder();
+    const before = await getHomepageSpeakerOrderImpl();
     const { error } = await supabase
       .from("website_settings")
       .upsert({ key: ORDER_KEY, value: clean, updated_at: new Date().toISOString() }, { onConflict: "key" });
@@ -54,3 +56,7 @@ export async function saveHomepageSpeakerOrder(handles: string[]): Promise<Actio
     return { success: false, error: getReadableError(error) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getHomepageSpeakerOrder = withActivity("website-settings.getHomepageSpeakerOrder", getHomepageSpeakerOrderImpl);
+export const saveHomepageSpeakerOrder = withActivity("website-settings.saveHomepageSpeakerOrder", saveHomepageSpeakerOrderImpl);

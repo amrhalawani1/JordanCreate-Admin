@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -11,13 +13,13 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getExperiences(): Promise<Experience[]> {
+async function getExperiencesImpl(): Promise<Experience[]> {
   await assertStaff();
   const supabase = createAdminClient();
   return fetchAll<Experience>(supabase, "experience", { column: "sort_order" });
 }
 
-export async function createExperience(values: unknown): Promise<ActionResult> {
+async function createExperienceImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = ExperienceSchema.safeParse(values);
@@ -46,7 +48,7 @@ export async function createExperience(values: unknown): Promise<ActionResult> {
   }
 }
 
-export async function updateExperience(id: number, values: unknown): Promise<ActionResult> {
+async function updateExperienceImpl(id: number, values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = ExperienceSchema.safeParse(values);
@@ -78,7 +80,7 @@ export async function updateExperience(id: number, values: unknown): Promise<Act
   }
 }
 
-export async function deleteExperience(id: number): Promise<ActionResult> {
+async function deleteExperienceImpl(id: number): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -99,3 +101,9 @@ export async function deleteExperience(id: number): Promise<ActionResult> {
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getExperiences = withActivity("experience.getExperiences", getExperiencesImpl);
+export const createExperience = withActivity("experience.createExperience", createExperienceImpl);
+export const updateExperience = withActivity("experience.updateExperience", updateExperienceImpl);
+export const deleteExperience = withActivity("experience.deleteExperience", deleteExperienceImpl);

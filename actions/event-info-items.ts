@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -11,7 +13,7 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getEventInfoItems(): Promise<{
+async function getEventInfoItemsImpl(): Promise<{
   rows: EventInfoItem[];
   error?: string;
   needsSetup?: boolean;
@@ -34,7 +36,7 @@ export async function getEventInfoItems(): Promise<{
   return { rows: (data ?? []) as EventInfoItem[] };
 }
 
-export async function createEventInfoItem(values: unknown): Promise<ActionResult> {
+async function createEventInfoItemImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = EventInfoItemSchema.safeParse(values);
@@ -63,7 +65,7 @@ export async function createEventInfoItem(values: unknown): Promise<ActionResult
   }
 }
 
-export async function updateEventInfoItem(id: number, values: unknown): Promise<ActionResult> {
+async function updateEventInfoItemImpl(id: number, values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = EventInfoItemSchema.safeParse(values);
@@ -98,7 +100,7 @@ export async function updateEventInfoItem(id: number, values: unknown): Promise<
   }
 }
 
-export async function deleteEventInfoItem(id: number): Promise<ActionResult> {
+async function deleteEventInfoItemImpl(id: number): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -123,7 +125,7 @@ export async function deleteEventInfoItem(id: number): Promise<ActionResult> {
   }
 }
 
-export async function reorderEventInfoItems(orderedIds: number[]): Promise<ActionResult> {
+async function reorderEventInfoItemsImpl(orderedIds: number[]): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -151,3 +153,10 @@ export async function reorderEventInfoItems(orderedIds: number[]): Promise<Actio
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getEventInfoItems = withActivity("event-info-items.getEventInfoItems", getEventInfoItemsImpl);
+export const createEventInfoItem = withActivity("event-info-items.createEventInfoItem", createEventInfoItemImpl);
+export const updateEventInfoItem = withActivity("event-info-items.updateEventInfoItem", updateEventInfoItemImpl);
+export const deleteEventInfoItem = withActivity("event-info-items.deleteEventInfoItem", deleteEventInfoItemImpl);
+export const reorderEventInfoItems = withActivity("event-info-items.reorderEventInfoItems", reorderEventInfoItemsImpl);

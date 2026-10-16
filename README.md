@@ -173,6 +173,53 @@ Database: run `lib/sql/tickets-setup.ts` (shown on the Tickets page), then
 optional, creates `tzkrti_webhook_events`). The Tickets page shows a
 **Tzkrti connection** card with the address to give Tzkrti and delivery counts.
 
+## Activity log (every action, successful or not)
+
+`/activity` (Super Admin) lists everything that happens on the admin and its
+integrations, newest first, with who, what, outcome and duration. The Change
+Log answers "what changed"; the Activity Log answers "what was attempted".
+
+What is recorded, and where it comes from:
+
+| Kind | Source | Recorded by |
+| --- | --- | --- |
+| Action | every exported function in `actions/*.ts` (104 of them) | `withActivity()` in `lib/with-activity.ts`, applied at the bottom of each file |
+| Sign-in | `login` / `logout`, with the email attempted | same wrapper, `kind: "auth"` |
+| API call | `/api/tzkrti/webhook` (`/api/version` is polled by every tab and is deliberately excluded) | `withRouteActivity()` in `lib/with-route-activity.ts` |
+| Page view | every GET that reaches the app, plus requests turned away (not signed in, wrong level) | `proxy.ts` → `lib/activity-edge.ts` |
+| Server error | any unhandled error in a page, action or route | `instrumentation.ts` (`onRequestError`) |
+| Browser error | uncaught errors and rejected promises in the admin UI | `components/layout/ClientErrorReporter.tsx` → `POST /api/client-log` |
+
+Each entry is written twice: a JSON line through `pino` (`lib/logger.ts`),
+visible in Vercel → Logs (filter on `activity.name`), and a row in
+`public.activity_logs` (`lib/sql/activity-logs-setup.ts`; service role only),
+written after the response is sent so logging never slows a save.
+
+Arguments are summarised, not copied: ids and field names are kept, values
+under keys that look like secrets (`password`, `token`, `qr_token`, …) and
+token-shaped strings are replaced with `[redacted]`, form values are never
+stored. A `{ success: false }` result counts as **Failed**, a guard refusal as
+**Denied**, a thrown error as **Error**; `redirect()` and `notFound()` count
+as success. Reading the Activity Log page is itself not logged.
+
+Rules for new code: export actions through `withActivity("file.name", impl)`;
+wrap new route handlers with `withRouteActivity`; never put a raw secret in
+`meta`. Set `LOG_LEVEL` (default `info`) to `debug` or `warn` per environment.
+
+## Security notes (16 Oct 2026)
+
+- The anon (publishable) key is visible in the website and app bundles by
+  design. What it can do is decided by RLS and grants, nothing else.
+- The bare-name content views (`speakers`, `agenda_sessions`, …) are
+  SECURITY DEFINER with a SECURITY DEFINER write-redirect trigger. They had
+  INSERT/UPDATE/DELETE granted to `anon` and `authenticated`, so the public key
+  could edit event content. Migration
+  `harden_public_roles_content_views_and_ticket_rpcs` revoked those grants and
+  the public EXECUTE on the admin-only ticket RPCs. Any new view or RPC must
+  get the same treatment: grant only what the website/app actually calls.
+- This repo is public. Keep it that way only if nothing but `.env.example`
+  ever carries configuration; secrets live in Vercel.
+
 ## Swapping in generated types
 
 Once you've run `supabase login` and `supabase link --project-ref

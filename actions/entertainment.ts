@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -12,13 +14,13 @@ import { revalidateWebsite } from "@/lib/website-revalidate";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getEntertainment(): Promise<Entertainment[]> {
+async function getEntertainmentImpl(): Promise<Entertainment[]> {
   await assertStaff();
   const supabase = createAdminClient();
   return fetchAll<Entertainment>(supabase, "entertainment", { column: "sort_order" });
 }
 
-export async function createEntertainment(values: unknown): Promise<ActionResult> {
+async function createEntertainmentImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = EntertainmentSchema.safeParse(values);
@@ -48,7 +50,7 @@ export async function createEntertainment(values: unknown): Promise<ActionResult
   }
 }
 
-export async function updateEntertainment(id: number, values: unknown): Promise<ActionResult> {
+async function updateEntertainmentImpl(id: number, values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = EntertainmentSchema.safeParse(values);
@@ -81,7 +83,7 @@ export async function updateEntertainment(id: number, values: unknown): Promise<
   }
 }
 
-export async function deleteEntertainment(id: number): Promise<ActionResult> {
+async function deleteEntertainmentImpl(id: number): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -104,7 +106,7 @@ export async function deleteEntertainment(id: number): Promise<ActionResult> {
   }
 }
 
-export async function reorderEntertainment(orderedIds: number[]): Promise<ActionResult> {
+async function reorderEntertainmentImpl(orderedIds: number[]): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -133,3 +135,10 @@ export async function reorderEntertainment(orderedIds: number[]): Promise<Action
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getEntertainment = withActivity("entertainment.getEntertainment", getEntertainmentImpl);
+export const createEntertainment = withActivity("entertainment.createEntertainment", createEntertainmentImpl);
+export const updateEntertainment = withActivity("entertainment.updateEntertainment", updateEntertainmentImpl);
+export const deleteEntertainment = withActivity("entertainment.deleteEntertainment", deleteEntertainmentImpl);
+export const reorderEntertainment = withActivity("entertainment.reorderEntertainment", reorderEntertainmentImpl);

@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidateWebsite } from "@/lib/website-revalidate";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -12,13 +14,13 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getSpeakers(): Promise<Speaker[]> {
+async function getSpeakersImpl(): Promise<Speaker[]> {
   await assertStaff();
   const supabase = createAdminClient();
   return fetchAll<Speaker>(supabase, "speakers", { column: "handle" });
 }
 
-export async function createSpeaker(values: unknown): Promise<ActionResult> {
+async function createSpeakerImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = SpeakerSchema.safeParse(values);
@@ -44,7 +46,7 @@ export async function createSpeaker(values: unknown): Promise<ActionResult> {
   }
 }
 
-export async function updateSpeaker(handle: string, values: unknown): Promise<ActionResult> {
+async function updateSpeakerImpl(handle: string, values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = SpeakerSchema.safeParse(values);
@@ -78,7 +80,7 @@ export async function updateSpeaker(handle: string, values: unknown): Promise<Ac
   }
 }
 
-export async function deleteSpeaker(handle: string): Promise<ActionResult> {
+async function deleteSpeakerImpl(handle: string): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -101,7 +103,7 @@ export async function deleteSpeaker(handle: string): Promise<ActionResult> {
   }
 }
 
-export async function setSpeakerArchived(handle: string, archived: boolean): Promise<ActionResult> {
+async function setSpeakerArchivedImpl(handle: string, archived: boolean): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -129,3 +131,10 @@ export async function setSpeakerArchived(handle: string, archived: boolean): Pro
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getSpeakers = withActivity("speakers.getSpeakers", getSpeakersImpl);
+export const createSpeaker = withActivity("speakers.createSpeaker", createSpeakerImpl);
+export const updateSpeaker = withActivity("speakers.updateSpeaker", updateSpeakerImpl);
+export const deleteSpeaker = withActivity("speakers.deleteSpeaker", deleteSpeakerImpl);
+export const setSpeakerArchived = withActivity("speakers.setSpeakerArchived", setSpeakerArchivedImpl);

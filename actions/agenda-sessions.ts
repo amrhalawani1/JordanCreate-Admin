@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidateWebsite } from "@/lib/website-revalidate";
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -19,13 +21,13 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getAgendaSessions(): Promise<AgendaSession[]> {
+async function getAgendaSessionsImpl(): Promise<AgendaSession[]> {
   await assertStaff();
   const supabase = createAdminClient();
   return fetchAll<AgendaSession>(supabase, "agenda_sessions", { column: "sort_order" });
 }
 
-export async function getAgendaFormOptions(): Promise<{
+async function getAgendaFormOptionsImpl(): Promise<{
   speakers: Speaker[];
   tags: InterestTag[];
   socialLinks: SpeakerSocialLink[];
@@ -40,7 +42,7 @@ export async function getAgendaFormOptions(): Promise<{
   return { speakers, tags, socialLinks };
 }
 
-export async function createAgendaSession(values: unknown): Promise<ActionResult> {
+async function createAgendaSessionImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = AgendaSessionSchema.safeParse(values);
@@ -70,7 +72,7 @@ export async function createAgendaSession(values: unknown): Promise<ActionResult
   }
 }
 
-export async function updateAgendaSession(sessionId: string, values: unknown): Promise<ActionResult> {
+async function updateAgendaSessionImpl(sessionId: string, values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = AgendaSessionSchema.safeParse(values);
@@ -107,7 +109,7 @@ export async function updateAgendaSession(sessionId: string, values: unknown): P
   }
 }
 
-export async function deleteAgendaSession(sessionId: string): Promise<ActionResult> {
+async function deleteAgendaSessionImpl(sessionId: string): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -133,7 +135,7 @@ export async function deleteAgendaSession(sessionId: string): Promise<ActionResu
   }
 }
 
-export async function setAgendaSessionArchived(
+async function setAgendaSessionArchivedImpl(
   sessionId: string,
   archived: boolean,
 ): Promise<ActionResult> {
@@ -170,7 +172,7 @@ export async function setAgendaSessionArchived(
   }
 }
 
-export async function reorderAgendaSessions(orderedIds: string[]): Promise<ActionResult> {
+async function reorderAgendaSessionsImpl(orderedIds: string[]): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -199,3 +201,12 @@ export async function reorderAgendaSessions(orderedIds: string[]): Promise<Actio
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getAgendaSessions = withActivity("agenda-sessions.getAgendaSessions", getAgendaSessionsImpl);
+export const getAgendaFormOptions = withActivity("agenda-sessions.getAgendaFormOptions", getAgendaFormOptionsImpl);
+export const createAgendaSession = withActivity("agenda-sessions.createAgendaSession", createAgendaSessionImpl);
+export const updateAgendaSession = withActivity("agenda-sessions.updateAgendaSession", updateAgendaSessionImpl);
+export const deleteAgendaSession = withActivity("agenda-sessions.deleteAgendaSession", deleteAgendaSessionImpl);
+export const setAgendaSessionArchived = withActivity("agenda-sessions.setAgendaSessionArchived", setAgendaSessionArchivedImpl);
+export const reorderAgendaSessions = withActivity("agenda-sessions.reorderAgendaSessions", reorderAgendaSessionsImpl);

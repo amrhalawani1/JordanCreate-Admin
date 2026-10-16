@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -11,13 +13,13 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getPartners(): Promise<Partner[]> {
+async function getPartnersImpl(): Promise<Partner[]> {
   await assertStaff();
   const supabase = createAdminClient();
   return fetchAll<Partner>(supabase, "partners", { column: "sort_order" });
 }
 
-export async function createPartner(values: unknown): Promise<ActionResult> {
+async function createPartnerImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = PartnerSchema.safeParse(values);
@@ -42,7 +44,7 @@ export async function createPartner(values: unknown): Promise<ActionResult> {
   }
 }
 
-export async function updatePartner(id: number, values: unknown): Promise<ActionResult> {
+async function updatePartnerImpl(id: number, values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = PartnerSchema.safeParse(values);
@@ -74,7 +76,7 @@ export async function updatePartner(id: number, values: unknown): Promise<Action
   }
 }
 
-export async function deletePartner(id: number): Promise<ActionResult> {
+async function deletePartnerImpl(id: number): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -96,7 +98,7 @@ export async function deletePartner(id: number): Promise<ActionResult> {
   }
 }
 
-export async function setPartnerArchived(id: number, archived: boolean): Promise<ActionResult> {
+async function setPartnerArchivedImpl(id: number, archived: boolean): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -126,7 +128,7 @@ export async function setPartnerArchived(id: number, archived: boolean): Promise
   }
 }
 
-export async function reorderPartners(orderedIds: number[]): Promise<ActionResult> {
+async function reorderPartnersImpl(orderedIds: number[]): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -149,3 +151,11 @@ export async function reorderPartners(orderedIds: number[]): Promise<ActionResul
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getPartners = withActivity("partners.getPartners", getPartnersImpl);
+export const createPartner = withActivity("partners.createPartner", createPartnerImpl);
+export const updatePartner = withActivity("partners.updatePartner", updatePartnerImpl);
+export const deletePartner = withActivity("partners.deletePartner", deletePartnerImpl);
+export const setPartnerArchived = withActivity("partners.setPartnerArchived", setPartnerArchivedImpl);
+export const reorderPartners = withActivity("partners.reorderPartners", reorderPartnersImpl);

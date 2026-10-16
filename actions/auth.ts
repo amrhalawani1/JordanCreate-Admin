@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -15,7 +17,7 @@ const LoginSchema = z.object({
 
 export type LoginState = { error?: string } | undefined;
 
-export async function login(_prevState: LoginState, formData: FormData): Promise<LoginState> {
+async function loginImpl(_prevState: LoginState, formData: FormData): Promise<LoginState> {
   const parsed = LoginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -51,10 +53,14 @@ export async function login(_prevState: LoginState, formData: FormData): Promise
   redirect(homePath(profile.admin_level));
 }
 
-export async function logout() {
+async function logoutImpl() {
   const cookieStore = await cookies();
   cookieStore.delete(VIEW_AS_COOKIE);
   const supabase = await createServerSupabaseClient();
   await supabase.auth.signOut();
   redirect("/login");
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const login = withActivity("auth.login", loginImpl, { kind: "auth", summarize: ([, formData]) => ({ email: String(formData.get("email") ?? "").trim().toLowerCase() }) });
+export const logout = withActivity("auth.logout", logoutImpl, { kind: "auth" });

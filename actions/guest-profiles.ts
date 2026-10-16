@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -11,13 +13,13 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getGuestProfiles(): Promise<GuestProfile[]> {
+async function getGuestProfilesImpl(): Promise<GuestProfile[]> {
   await assertGuestEditor();
   const supabase = createAdminClient();
   return fetchAll<GuestProfile>(supabase, "guest_profiles", { column: "guest_name" });
 }
 
-export async function createGuestProfile(values: unknown): Promise<ActionResult> {
+async function createGuestProfileImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireGuestEditor();
   if (!gate.ok) return gate;
   const parsed = GuestProfileSchema.safeParse(values);
@@ -47,7 +49,7 @@ export async function createGuestProfile(values: unknown): Promise<ActionResult>
   }
 }
 
-export async function updateGuestProfile(guestId: string, values: unknown): Promise<ActionResult> {
+async function updateGuestProfileImpl(guestId: string, values: unknown): Promise<ActionResult> {
   const gate = await requireGuestEditor();
   if (!gate.ok) return gate;
   const parsed = GuestProfileSchema.safeParse(values);
@@ -83,7 +85,7 @@ export async function updateGuestProfile(guestId: string, values: unknown): Prom
   }
 }
 
-export async function deleteGuestProfile(guestId: string): Promise<ActionResult> {
+async function deleteGuestProfileImpl(guestId: string): Promise<ActionResult> {
   const gate = await requireGuestEditor();
   if (!gate.ok) return gate;
   try {
@@ -107,3 +109,9 @@ export async function deleteGuestProfile(guestId: string): Promise<ActionResult>
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getGuestProfiles = withActivity("guest-profiles.getGuestProfiles", getGuestProfilesImpl);
+export const createGuestProfile = withActivity("guest-profiles.createGuestProfile", createGuestProfileImpl);
+export const updateGuestProfile = withActivity("guest-profiles.updateGuestProfile", updateGuestProfileImpl);
+export const deleteGuestProfile = withActivity("guest-profiles.deleteGuestProfile", deleteGuestProfileImpl);

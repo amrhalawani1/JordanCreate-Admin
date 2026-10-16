@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertStaff, requireStaff } from "@/lib/auth/guard";
@@ -44,7 +46,7 @@ async function guestDeviceTokens(
   return { guestName: guest.guest_name ?? "that guest", tokens: (devices ?? []).map((row) => row.token) };
 }
 
-export async function getBroadcasts(): Promise<{ rows: BroadcastListItem[]; deviceCount: number; error?: string }> {
+async function getBroadcastsImpl(): Promise<{ rows: BroadcastListItem[]; deviceCount: number; error?: string }> {
   try {
     await assertStaff();
     const supabase = createAdminClient();
@@ -70,7 +72,7 @@ export async function getBroadcasts(): Promise<{ rows: BroadcastListItem[]; devi
   }
 }
 
-export async function sendBroadcast(values: unknown): Promise<SendBroadcastResult> {
+async function sendBroadcastImpl(values: unknown): Promise<SendBroadcastResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
 
@@ -171,3 +173,7 @@ export async function sendBroadcast(values: unknown): Promise<SendBroadcastResul
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getBroadcasts = withActivity("broadcasts.getBroadcasts", getBroadcastsImpl);
+export const sendBroadcast = withActivity("broadcasts.sendBroadcast", sendBroadcastImpl);

@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchByPk, insertRow, updateRow, deleteRow } from "@/lib/supabase-crud";
@@ -26,7 +28,7 @@ function saveError(err: unknown) {
 }
 
 /** Newest first, featured on top, matching the order on jordancreate.com/community. */
-export async function getCommunityArticles(): Promise<CommunityArticle[]> {
+async function getCommunityArticlesImpl(): Promise<CommunityArticle[]> {
   await assertStaff();
   const supabase = createAdminClient();
   const { data, error } = await supabase
@@ -39,7 +41,7 @@ export async function getCommunityArticles(): Promise<CommunityArticle[]> {
   return (data ?? []) as CommunityArticle[];
 }
 
-export async function createCommunityArticle(values: unknown): Promise<ActionResult> {
+async function createCommunityArticleImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = CommunityArticleSchema.safeParse(values);
@@ -65,7 +67,7 @@ export async function createCommunityArticle(values: unknown): Promise<ActionRes
   }
 }
 
-export async function updateCommunityArticle(id: string, values: unknown): Promise<ActionResult> {
+async function updateCommunityArticleImpl(id: string, values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = CommunityArticleSchema.safeParse(values);
@@ -98,7 +100,7 @@ export async function updateCommunityArticle(id: string, values: unknown): Promi
   }
 }
 
-export async function deleteCommunityArticle(id: string): Promise<ActionResult> {
+async function deleteCommunityArticleImpl(id: string): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   try {
@@ -120,3 +122,9 @@ export async function deleteCommunityArticle(id: string): Promise<ActionResult> 
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getCommunityArticles = withActivity("community-articles.getCommunityArticles", getCommunityArticlesImpl);
+export const createCommunityArticle = withActivity("community-articles.createCommunityArticle", createCommunityArticleImpl);
+export const updateCommunityArticle = withActivity("community-articles.updateCommunityArticle", updateCommunityArticleImpl);
+export const deleteCommunityArticle = withActivity("community-articles.deleteCommunityArticle", deleteCommunityArticleImpl);

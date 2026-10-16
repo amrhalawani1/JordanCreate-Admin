@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidateWebsite } from "@/lib/website-revalidate";
 import { liveTable } from "@/lib/live-tables";
 import { revalidatePath } from "next/cache";
@@ -13,13 +15,13 @@ import type { SpeakerSocialLink, SpeakerSocialLinkInsert } from "@/types/entitie
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getSpeakerSocialLinks(): Promise<SpeakerSocialLink[]> {
+async function getSpeakerSocialLinksImpl(): Promise<SpeakerSocialLink[]> {
   await assertStaff();
   const supabase = createAdminClient();
   return fetchAll<SpeakerSocialLink>(supabase, "speaker_social_links", { column: "sort_order" });
 }
 
-export async function replaceSpeakerSocialLinks(
+async function replaceSpeakerSocialLinksImpl(
   speakerHandle: string,
   values: unknown,
 ): Promise<ActionResult> {
@@ -74,3 +76,7 @@ export async function replaceSpeakerSocialLinks(
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getSpeakerSocialLinks = withActivity("speaker-social-links.getSpeakerSocialLinks", getSpeakerSocialLinksImpl);
+export const replaceSpeakerSocialLinks = withActivity("speaker-social-links.replaceSpeakerSocialLinks", replaceSpeakerSocialLinksImpl);

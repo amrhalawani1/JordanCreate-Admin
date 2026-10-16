@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, updateRow } from "@/lib/supabase-crud";
@@ -11,14 +13,14 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getEventInfo(): Promise<EventInfo | null> {
+async function getEventInfoImpl(): Promise<EventInfo | null> {
   await assertStaff();
   const supabase = createAdminClient();
   const rows = await fetchAll<EventInfo>(supabase, "event_info");
   return rows[0] ?? null;
 }
 
-export async function updateEventInfo(values: unknown): Promise<ActionResult> {
+async function updateEventInfoImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = EventInfoSchema.safeParse(values);
@@ -52,7 +54,7 @@ export async function updateEventInfo(values: unknown): Promise<ActionResult> {
 }
 
 /** Sets (or clears, with null) the venue map picture the app shows on its Venue screen. */
-export async function setVenueMap(url: string | null): Promise<ActionResult> {
+async function setVenueMapImpl(url: string | null): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const value = url?.trim() || null;
@@ -84,3 +86,8 @@ export async function setVenueMap(url: string | null): Promise<ActionResult> {
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getEventInfo = withActivity("event-info.getEventInfo", getEventInfoImpl);
+export const updateEventInfo = withActivity("event-info.updateEventInfo", updateEventInfoImpl);
+export const setVenueMap = withActivity("event-info.setVenueMap", setVenueMapImpl);

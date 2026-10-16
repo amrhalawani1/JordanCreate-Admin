@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll, fetchByPk, updateRow } from "@/lib/supabase-crud";
@@ -11,14 +13,14 @@ import { logChange } from "@/lib/audit";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getBrandVoice(): Promise<BrandVoice | null> {
+async function getBrandVoiceImpl(): Promise<BrandVoice | null> {
   await assertStaff();
   const supabase = createAdminClient();
   const rows = await fetchAll<BrandVoice>(supabase, "brand_voice");
   return rows[0] ?? null;
 }
 
-export async function updateBrandVoice(values: unknown): Promise<ActionResult> {
+async function updateBrandVoiceImpl(values: unknown): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
   const parsed = BrandVoiceSchema.safeParse(values);
@@ -50,3 +52,7 @@ export async function updateBrandVoice(values: unknown): Promise<ActionResult> {
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getBrandVoice = withActivity("brand-voice.getBrandVoice", getBrandVoiceImpl);
+export const updateBrandVoice = withActivity("brand-voice.updateBrandVoice", updateBrandVoiceImpl);

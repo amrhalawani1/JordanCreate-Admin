@@ -28,6 +28,7 @@ const TABLE_EXPORT_TITLES: Record<string, string> = {
   admins: "Admin Management",
   feature_requests: "Feature Requests",
   change_logs: "Change Log",
+  activity_logs: "Activity Log",
   community_articles: "Community Articles",
 };
 

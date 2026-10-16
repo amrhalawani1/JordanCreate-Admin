@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { assertStaff } from "@/lib/auth/guard";
 import { readAnalyticsConfig } from "@/lib/analytics/config";
 import { AnalyticsError } from "@/lib/analytics/errors";
@@ -34,7 +36,7 @@ function failure(err: unknown): AnalyticsFailure {
   };
 }
 
-export async function getAnalyticsSnapshot(rangeKey: string): Promise<SnapshotResult> {
+async function getAnalyticsSnapshotImpl(rangeKey: string): Promise<SnapshotResult> {
   await assertStaff();
   const config = readAnalyticsConfig();
   if (!config.ok) return { status: "not-configured", missing: config.missing, problem: config.problem };
@@ -46,7 +48,7 @@ export async function getAnalyticsSnapshot(rangeKey: string): Promise<SnapshotRe
   }
 }
 
-export async function getRealtimeAnalytics(): Promise<RealtimeResult> {
+async function getRealtimeAnalyticsImpl(): Promise<RealtimeResult> {
   await assertStaff();
   const config = readAnalyticsConfig();
   if (!config.ok) return { status: "not-configured" };
@@ -56,3 +58,7 @@ export async function getRealtimeAnalytics(): Promise<RealtimeResult> {
     return failure(err);
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getAnalyticsSnapshot = withActivity("analytics.getAnalyticsSnapshot", getAnalyticsSnapshotImpl);
+export const getRealtimeAnalytics = withActivity("analytics.getRealtimeAnalytics", getRealtimeAnalyticsImpl);

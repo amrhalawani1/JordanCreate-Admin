@@ -1,5 +1,7 @@
 "use server";
 
+import { withActivity } from "@/lib/with-activity";
+
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fetchAll } from "@/lib/supabase-crud";
@@ -11,13 +13,13 @@ import type { GuestSocialLink, GuestSocialLinkInsert } from "@/types/entities";
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function getGuestSocialLinks(): Promise<GuestSocialLink[]> {
+async function getGuestSocialLinksImpl(): Promise<GuestSocialLink[]> {
   await assertGuestEditor();
   const supabase = createAdminClient();
   return fetchAll<GuestSocialLink>(supabase, "guest_social_links", { column: "sort_order" });
 }
 
-export async function replaceGuestSocialLinks(guestId: string, values: unknown): Promise<ActionResult> {
+async function replaceGuestSocialLinksImpl(guestId: string, values: unknown): Promise<ActionResult> {
   const gate = await requireGuestEditor();
   if (!gate.ok) return gate;
   const parsed = parseSocialLinkDrafts(values);
@@ -65,3 +67,7 @@ export async function replaceGuestSocialLinks(guestId: string, values: unknown):
     return { success: false, error: getReadableError(err) };
   }
 }
+
+// Every action is recorded in the activity log (lib/with-activity.ts): who, what, outcome, duration.
+export const getGuestSocialLinks = withActivity("guest-social-links.getGuestSocialLinks", getGuestSocialLinksImpl);
+export const replaceGuestSocialLinks = withActivity("guest-social-links.replaceGuestSocialLinks", replaceGuestSocialLinksImpl);
